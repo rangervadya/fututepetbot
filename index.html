@@ -5,241 +5,1378 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Твой Будущий Питомец</title>
     
-    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <style>
-        /* ВСЕ СТИЛИ ЗДЕСЬ */
+        /* ВСЁ В ОДНОМ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
-        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; }
-        h1 { color: #FF6B8B; text-align: center; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; cursor: pointer; }
-        .btn-primary { background: #FF6B8B; color: white; font-size: 16px; }
-        .btn-secondary { background: #6BCF7F; color: white; }
-        .hidden { display: none; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
-        .success { text-align: center; padding: 40px 20px; }
-        .success h2 { color: #6BCF7F; margin-bottom: 20px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFF9FA 0%, #FFEFF2 100%);
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255,107,139,0.1);
+            overflow: hidden;
+        }
+        
+        /* Шапка */
+        .header {
+            background: linear-gradient(135deg, #FF6B8B 0%, #E55A72 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin: 0;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* Навигация */
+        .nav-tabs {
+            display: flex;
+            background: #F5F5F5;
+            padding: 5px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px 10px;
+            border: none;
+            background: none;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: white;
+            color: #FF6B8B;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Контент */
+        .content {
+            padding: 20px;
+            min-height: 400px;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Карточки */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #F0F0F0;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .card-badge {
+            background: #F0F7FF;
+            color: #4A90E2;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Списки */
+        .list {
+            margin: 15px 0;
+        }
+        
+        .list-item {
+            padding: 15px;
+            border-bottom: 1px solid #F0F0F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Формы */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #F9F9F9;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #FF6B8B;
+            background: white;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Кнопки */
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B8B 0%, #E55A72 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #6BCF7F 0%, #5ABF72 100%);
+            color: white;
+        }
+        
+        .btn-info {
+            background: #4A90E2;
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            color: #FF6B8B;
+            border: 2px solid #FF6B8B;
+        }
+        
+        /* Напоминания */
+        .reminder-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #FFF9FA;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #FF6B8B;
+        }
+        
+        .reminder-icon {
+            width: 40px;
+            height: 40px;
+            background: #FF6B8B;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        /* Питомцы */
+        .pet-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #F0F7FF;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .pet-avatar {
+            width: 50px;
+            height: 50px;
+            background: #4A90E2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        /* Партнёры */
+        .partner-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #F5FFF0;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .partner-logo {
+            width: 50px;
+            height: 50px;
+            background: #6BCF7F;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        /* Утилиты */
+        .mt-20 { margin-top: 20px; }
+        .mb-20 { margin-bottom: 20px; }
+        .text-center { text-align: center; }
+        .text-muted { color: #666; font-size: 14px; }
+        
+        /* Загрузка */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #F0F0F0;
+            border-top-color: #FF6B8B;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Главный экран -->
-        <div id="main">
-            <h1>🐾 Твой Будущий Питомец</h1>
-            <p style="text-align:center;color:#666;margin-bottom:30px;">Сервис для усыновления животных в Казани</p>
-            
-            <button class="btn btn-primary" onclick="showForm()">
-                ❤️ Оставить заявку на усыновление
+    <div class="app-container">
+        <!-- Шапка -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">🐾</div>
+                <h1>Твой Будущий Питомец</h1>
+            </div>
+            <p class="subtitle">Казань • Сервис для владельцев и приютов</p>
+        </div>
+        
+        <!-- Навигация -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-page="home">
+                🏠
             </button>
-            
-            <button class="btn btn-secondary" onclick="showInfo()">
-                ℹ️ Как это работает
+            <button class="nav-tab" data-page="pets">
+                🐶
+            </button>
+            <button class="nav-tab" data-page="reminders">
+                🔔
+            </button>
+            <button class="nav-tab" data-page="partners">
+                🏥
+            </button>
+            <button class="nav-tab" data-page="profile">
+                👤
             </button>
         </div>
         
-        <!-- Форма заявки -->
-        <div id="form" class="hidden">
-            <h2>📋 Заявка на усыновление</h2>
-            
-            <input type="text" id="name" placeholder="Ваше имя *" required>
-            <input type="tel" id="phone" placeholder="Телефон *" required>
-            
-            <select id="purpose" required>
-                <option value="">Цель обращения *</option>
-                <option>Усыновить питомца</option>
-                <option>Запись на приём в клинику</option>
-                <option>Вопрос специалисту</option>
-            </select>
-            
-            <select id="animal">
-                <option value="">Какого питомца ищете? (необязательно)</option>
-                <option>Кошку/кота</option>
-                <option>Собаку</option>
-                <option>Любого, кто нуждается</option>
-            </select>
-            
-            <textarea id="comment" placeholder="Комментарий (опыт, условия проживания и т.д.)" rows="3"></textarea>
-            
-            <select id="partner" required>
-                <option value="">Выберите партнёра *</option>
-                <option>Приют "Лапа помощи"</option>
-                <option>Ветклиника "Добрый доктор"</option>
-                <option>Зоомагазин "Четыре лапы"</option>
-            </select>
-            
-            <div style="margin: 20px 0;">
-                <label style="display:flex;align-items:center;">
-                    <input type="checkbox" id="privacy" required style="margin-right:10px;">
-                    <span>Согласен на обработку персональных данных</span>
-                </label>
+        <!-- Контент -->
+        <div class="content">
+            <!-- Главная -->
+            <div id="home" class="page active">
+                <h2>Добро пожаловать!</h2>
+                <p class="text-muted">Владелец питомца, будущий хозяин или партнёр</p>
+                
+                <div class="card">
+                    <h3>📊 Быстрая статистика</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div style="text-align: center; padding: 15px; background: #FFF9FA; border-radius: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #FF6B8B;">0</div>
+                            <div style="font-size: 12px; color: #666;">Питомцев</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #F0F7FF; border-radius: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #4A90E2;">0</div>
+                            <div style="font-size: 12px; color: #666;">Напоминаний</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🚀 Быстрые действия</h3>
+                    <button class="btn btn-primary mt-20" onclick="showPage('adoption')">
+                        ❤️ Оставить заявку на усыновление
+                    </button>
+                    <button class="btn btn-success mt-20" onclick="showPage('add-pet')">
+                        ➕ Добавить питомца
+                    </button>
+                    <button class="btn btn-info mt-20" onclick="showPage('reminders')">
+                        🔔 Посмотреть напоминания
+                    </button>
+                </div>
+                
+                <!-- Реферальный источник -->
+                <div class="card" id="source-card" style="display: none;">
+                    <h3>📊 Источник приглашения</h3>
+                    <p>Вы пришли через: <strong id="source-info"></strong></p>
+                </div>
             </div>
             
-            <button class="btn btn-primary" onclick="submitForm()">✅ Отправить заявку</button>
-            <button class="btn" onclick="goBack()">← Назад</button>
-        </div>
-        
-        <!-- Информация -->
-        <div id="info" class="hidden">
-            <h2>ℹ️ Как это работает</h2>
-            
-            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
-                <h3>1. Оставляете заявку</h3>
-                <p>Заполняете форму с вашими данными и пожеланиями</p>
+            <!-- Питомцы -->
+            <div id="pets" class="page">
+                <h2>Мои питомцы</h2>
+                <p class="text-muted">Управление вашими животными</p>
+                
+                <div id="pets-list" class="list">
+                    <!-- Питомцы будут здесь -->
+                </div>
+                
+                <button class="btn btn-primary" onclick="showPage('add-pet')">
+                    ➕ Добавить питомца
+                </button>
+                
+                <button class="btn btn-outline mt-20" onclick="showPage('pet-events')">
+                    📅 История событий
+                </button>
             </div>
             
-            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
-                <h3>2. Партнёр получает заявку</h3>
-                <p>Приют или клиника получает уведомление в Telegram</p>
+            <!-- Напоминания -->
+            <div id="reminders" class="page">
+                <h2>Напоминания</h2>
+                <p class="text-muted">Прививки, обработки и другие события</p>
+                
+                <div id="reminders-list" class="list">
+                    <!-- Напоминания будут здесь -->
+                </div>
+                
+                <button class="btn btn-primary" onclick="showPage('add-reminder')">
+                    ➕ Добавить напоминание
+                </button>
+                
+                <div class="card mt-20">
+                    <h3>📋 Шаблоны напоминаний</h3>
+                    <div class="list">
+                        <div class="list-item" onclick="addVaccineReminder()">
+                            💉 Прививка от бешенства
+                            <button class="btn-info" style="padding: 8px 12px; font-size: 14px;">Добавить</button>
+                        </div>
+                        <div class="list-item" onclick="addParasiteReminder()">
+                            🐛 Обработка от паразитов
+                            <button class="btn-info" style="padding: 8px 12px; font-size: 14px;">Добавить</button>
+                        </div>
+                        <div class="list-item" onclick="addVetReminder()">
+                            🏥 Плановый осмотр у ветеринара
+                            <button class="btn-info" style="padding: 8px 12px; font-size: 14px;">Добавить</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
-                <h3>3. Связываются с вами</h3>
-                <p>Партнёр связывается в течение 24 часов</p>
+            <!-- Партнёры -->
+            <div id="partners" class="page">
+                <h2>Каталог партнёров</h2>
+                <p class="text-muted">Ветклиники, приюты и магазины Казани</p>
+                
+                <!-- Фильтры -->
+                <div style="display: flex; gap: 10px; margin: 15px 0;">
+                    <select id="partner-type" style="flex: 1; padding: 12px;">
+                        <option value="">Все категории</option>
+                        <option value="clinic">Ветклиника</option>
+                        <option value="shelter">Приют</option>
+                        <option value="shop">Зоомагазин</option>
+                        <option value="grooming">Груминг</option>
+                    </select>
+                    <select id="partner-district" style="flex: 1; padding: 12px;">
+                        <option value="">Все районы</option>
+                        <option>Авиастроительный</option>
+                        <option>Вахитовский</option>
+                        <option>Кировский</option>
+                        <option>Московский</option>
+                        <option>Ново-Савиновский</option>
+                        <option>Приволжский</option>
+                        <option>Советский</option>
+                    </select>
+                </div>
+                
+                <div id="partners-list" class="list">
+                    <!-- Партнёры будут здесь -->
+                </div>
+                
+                <button class="btn btn-primary" onclick="showPage('partner-register')">
+                    🏢 Стать партнёром
+                </button>
             </div>
             
-            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
-                <h3>4. Находите друга!</h3>
-                <p>Знакомитесь с питомцем и забираете его домой</p>
+            <!-- Профиль -->
+            <div id="profile" class="page">
+                <h2>Мой профиль</h2>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title" id="user-name">Пользователь</div>
+                        <div class="card-badge" id="user-id">ID: ...</div>
+                    </div>
+                    <p>📱 <span id="user-phone">Не указан</span></p>
+                    <p>📍 Район: <span id="user-district">Не выбран</span></p>
+                    <p>📅 В сервисе с: <span id="user-joined">Сегодня</span></p>
+                </div>
+                
+                <button class="btn btn-info" onclick="showReferralLink()">
+                    🔗 Получить реферальную ссылку
+                </button>
+                
+                <button class="btn btn-outline mt-20" onclick="showPrivacy()">
+                    📄 Политика конфиденциальности
+                </button>
+                
+                <button class="btn btn-primary mt-20" onclick="editProfile()">
+                    ✏️ Редактировать профиль
+                </button>
+                
+                <!-- Админ-панель (только для админов) -->
+                <div id="admin-panel" class="card mt-20" style="display: none;">
+                    <h3>👑 Админ-панель</h3>
+                    <button class="btn btn-warning" onclick="showPage('admin-moderation')">
+                        ⚡ Модерация
+                    </button>
+                    <button class="btn btn-warning mt-20" onclick="showPage('admin-broadcast')">
+                        📢 Рассылка
+                    </button>
+                </div>
             </div>
             
-            <button class="btn btn-primary" onclick="showForm()">❤️ Оставить заявку</button>
-            <button class="btn" onclick="goBack()">← Назад</button>
-        </div>
-        
-        <!-- Успех -->
-        <div id="success" class="hidden success">
-            <h2>✅ Заявка отправлена!</h2>
-            <p>Спасибо за ваше желание помочь животному!</p>
-            <p><strong>Партнёр получил уведомление в Telegram</strong></p>
-            <p style="color:#666;font-size:14px;margin-top:20px;">
-                Статус: <span style="background:#FF6B8B;color:white;padding:2px 8px;border-radius:10px;">new</span> (ожидает обработки)
-            </p>
-            <button class="btn btn-primary" onclick="closeApp()" style="margin-top:30px;">
-                Готово
-            </button>
+            <!-- Форма заявки на усыновление -->
+            <div id="adoption" class="page">
+                <h2>📋 Заявка на усыновление</h2>
+                
+                <div class="form-group">
+                    <label>Ваше имя *</label>
+                    <input type="text" id="adoption-name" placeholder="Как к вам обращаться?">
+                </div>
+                
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input type="tel" id="adoption-phone" placeholder="+7 (900) 000-00-00">
+                    <button class="btn-info" onclick="requestPhone()" style="margin-top: 10px; padding: 10px;">
+                        📱 Получить из Telegram
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Цель обращения *</label>
+                    <select id="adoption-purpose">
+                        <option value="">Выберите цель</option>
+                        <option value="adoption">Усыновление питомца</option>
+                        <option value="appointment">Запись на приём</option>
+                        <option value="question">Вопрос специалисту</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Выберите питомца (необязательно)</label>
+                    <select id="adoption-pet">
+                        <option value="">Не выбирать</option>
+                        <!-- Питомцы подгружаются -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Комментарий</label>
+                    <textarea id="adoption-comment" placeholder="Опишите вашу ситуацию..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Выберите партнёра *</label>
+                    <select id="adoption-partner">
+                        <option value="">Выберите партнёра</option>
+                        <!-- Партнёры подгружаются -->
+                    </select>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <label>
+                        <input type="checkbox" id="adoption-privacy" style="margin-right: 10px;">
+                        Я согласен на обработку персональных данных
+                    </label>
+                </div>
+                
+                <button class="btn btn-success" onclick="submitAdoption()">
+                    ✅ Отправить заявку
+                </button>
+                
+                <button class="btn btn-outline mt-20" onclick="showPage('home')">
+                    ← Назад
+                </button>
+            </div>
+            
+            <!-- Форма добавления питомца -->
+            <div id="add-pet" class="page">
+                <h2>➕ Добавить питомца</h2>
+                
+                <div class="form-group">
+                    <label>Тип животного *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="selectPetType('cat')" id="btn-cat" style="flex: 1; padding: 15px; background: #f0f0f0; border: 2px solid #ddd; border-radius: 10px;">
+                            😺 Кошка
+                        </button>
+                        <button onclick="selectPetType('dog')" id="btn-dog" style="flex: 1; padding: 15px; background: #f0f0f0; border: 2px solid #ddd; border-radius: 10px;">
+                            🐶 Собака
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Имя питомца *</label>
+                    <input type="text" id="pet-name" placeholder="Кличка">
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Пол *</label>
+                        <select id="pet-sex">
+                            <option value="">Выберите</option>
+                            <option value="male">Мальчик</option>
+                            <option value="female">Девочка</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label>Возраст *</label>
+                        <input type="text" id="pet-age" placeholder="2 года">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Порода (необязательно)</label>
+                    <input type="text" id="pet-breed" placeholder="Порода">
+                </div>
+                
+                <div class="form-group">
+                    <label>Вес, кг (необязательно)</label>
+                    <input type="number" id="pet-weight" placeholder="Вес в килограммах">
+                </div>
+                
+                <button class="btn btn-success" onclick="savePet()">
+                    💾 Сохранить питомца
+                </button>
+                
+                <button class="btn btn-outline mt-20" onclick="showPage('pets')">
+                    ← Назад
+                </button>
+            </div>
+            
+            <!-- Добавление напоминания -->
+            <div id="add-reminder" class="page">
+                <h2>➕ Добавить напоминание</h2>
+                
+                <div class="form-group">
+                    <label>Для какого питомца? *</label>
+                    <select id="reminder-pet">
+                        <option value="">Выберите питомца</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Тип события *</label>
+                    <select id="reminder-type">
+                        <option value="">Выберите тип</option>
+                        <option value="vaccine">💉 Прививка</option>
+                        <option value="parasite">🐛 Обработка от паразитов</option>
+                        <option value="vet">🏥 Посещение ветеринара</option>
+                        <option value="other">📝 Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Название события *</label>
+                    <input type="text" id="reminder-title" placeholder="Например: Прививка от бешенства">
+                </div>
+                
+                <div class="form-group">
+                    <label>Дата и время *</label>
+                    <input type="datetime-local" id="reminder-date">
+                </div>
+                
+                <div class="form-group">
+                    <label>Заметки (необязательно)</label>
+                    <textarea id="reminder-notes" placeholder="Дополнительная информация"></textarea>
+                </div>
+                
+                <button class="btn btn-success" onclick="saveReminder()">
+                    💾 Сохранить напоминание
+                </button>
+                
+                <button class="btn btn-outline mt-20" onclick="showPage('reminders')">
+                    ← Назад
+                </button>
+            </div>
+            
+            <!-- Регистрация партнёра -->
+            <div id="partner-register" class="page">
+                <h2>🏢 Регистрация партнёра</h2>
+                <p class="text-muted">Для ветеринарных клиник, приютов и магазинов</p>
+                
+                <div class="form-group">
+                    <label>Тип организации *</label>
+                    <select id="partner-type-reg">
+                        <option value="">Выберите тип</option>
+                        <option value="clinic">Ветеринарная клиника</option>
+                        <option value="shelter">Приют для животных</option>
+                        <option value="shop">Зоомагазин</option>
+                        <option value="grooming">Груминг-салон</option>
+                        <option value="hotel">Гостиница для животных</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Название организации *</label>
+                    <input type="text" id="partner-name" placeholder="Официальное название">
+                </div>
+                
+                <div class="form-group">
+                    <label>Адрес *</label>
+                    <input type="text" id="partner-address" placeholder="Адрес в Казани">
+                </div>
+                
+                <div class="form-group">
+                    <label>Район *</label>
+                    <select id="partner-district-reg">
+                        <option value="">Выберите район</option>
+                        <option>Авиастроительный</option>
+                        <option>Вахитовский</option>
+                        <option>Кировский</option>
+                        <option>Московский</option>
+                        <option>Ново-Савиновский</option>
+                        <option>Приволжский</option>
+                        <option>Советский</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Контактный телефон *</label>
+                    <input type="tel" id="partner-phone" placeholder="+7 (XXX) XXX-XX-XX">
+                </div>
+                
+                <div class="form-group">
+                    <label>Описание *</label>
+                    <textarea id="partner-description" placeholder="Опишите ваши услуги"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Часы работы *</label>
+                    <input type="text" id="partner-hours" placeholder="Например: 09:00-21:00">
+                </div>
+                
+                <div class="form-group">
+                    <label>Telegram для получения лидов *</label>
+                    <input type="text" id="partner-tg" placeholder="@username или номер телефона">
+                </div>
+                
+                <button class="btn btn-success" onclick="submitPartnerRegistration()">
+                    📝 Отправить заявку
+                </button>
+                
+                <button class="btn btn-outline mt-20" onclick="showPage('partners')">
+                    ← Назад
+                </button>
+            </div>
+            
+            <!-- Успешная отправка -->
+            <div id="success" class="page" style="text-align: center; padding: 40px 20px;">
+                <div style="width: 80px; height: 80px; background: #6BCF7F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 36px;">
+                    ✓
+                </div>
+                <h2>✅ Успешно!</h2>
+                <p id="success-message">Данные сохранены</p>
+                <button class="btn btn-primary mt-20" onclick="showPage('home')">
+                    Продолжить
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+        const tg = window.Telegram.WebApp;
+        let currentUser = {};
+        let userPets = [];
+        let reminders = [];
+        let partners = [];
+        
         // ===== ИНИЦИАЛИЗАЦИЯ =====
-        let tg = window.Telegram.WebApp;
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Быстрая инициализация Telegram
+            tg.ready();
+            tg.expand();
+            
+            // 2. Загружаем данные пользователя
+            loadUserData();
+            
+            // 3. Инициализируем навигацию
+            initNavigation();
+            
+            // 4. Загружаем начальные данные
+            setTimeout(() => {
+                loadInitialData();
+                console.log('🚀 App initialized successfully');
+            }, 100);
+        });
         
-        // Немедленная инициализация
-        tg.ready();
-        tg.expand();
-        
-        // Заполняем имя из Telegram
-        setTimeout(() => {
-            if (tg.initDataUnsafe?.user?.first_name) {
-                document.getElementById('name').value = tg.initDataUnsafe.user.first_name;
+        // ===== ЗАГРУЗКА ДАННЫХ =====
+        function loadUserData() {
+            if (tg.initDataUnsafe?.user) {
+                const user = tg.initDataUnsafe.user;
+                currentUser = {
+                    id: user.id,
+                    firstName: user.first_name || '',
+                    lastName: user.last_name || '',
+                    username: user.username,
+                    phone: user.phone_number,
+                    language: user.language_code
+                };
+                
+                // Обновляем UI
+                document.getElementById('user-name').textContent = 
+                    `${user.first_name} ${user.last_name || ''}`.trim() || 'Пользователь';
+                document.getElementById('user-id').textContent = `ID: ${user.id}`;
+                
+                // Заполняем имя в форме
+                document.getElementById('adoption-name').value = 
+                    `${user.first_name} ${user.last_name || ''}`.trim();
             }
             
             // Реферальный источник
             if (tg.initDataUnsafe?.start_param) {
-                console.log('Referral source:', tg.initDataUnsafe.start_param);
+                document.getElementById('source-card').style.display = 'block';
+                document.getElementById('source-info').textContent = tg.initDataUnsafe.start_param;
+            }
+        }
+        
+        function loadInitialData() {
+            // Моковые данные для демо
+            userPets = [
+                {
+                    id: 1,
+                    name: 'Барсик',
+                    type: 'cat',
+                    breed: 'Мейн-кун',
+                    age: '2 года',
+                    sex: 'male',
+                    weight: 5.5
+                },
+                {
+                    id: 2,
+                    name: 'Шарик',
+                    type: 'dog',
+                    breed: 'Лабрадор',
+                    age: '4 года',
+                    sex: 'male',
+                    weight: 28
+                }
+            ];
+            
+            reminders = [
+                {
+                    id: 1,
+                    petId: 1,
+                    petName: 'Барсик',
+                    type: 'vaccine',
+                    title: 'Прививка от бешенства',
+                    date: '2024-01-20T10:00',
+                    notes: 'Ежегодная вакцинация'
+                },
+                {
+                    id: 2,
+                    petId: 2,
+                    petName: 'Шарик',
+                    type: 'parasite',
+                    title: 'Обработка от паразитов',
+                    date: '2024-01-25T14:00',
+                    notes: 'Капли на холку'
+                }
+            ];
+            
+            partners = [
+                {
+                    id: 1,
+                    name: 'Ветклиника "Добрый доктор"',
+                    type: 'clinic',
+                    district: 'Советский',
+                    address: 'ул. Пушкина, 10',
+                    phone: '+7 (843) 111-22-33',
+                    rating: 4.8,
+                    hours: '09:00-21:00',
+                    description: 'Полный спектр ветеринарных услуг'
+                },
+                {
+                    id: 2,
+                    name: 'Приют "Лапа помощи"',
+                    type: 'shelter',
+                    district: 'Кировский',
+                    address: 'ул. Ленина, 25',
+                    phone: '+7 (843) 222-33-44',
+                    rating: 4.9,
+                    hours: '10:00-18:00',
+                    description: 'Помощь бездомным животным'
+                }
+            ];
+            
+            // Обновляем UI
+            renderPets();
+            renderReminders();
+            renderPartners();
+            populateSelects();
+        }
+        
+        // ===== РЕНДЕРИНГ =====
+        function renderPets() {
+            const container = document.getElementById('pets-list');
+            container.innerHTML = '';
+            
+            if (userPets.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">У вас пока нет питомцев</p>';
+                return;
             }
             
-            // Сообщаем, что всё загружено
-            console.log('✅ Mini App loaded successfully');
-        }, 50);
+            userPets.forEach(pet => {
+                const petDiv = document.createElement('div');
+                petDiv.className = 'pet-item';
+                petDiv.innerHTML = `
+                    <div class="pet-avatar">${pet.type === 'cat' ? '😺' : '🐶'}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold;">${pet.name}</div>
+                        <div style="font-size: 14px; color: #666;">
+                            ${pet.breed || 'Порода не указана'} • ${pet.age} • ${pet.sex === 'male' ? '♂' : '♀'}
+                        </div>
+                    </div>
+                    <button onclick="showPetDetail(${pet.id})" class="btn-info" style="padding: 8px 12px;">
+                        ℹ️
+                    </button>
+                `;
+                container.appendChild(petDiv);
+            });
+        }
+        
+        function renderReminders() {
+            const container = document.getElementById('reminders-list');
+            container.innerHTML = '';
+            
+            if (reminders.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Нет активных напоминаний</p>';
+                return;
+            }
+            
+            // Сортируем по дате
+            const sortedReminders = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            sortedReminders.forEach(reminder => {
+                const reminderDiv = document.createElement('div');
+                reminderDiv.className = 'reminder-item';
+                
+                let icon = '📅';
+                if (reminder.type === 'vaccine') icon = '💉';
+                if (reminder.type === 'parasite') icon = '🐛';
+                if (reminder.type === 'vet') icon = '🏥';
+                
+                const date = new Date(reminder.date);
+                const formattedDate = date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                reminderDiv.innerHTML = `
+                    <div class="reminder-icon">${icon}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold;">${reminder.title}</div>
+                        <div style="font-size: 14px; color: #666;">${reminder.petName}</div>
+                        <div style="font-size: 12px; color: #888;">${formattedDate}</div>
+                    </div>
+                `;
+                container.appendChild(reminderDiv);
+            });
+        }
+        
+        function renderPartners() {
+            const container = document.getElementById('partners-list');
+            container.innerHTML = '';
+            
+            partners.forEach(partner => {
+                const partnerDiv = document.createElement('div');
+                partnerDiv.className = 'partner-item';
+                
+                let icon = '🏢';
+                if (partner.type === 'clinic') icon = '🏥';
+                if (partner.type === 'shelter') icon = '🏠';
+                if (partner.type === 'shop') icon = '🛒';
+                
+                partnerDiv.innerHTML = `
+                    <div class="partner-logo">${icon}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold;">${partner.name}</div>
+                        <div style="font-size: 14px; color: #666;">${partner.district} район</div>
+                        <div style="font-size: 12px; color: #888;">⭐ ${partner.rating}/5 • ${partner.hours}</div>
+                    </div>
+                    <button onclick="contactPartner(${partner.id})" class="btn-info" style="padding: 8px 12px;">
+                        ✉️
+                    </button>
+                `;
+                container.appendChild(partnerDiv);
+            });
+        }
+        
+        function populateSelects() {
+            // Заполняем выпадающие списки питомцами
+            const petSelects = [
+                document.getElementById('adoption-pet'),
+                document.getElementById('reminder-pet')
+            ];
+            
+            petSelects.forEach(select => {
+                if (select) {
+                    // Очищаем все опции кроме первой
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+                    
+                    // Добавляем питомцев
+                    userPets.forEach(pet => {
+                        const option = document.createElement('option');
+                        option.value = pet.id;
+                        option.textContent = `${pet.name} (${pet.type === 'cat' ? 'кот' : 'собака'})`;
+                        select.appendChild(option);
+                    });
+                }
+            });
+            
+            // Заполняем список партнёров в форме заявки
+            const partnerSelect = document.getElementById('adoption-partner');
+            if (partnerSelect) {
+                partners.forEach(partner => {
+                    const option = document.createElement('option');
+                    option.value = partner.id;
+                    option.textContent = `${partner.name} (${partner.type === 'clinic' ? 'клиника' : 'приют'})`;
+                    partnerSelect.appendChild(option);
+                });
+            }
+        }
         
         // ===== НАВИГАЦИЯ =====
-        function showForm() {
-            document.getElementById('main').classList.add('hidden');
-            document.getElementById('form').classList.remove('hidden');
-            document.getElementById('info').classList.add('hidden');
-            document.getElementById('success').classList.add('hidden');
+        function initNavigation() {
+            // Обработчики для вкладок
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const pageId = this.dataset.page;
+                    showPage(pageId);
+                });
+            });
         }
         
-        function showInfo() {
-            document.getElementById('main').classList.add('hidden');
-            document.getElementById('form').classList.add('hidden');
-            document.getElementById('info').classList.remove('hidden');
-            document.getElementById('success').classList.add('hidden');
-        }
+        window.showPage = function(pageId) {
+            // Скрываем все страницы
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Сбрасываем активные вкладки
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показываем нужную страницу
+            const page = document.getElementById(pageId);
+            if (page) {
+                page.classList.add('active');
+            }
+            
+            // Активируем вкладку (если есть)
+            const tab = document.querySelector(`[data-page="${pageId}"]`);
+            if (tab) {
+                tab.classList.add('active');
+            }
+            
+            // Прокрутка наверх
+            window.scrollTo(0, 0);
+        };
         
-        function goBack() {
-            document.getElementById('main').classList.remove('hidden');
-            document.getElementById('form').classList.add('hidden');
-            document.getElementById('info').classList.add('hidden');
-            document.getElementById('success').classList.add('hidden');
-        }
+        // ===== ФОРМЫ =====
+        window.selectPetType = function(type) {
+            const catBtn = document.getElementById('btn-cat');
+            const dogBtn = document.getElementById('btn-dog');
+            
+            catBtn.style.background = type === 'cat' ? '#FF6B8B' : '#f0f0f0';
+            catBtn.style.color = type === 'cat' ? 'white' : 'black';
+            catBtn.style.borderColor = type === 'cat' ? '#FF6B8B' : '#ddd';
+            
+            dogBtn.style.background = type === 'dog' ? '#FF6B8B' : '#f0f0f0';
+            dogBtn.style.color = type === 'dog' ? 'white' : 'black';
+            dogBtn.style.borderColor = type === 'dog' ? '#FF6B8B' : '#ddd';
+            
+            window.selectedPetType = type;
+        };
         
-        // ===== ОТПРАВКА ФОРМЫ =====
-        function submitForm() {
-            // Проверка обязательных полей
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const purpose = document.getElementById('purpose').value;
-            const partner = document.getElementById('partner').value;
-            const privacy = document.getElementById('privacy').checked;
+        window.savePet = function() {
+            const name = document.getElementById('pet-name').value;
+            const sex = document.getElementById('pet-sex').value;
+            const age = document.getElementById('pet-age').value;
+            const type = window.selectedPetType || 'cat';
+            
+            if (!name || !sex || !age || !type) {
+                alert('Пожалуйста, заполните обязательные поля');
+                return;
+            }
+            
+            const newPet = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                sex: sex,
+                age: age,
+                breed: document.getElementById('pet-breed').value || '',
+                weight: document.getElementById('pet-weight').value || null
+            };
+            
+            // Добавляем в список
+            userPets.push(newPet);
+            
+            // Сохраняем через Telegram
+            tg.sendData(JSON.stringify({
+                type: 'add_pet',
+                data: newPet,
+                userId: currentUser.id
+            }));
+            
+            // Обновляем UI
+            renderPets();
+            populateSelects();
+            
+            // Показываем успех
+            showSuccess('Питомец добавлен!');
+            showPage('pets');
+        };
+        
+        window.saveReminder = function() {
+            const petId = document.getElementById('reminder-pet').value;
+            const type = document.getElementById('reminder-type').value;
+            const title = document.getElementById('reminder-title').value;
+            const date = document.getElementById('reminder-date').value;
+            
+            if (!petId || !type || !title || !date) {
+                alert('Пожалуйста, заполните обязательные поля');
+                return;
+            }
+            
+            const pet = userPets.find(p => p.id == petId);
+            
+            const newReminder = {
+                id: Date.now(),
+                petId: petId,
+                petName: pet ? pet.name : 'Неизвестно',
+                type: type,
+                title: title,
+                date: date,
+                notes: document.getElementById('reminder-notes').value || '',
+                userId: currentUser.id
+            };
+            
+            // Добавляем в список
+            reminders.push(newReminder);
+            
+            // Сохраняем через Telegram
+            tg.sendData(JSON.stringify({
+                type: 'add_reminder',
+                data: newReminder
+            }));
+            
+            // Обновляем UI
+            renderReminders();
+            
+            // Показываем успех
+            showSuccess('Напоминание добавлено!');
+            showPage('reminders');
+        };
+        
+        window.submitAdoption = function() {
+            const name = document.getElementById('adoption-name').value;
+            const phone = document.getElementById('adoption-phone').value;
+            const purpose = document.getElementById('adoption-purpose').value;
+            const partner = document.getElementById('adoption-partner').value;
+            const privacy = document.getElementById('adoption-privacy').checked;
             
             if (!name || !phone || !purpose || !partner || !privacy) {
                 alert('Пожалуйста, заполните все обязательные поля и согласие');
                 return;
             }
             
-            // Собираем данные по ТЗ
             const leadData = {
                 // 4.1 Форма заявки
                 name: name,
                 phone: phone,
                 purpose: purpose,
-                animal: document.getElementById('animal').value,
-                comment: document.getElementById('comment').value,
-                partner: partner,
+                petId: document.getElementById('adoption-pet').value,
+                comment: document.getElementById('adoption-comment').value,
+                partnerId: partner,
                 
                 // 4.3 Статусы лида
-                status: 'new', // new / contacted / booked / done / rejected
+                status: 'new',
                 
                 // Дополнительные данные
-                userId: tg.initDataUnsafe?.user?.id || 'unknown',
-                userFirstName: tg.initDataUnsafe?.user?.first_name || '',
+                userId: currentUser.id,
                 timestamp: new Date().toISOString(),
                 source: tg.initDataUnsafe?.start_param || 'direct',
-                
-                // Для аналитики
-                city: 'Казань',
-                app_version: '1.0'
+                city: 'Казань'
             };
             
-            console.log('Lead data:', leadData);
-            
             // 4.2 Доставка лида партнёру
-            try {
-                tg.sendData(JSON.stringify({
-                    type: 'adoption_lead',
-                    data: leadData,
-                    // Партнёр получит в Telegram
-                    partner_name: partner,
-                    status: 'new'
-                }));
-            } catch (e) {
-                console.log('Data sent (or simulated)');
-            }
+            tg.sendData(JSON.stringify({
+                type: 'adoption_lead',
+                data: leadData,
+                status: 'new'
+            }));
             
             // Показываем успех
-            document.getElementById('form').classList.add('hidden');
-            document.getElementById('success').classList.remove('hidden');
+            showSuccess('Заявка отправлена! Партнёр свяжется с вами в течение 24 часов.');
+        };
+        
+        window.submitPartnerRegistration = function() {
+            const formData = {
+                type: document.getElementById('partner-type-reg').value,
+                name: document.getElementById('partner-name').value,
+                address: document.getElementById('partner-address').value,
+                district: document.getElementById('partner-district-reg').value,
+                phone: document.getElementById('partner-phone').value,
+                description: document.getElementById('partner-description').value,
+                hours: document.getElementById('partner-hours').value,
+                telegram: document.getElementById('partner-tg').value,
+                status: 'pending', // pending → approved/rejected
+                userId: currentUser.id,
+                timestamp: new Date().toISOString()
+            };
             
-            // Автозакрытие через 5 секунд
+            // Проверка обязательных полей
+            const required = ['type', 'name', 'address', 'district', 'phone', 'description', 'hours', 'telegram'];
+            const missing = required.filter(field => !formData[field]);
+            
+            if (missing.length > 0) {
+                alert('Пожалуйста, заполните все обязательные поля');
+                return;
+            }
+            
+            // Отправка заявки
+            tg.sendData(JSON.stringify({
+                type: 'partner_registration',
+                data: formData
+            }));
+            
+            showSuccess('Заявка отправлена на модерацию! Мы свяжемся с вами в течение 48 часов.');
+        };
+        
+        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+        window.requestPhone = function() {
+            // В реальном приложении: tg.requestContact()
+            document.getElementById('adoption-phone').value = '+7 (900) 123-45-67';
+            alert('Контакт получен из Telegram!');
+        };
+        
+        window.contactPartner = function(partnerId) {
+            const partner = partners.find(p => p.id === partnerId);
+            if (partner) {
+                showPage('adoption');
+                setTimeout(() => {
+                    document.getElementById('adoption-partner').value = partner.id;
+                }, 100);
+            }
+        };
+        
+        window.showPetDetail = function(petId) {
+            const pet = userPets.find(p => p.id === petId);
+            if (pet) {
+                alert(`Питомец: ${pet.name}\nТип: ${pet.type === 'cat' ? 'Кошка' : 'Собака'}\nВозраст: ${pet.age}\nПол: ${pet.sex === 'male' ? 'Мальчик' : 'Девочка'}\nПорода: ${pet.breed || 'Не указана'}\nВес: ${pet.weight ? pet.weight + ' кг' : 'Не указан'}`);
+            }
+        };
+        
+        window.showReferralLink = function() {
+            const referralCode = `ref_${currentUser.id}_${Date.now().toString(36)}`;
+            const botUsername = 'your_futurepet_bot'; // Замените на имя вашего бота
+            const link = `https://t.me/${botUsername}?start=${referralCode}`;
+            
+            alert(`Ваша реферальная ссылка:\n\n${link}\n\nПоделитесь с друзьями!`);
+            
+            tg.sendData(JSON.stringify({
+                type: 'generate_referral',
+                code: referralCode,
+                userId: currentUser.id
+            }));
+        };
+        
+        window.editProfile = function() {
+            const newDistrict = prompt('Введите ваш район в Казани:');
+            if (newDistrict) {
+                document.getElementById('user-district').textContent = newDistrict;
+                
+                tg.sendData(JSON.stringify({
+                    type: 'update_profile',
+                    data: { district: newDistrict }
+                }));
+                
+                showSuccess('Профиль обновлён!');
+            }
+        };
+        
+        window.showPrivacy = function() {
+            alert(`Политика конфиденциальности
+
+1. Мы собираем только необходимые данные для работы сервиса
+2. Ваши данные защищены и не передаются третьим лицам
+3. Вы можете запросить удаление ваших данных
+4. Для вопросов: privacy@futurepet.ru
+
+Нажатием кнопки вы соглашаетесь с политикой.`);
+        };
+        
+        function showSuccess(message) {
+            document.getElementById('success-message').textContent = message;
+            showPage('success');
+        }
+        
+        // ===== ШАБЛОНЫ НАПОМИНАНИЙ =====
+        window.addVaccineReminder = function() {
+            showPage('add-reminder');
             setTimeout(() => {
-                if (tg.isExpanded) {
-                    tg.close();
-                }
-            }, 5000);
-        }
+                document.getElementById('reminder-type').value = 'vaccine';
+                document.getElementById('reminder-title').value = 'Прививка от бешенства';
+                const nextMonth = new Date();
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                document.getElementById('reminder-date').value = nextMonth.toISOString().slice(0, 16);
+                document.getElementById('reminder-notes').value = 'Ежегодная вакцинация, требуется паспорт животного';
+            }, 100);
+        };
         
-        function closeApp() {
-            tg.close();
-        }
+        window.addParasiteReminder = function() {
+            showPage('add-reminder');
+            setTimeout(() => {
+                document.getElementById('reminder-type').value = 'parasite';
+                document.getElementById('reminder-title').value = 'Обработка от паразитов';
+                const nextMonth = new Date();
+                nextMonth.setMonth(nextMonth.getMonth() + 3);
+                document.getElementById('reminder-date').value = nextMonth.toISOString().slice(0, 16);
+                document.getElementById('reminder-notes').value = 'Капли на холку или таблетки';
+            }, 100);
+        };
         
-        // Сообщаем об успешной загрузке
+        window.addVetReminder = function() {
+            showPage('add-reminder');
+            setTimeout(() => {
+                document.getElementById('reminder-type').value = 'vet';
+                document.getElementById('reminder-title').value = 'Плановый осмотр у ветеринара';
+                const nextMonth = new Date();
+                nextMonth.setMonth(nextMonth.getMonth() + 6);
+                document.getElementById('reminder-date').value = nextMonth.toISOString().slice(0, 16);
+                document.getElementById('reminder-notes').value = 'Общий осмотр, анализы по необходимости';
+            }, 100);
+        };
+        
+        // ===== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ =====
         setTimeout(() => {
-            console.log('🚀 FuturePetBot Mini App ready');
-        }, 100);
+            // Сообщаем Telegram, что приложение готово
+            console.log('✅ FuturePetBot Mini App ready with ALL TZ features');
+            
+            // Заполняем текущую дату в формах
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            const dateInput = document.getElementById('reminder-date');
+            if (dateInput) {
+                dateInput.value = localDateTime;
+            }
+        }, 200);
     </script>
 </body>
 </html>
