@@ -5,7 +5,7 @@ const CONFIG = {
     VERSION: '1.0.0',
     
     // Telegram настройки
-    BOT_USERNAME: 'your_futurepet_bot', // Имя вашего бота без @
+    BOT_USERNAME: 'yourFuturePetBot', // Имя вашего бота без @
     
     // API настройки (если есть бэкенд)
     API: {
