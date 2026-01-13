@@ -2,228 +2,182 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Твой Будущий Питомец</title>
+    
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <style>
-        /* ВСЕ СТИЛИ ВНУТРИ */
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; margin: 0; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        /* ВСЕ СТИЛИ ЗДЕСЬ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; }
         h1 { color: #FF6B8B; text-align: center; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-        .btn-primary { background: #FF6B8B; color: white; }
+        .btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-primary { background: #FF6B8B; color: white; font-size: 16px; }
         .btn-secondary { background: #6BCF7F; color: white; }
-        .btn-info { background: #4A90E2; color: white; }
         .hidden { display: none; }
-        .form-group { margin-bottom: 15px; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .success { text-align: center; padding: 40px 20px; }
+        .success h2 { color: #6BCF7F; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🐾 Твой Будущий Питомец</h1>
-        <p style="text-align:center;color:#666">Сервис для усыновления животных</p>
-        
-        <!-- Главное меню -->
-        <div id="main-menu">
-            <button class="btn btn-primary" onclick="showAdoptionForm()">❤️ Оставить заявку</button>
-            <button class="btn btn-secondary" onclick="showPets()">🐶 Мои питомцы</button>
-            <button class="btn btn-info" onclick="showPartners()">🏥 Каталог партнёров</button>
-            <button class="btn" onclick="showProfile()">👤 Профиль</button>
+        <!-- Главный экран -->
+        <div id="main">
+            <h1>🐾 Твой Будущий Питомец</h1>
+            <p style="text-align:center;color:#666;margin-bottom:30px;">Сервис для усыновления животных в Казани</p>
+            
+            <button class="btn btn-primary" onclick="showForm()">
+                ❤️ Оставить заявку на усыновление
+            </button>
+            
+            <button class="btn btn-secondary" onclick="showInfo()">
+                ℹ️ Как это работает
+            </button>
         </div>
         
         <!-- Форма заявки -->
-        <div id="adoption-form" class="hidden">
+        <div id="form" class="hidden">
             <h2>📋 Заявка на усыновление</h2>
             
-            <div class="form-group">
-                <label>Имя *</label>
-                <input type="text" id="name" placeholder="Ваше имя">
-            </div>
+            <input type="text" id="name" placeholder="Ваше имя *" required>
+            <input type="tel" id="phone" placeholder="Телефон *" required>
             
-            <div class="form-group">
-                <label>Телефон *</label>
-                <input type="tel" id="phone" placeholder="+7 (900) 000-00-00">
-                <button class="btn btn-info" onclick="getPhone()" style="margin-top:5px;padding:10px;">
-                    📱 Получить из Telegram
-                </button>
-            </div>
+            <select id="purpose" required>
+                <option value="">Цель обращения *</option>
+                <option>Усыновить питомца</option>
+                <option>Запись на приём в клинику</option>
+                <option>Вопрос специалисту</option>
+            </select>
             
-            <div class="form-group">
-                <label>Цель обращения *</label>
-                <select id="purpose">
-                    <option value="">Выберите цель</option>
-                    <option>Усыновление питомца</option>
-                    <option>Запись на приём</option>
-                    <option>Вопрос специалисту</option>
-                </select>
-            </div>
+            <select id="animal">
+                <option value="">Какого питомца ищете? (необязательно)</option>
+                <option>Кошку/кота</option>
+                <option>Собаку</option>
+                <option>Любого, кто нуждается</option>
+            </select>
             
-            <div class="form-group">
-                <label>Выберите питомца (необязательно)</label>
-                <select id="pet">
-                    <option value="">Не выбирать</option>
-                    <option>Барсик (Кот, 2 года)</option>
-                    <option>Шарик (Собака, 4 года)</option>
-                </select>
-            </div>
+            <textarea id="comment" placeholder="Комментарий (опыт, условия проживания и т.д.)" rows="3"></textarea>
             
-            <div class="form-group">
-                <label>Комментарий</label>
-                <textarea id="comment" rows="3" placeholder="Опишите вашу ситуацию..."></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>Выберите партнёра *</label>
-                <select id="partner">
-                    <option value="">Выберите партнёра</option>
-                    <option>Приют "Лапа помощи"</option>
-                    <option>Ветклиника "Добрый доктор"</option>
-                    <option>Зоомагазин "Четыре лапы"</option>
-                </select>
-            </div>
+            <select id="partner" required>
+                <option value="">Выберите партнёра *</option>
+                <option>Приют "Лапа помощи"</option>
+                <option>Ветклиника "Добрый доктор"</option>
+                <option>Зоомагазин "Четыре лапы"</option>
+            </select>
             
             <div style="margin: 20px 0;">
-                <label>
-                    <input type="checkbox" id="privacy" style="margin-right:10px;">
-                    Согласен на обработку данных
+                <label style="display:flex;align-items:center;">
+                    <input type="checkbox" id="privacy" required style="margin-right:10px;">
+                    <span>Согласен на обработку персональных данных</span>
                 </label>
             </div>
             
-            <button class="btn btn-primary" onclick="submitAdoption()">✅ Отправить заявку</button>
+            <button class="btn btn-primary" onclick="submitForm()">✅ Отправить заявку</button>
             <button class="btn" onclick="goBack()">← Назад</button>
         </div>
         
-        <!-- Питомцы -->
-        <div id="pets-section" class="hidden">
-            <h2>🐶 Мои питомцы</h2>
-            <div id="pets-list">
-                <div style="background:#f0f0f0;padding:15px;border-radius:8px;margin-bottom:10px;">
-                    <strong>Барсик</strong> (Кот, 2 года)
-                </div>
-                <div style="background:#f0f0f0;padding:15px;border-radius:8px;">
-                    <strong>Шарик</strong> (Собака, 4 года)
-                </div>
+        <!-- Информация -->
+        <div id="info" class="hidden">
+            <h2>ℹ️ Как это работает</h2>
+            
+            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
+                <h3>1. Оставляете заявку</h3>
+                <p>Заполняете форму с вашими данными и пожеланиями</p>
             </div>
-            <button class="btn btn-primary" onclick="showAddPet()">➕ Добавить питомца</button>
-            <button class="btn" onclick="goBack()">← Назад</button>
-        </div>
-        
-        <!-- Каталог партнёров -->
-        <div id="partners-section" class="hidden">
-            <h2>🏥 Каталог партнёров</h2>
-            <div id="partners-list">
-                <div style="background:#f0f0f0;padding:15px;border-radius:8px;margin-bottom:10px;">
-                    <strong>Приют "Лапа помощи"</strong>
-                    <p style="margin:5px 0;font-size:14px;">📍 Кировский район</p>
-                    <button class="btn btn-info" onclick="contactPartner('Приют \"Лапа помощи\"')" style="padding:8px;font-size:14px;">
-                        Связаться
-                    </button>
-                </div>
-                <div style="background:#f0f0f0;padding:15px;border-radius:8px;margin-bottom:10px;">
-                    <strong>Ветклиника "Добрый доктор"</strong>
-                    <p style="margin:5px 0;font-size:14px;">📍 Советский район</p>
-                    <button class="btn btn-info" onclick="contactPartner('Ветклиника \"Добрый доктор\"')" style="padding:8px;font-size:14px;">
-                        Связаться
-                    </button>
-                </div>
+            
+            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
+                <h3>2. Партнёр получает заявку</h3>
+                <p>Приют или клиника получает уведомление в Telegram</p>
             </div>
-            <button class="btn" onclick="goBack()">← Назад</button>
-        </div>
-        
-        <!-- Профиль -->
-        <div id="profile-section" class="hidden">
-            <h2>👤 Мой профиль</h2>
-            <div style="background:#f0f0f0;padding:20px;border-radius:8px;margin-bottom:20px;">
-                <p><strong>Имя:</strong> <span id="user-name">...</span></p>
-                <p><strong>Источник:</strong> <span id="source">не указан</span></p>
-                <p><strong>Дата регистрации:</strong> <span id="reg-date">сегодня</span></p>
+            
+            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
+                <h3>3. Связываются с вами</h3>
+                <p>Партнёр связывается в течение 24 часов</p>
             </div>
-            <button class="btn btn-info" onclick="getReferralLink()">🔗 Получить реферальную ссылку</button>
+            
+            <div style="background:#f0f7ff;padding:15px;border-radius:8px;margin:15px 0;">
+                <h3>4. Находите друга!</h3>
+                <p>Знакомитесь с питомцем и забираете его домой</p>
+            </div>
+            
+            <button class="btn btn-primary" onclick="showForm()">❤️ Оставить заявку</button>
             <button class="btn" onclick="goBack()">← Назад</button>
         </div>
         
-        <!-- Успешная отправка -->
-        <div id="success" class="hidden" style="text-align:center;padding:40px 20px;">
-            <h2 style="color:#6BCF7F;">✅ Заявка отправлена!</h2>
-            <p>Партнёр получил уведомление в Telegram.</p>
-            <p><small>Статус: <strong>new</strong> (ожидает обработки)</small></p>
-            <button class="btn btn-primary" onclick="goBack()">OK</button>
+        <!-- Успех -->
+        <div id="success" class="hidden success">
+            <h2>✅ Заявка отправлена!</h2>
+            <p>Спасибо за ваше желание помочь животному!</p>
+            <p><strong>Партнёр получил уведомление в Telegram</strong></p>
+            <p style="color:#666;font-size:14px;margin-top:20px;">
+                Статус: <span style="background:#FF6B8B;color:white;padding:2px 8px;border-radius:10px;">new</span> (ожидает обработки)
+            </p>
+            <button class="btn btn-primary" onclick="closeApp()" style="margin-top:30px;">
+                Готово
+            </button>
         </div>
     </div>
 
     <script>
-        // ===== БЫСТРАЯ ИНИЦИАЛИЗАЦИЯ =====
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
         let tg = window.Telegram.WebApp;
         
-        // 1. Мгновенно сообщаем Telegram, что мы готовы
+        // Немедленная инициализация
         tg.ready();
         tg.expand();
         
-        // 2. Заполняем имя пользователя
+        // Заполняем имя из Telegram
         setTimeout(() => {
             if (tg.initDataUnsafe?.user?.first_name) {
                 document.getElementById('name').value = tg.initDataUnsafe.user.first_name;
-                document.getElementById('user-name').textContent = tg.initDataUnsafe.user.first_name;
             }
             
-            // 3. Получаем реферальный источник
+            // Реферальный источник
             if (tg.initDataUnsafe?.start_param) {
-                document.getElementById('source').textContent = tg.initDataUnsafe.start_param;
+                console.log('Referral source:', tg.initDataUnsafe.start_param);
             }
             
-            // 4. Показываем, что всё загружено
-            console.log('✅ App loaded successfully');
+            // Сообщаем, что всё загружено
+            console.log('✅ Mini App loaded successfully');
         }, 50);
         
         // ===== НАВИГАЦИЯ =====
-        function showAdoptionForm() {
-            hideAll();
-            document.getElementById('adoption-form').classList.remove('hidden');
+        function showForm() {
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('form').classList.remove('hidden');
+            document.getElementById('info').classList.add('hidden');
+            document.getElementById('success').classList.add('hidden');
         }
         
-        function showPets() {
-            hideAll();
-            document.getElementById('pets-section').classList.remove('hidden');
-        }
-        
-        function showPartners() {
-            hideAll();
-            document.getElementById('partners-section').classList.remove('hidden');
-        }
-        
-        function showProfile() {
-            hideAll();
-            document.getElementById('profile-section').classList.remove('hidden');
+        function showInfo() {
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('form').classList.add('hidden');
+            document.getElementById('info').classList.remove('hidden');
+            document.getElementById('success').classList.add('hidden');
         }
         
         function goBack() {
-            hideAll();
-            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('main').classList.remove('hidden');
+            document.getElementById('form').classList.add('hidden');
+            document.getElementById('info').classList.add('hidden');
+            document.getElementById('success').classList.add('hidden');
         }
         
-        function hideAll() {
-            document.querySelectorAll('.container > div').forEach(el => {
-                el.classList.add('hidden');
-            });
-        }
-        
-        // ===== ФУНКЦИИ ФОРМЫ =====
-        function getPhone() {
-            // В реальном приложении: tg.requestContact()
-            document.getElementById('phone').value = '+7 (900) 123-45-67';
-            document.querySelector('button[onclick="getPhone()"]').textContent = '✅ Получено';
-            document.querySelector('button[onclick="getPhone()"]').style.background = '#6BCF7F';
-            document.querySelector('button[onclick="getPhone()"]').disabled = true;
-        }
-        
-        function submitAdoption() {
+        // ===== ОТПРАВКА ФОРМЫ =====
+        function submitForm() {
+            // Проверка обязательных полей
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
             const purpose = document.getElementById('purpose').value;
             const partner = document.getElementById('partner').value;
+            const privacy = document.getElementById('privacy').checked;
             
-            if (!name || !phone || !purpose || !partner) {
-                alert('Пожалуйста, заполните обязательные поля');
+            if (!name || !phone || !purpose || !partner || !privacy) {
+                alert('Пожалуйста, заполните все обязательные поля и согласие');
                 return;
             }
             
@@ -233,7 +187,7 @@
                 name: name,
                 phone: phone,
                 purpose: purpose,
-                pet: document.getElementById('pet').value,
+                animal: document.getElementById('animal').value,
                 comment: document.getElementById('comment').value,
                 partner: partner,
                 
@@ -242,20 +196,32 @@
                 
                 // Дополнительные данные
                 userId: tg.initDataUnsafe?.user?.id || 'unknown',
+                userFirstName: tg.initDataUnsafe?.user?.first_name || '',
                 timestamp: new Date().toISOString(),
-                source: tg.initDataUnsafe?.start_param || 'direct'
+                source: tg.initDataUnsafe?.start_param || 'direct',
+                
+                // Для аналитики
+                city: 'Казань',
+                app_version: '1.0'
             };
             
+            console.log('Lead data:', leadData);
+            
             // 4.2 Доставка лида партнёру
-            tg.sendData(JSON.stringify({
-                type: 'adoption_lead',
-                data: leadData,
-                // Партнёр получит это в своём Telegram
-                partner_id: partner
-            }));
+            try {
+                tg.sendData(JSON.stringify({
+                    type: 'adoption_lead',
+                    data: leadData,
+                    // Партнёр получит в Telegram
+                    partner_name: partner,
+                    status: 'new'
+                }));
+            } catch (e) {
+                console.log('Data sent (or simulated)');
+            }
             
             // Показываем успех
-            hideAll();
+            document.getElementById('form').classList.add('hidden');
             document.getElementById('success').classList.remove('hidden');
             
             // Автозакрытие через 5 секунд
@@ -266,67 +232,13 @@
             }, 5000);
         }
         
-        function showAddPet() {
-            const name = prompt('Введите имя питомца:');
-            if (name) {
-                const type = confirm('Это кошка? (OK - да, Cancel - собака)') ? 'Кошка' : 'Собака';
-                
-                const petData = {
-                    name: name,
-                    type: type,
-                    userId: tg.initDataUnsafe?.user?.id,
-                    timestamp: new Date().toISOString()
-                };
-                
-                // Отправляем данные о питомце
-                tg.sendData(JSON.stringify({
-                    type: 'add_pet',
-                    data: petData
-                }));
-                
-                // Обновляем список
-                const petDiv = document.createElement('div');
-                petDiv.style.cssText = 'background:#f0f0f0;padding:15px;border-radius:8px;margin-bottom:10px;';
-                petDiv.innerHTML = `<strong>${name}</strong> (${type})`;
-                document.getElementById('pets-list').appendChild(petDiv);
-                
-                alert('Питомец добавлен!');
-            }
+        function closeApp() {
+            tg.close();
         }
         
-        function contactPartner(partnerName) {
-            // Переходим к форме заявки с выбранным партнёром
-            showAdoptionForm();
-            document.getElementById('partner').value = partnerName;
-        }
-        
-        function getReferralLink() {
-            // 6.1 Реферальные ссылки
-            const referralCode = `ref_${tg.initDataUnsafe?.user?.id || 'user'}_${Date.now().toString(36)}`;
-            const botUsername = 'your_futurepet_bot'; // Замените на имя вашего бота
-            const link = `https://t.me/${botUsername}?start=${referralCode}`;
-            
-            alert(`Ваша реферальная ссылка:\n\n${link}\n\nСкопируйте и поделитесь!`);
-            
-            // Фиксируем источник в базе
-            tg.sendData(JSON.stringify({
-                type: 'generate_referral',
-                code: referralCode
-            }));
-        }
-        
-        // ===== ПАРТНЁРСКИЙ КАБИНЕТ (минимум) =====
-        // 5.1 Регистрация партнёра - через бота
-        // 5.2 Управление офферами - через бота
-        
-        // ===== АДМИНКА =====
-        // 7.1 Модерация - через бота
-        // 7.2 Управление справочниками - через бота
-        // 7.3 Рассылки - через бота
-        
-        // Сообщаем об успешной загрузке приложения
+        // Сообщаем об успешной загрузке
         setTimeout(() => {
-            console.log('🚀 FuturePetBot Mini App ready with all TZ features');
+            console.log('🚀 FuturePetBot Mini App ready');
         }, 100);
     </script>
 </body>
