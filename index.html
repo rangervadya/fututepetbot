@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Твой Будущий Питомец</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FFEFF2 0%, #FFF9FA 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(255, 107, 139, 0.1);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FF6B8B 0%, #E55A72 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+            background: #F9F9F9;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #FF6B8B;
+            background: white;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #6BCF7F 0%, #5ABF72 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-top: 20px;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+        
+        .success {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #6BCF7F;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 40px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-paw"></i>
+            </div>
+            <h1>Твой Будущий Питомец</h1>
+            <p class="subtitle">Заявка на усыновление из приюта</p>
+        </div>
+        
+        <form id="adoptionForm">
+            <div class="form-group">
+                <label for="name">Ваше имя *</label>
+                <input type="text" id="name" required placeholder="Как к вам обращаться?">
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Телефон для связи *</label>
+                <input type="tel" id="phone" required placeholder="+7 (900) 000-00-00">
+            </div>
+            
+            <div class="form-group">
+                <label for="petType">Кого хотите забрать? *</label>
+                <select id="petType" required>
+                    <option value="">Выберите тип животного</option>
+                    <option value="cat">Кошку/кота</option>
+                    <option value="dog">Собаку</option>
+                    <option value="any">Любого, кто нуждается</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="comment">Расскажите о себе и условиях</label>
+                <textarea id="comment" placeholder="Есть ли у вас опыт с животными? Дети? Дом/квартира?"></textarea>
+            </div>
+            
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-paper-plane"></i> Отправить заявку
+            </button>
+        </form>
+        
+        <div id="successMessage" class="success">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2>Заявка отправлена! 🎉</h2>
+            <p>Спасибо за ваше желание помочь!</p>
+            <p>Куратор приюта свяжется с вами в ближайшее время.</p>
+        </div>
+    </div>
+
+    <!-- Подключаем Font Awesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    
+    <script>
+        // Telegram Web App инициализация
+        let tg = window.Telegram.WebApp;
+        
+        // Убеждаемся, что приложение готово
+        tg.ready();
+        
+        // Раскрываем на весь экран
+        tg.expand();
+        
+        // Заполняем имя из Telegram
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Mini App loaded for FuturePetBot');
+            
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                const nameInput = document.getElementById('name');
+                if (nameInput && user.first_name) {
+                    nameInput.value = user.first_name + ' ' + (user.last_name || '');
+                }
+            }
+            
+            // Обработка формы
+            const form = document.getElementById('adoptionForm');
+            const successMessage = document.getElementById('successMessage');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Собираем данные
+                const formData = {
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    petType: document.getElementById('petType').value,
+                    comment: document.getElementById('comment').value,
+                    timestamp: new Date().toISOString(),
+                    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+                };
+                
+                console.log('Form data:', formData);
+                
+                // Показываем успех
+                form.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Отправляем данные в бота
+                tg.sendData(JSON.stringify({
+                    type: 'adoption_form',
+                    data: formData
+                }));
+                
+                // Закрываем через 3 секунды
+                setTimeout(function() {
+                    tg.close();
+                }, 3000);
+            });
+            
+            // Сообщаем Telegram, что всё загружено
+            setTimeout(function() {
+                console.log('App fully initialized');
+            }, 500);
+        });
+        
+        // Обработка ошибок
+        window.addEventListener('error', function(e) {
+            console.error('App error:', e.error);
+            
+            // Показываем простую форму даже при ошибках
+            document.getElementById('adoptionForm').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
