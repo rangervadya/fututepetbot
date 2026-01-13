@@ -4,270 +4,391 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Твой Будущий Питомец</title>
+    
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Конфигурация -->
+    <script src="config.js" defer></script>
+    
+    <!-- Основной скрипт -->
+    <script src="script.js" defer></script>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #FFEFF2 0%, #FFF9FA 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(255, 107, 139, 0.1);
-        }
-        
-        .logo {
+        /* Основные стили будут в style.css */
+        .loading {
             text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #FF6B8B 0%, #E55A72 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 40px;
-        }
-        
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
-        
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #E0E0E0;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-            background: #F9F9F9;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #FF6B8B;
-            background: white;
-        }
-        
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .btn-submit {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #6BCF7F 0%, #5ABF72 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
+            padding: 50px;
             font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s;
-            margin-top: 20px;
-        }
-        
-        .btn-submit:hover {
-            transform: translateY(-2px);
-        }
-        
-        .success {
-            text-align: center;
-            padding: 40px 20px;
-            display: none;
-        }
-        
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #6BCF7F;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 40px;
+            color: #666;
         }
         
         .hidden {
             display: none;
         }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            
-            body {
-                padding: 10px;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-paw"></i>
+    <!-- Главный контейнер -->
+    <div id="app" class="hidden">
+        <!-- Навигация -->
+        <nav class="main-nav">
+            <button class="nav-btn active" data-page="home">
+                <i class="fas fa-home"></i> Главная
+            </button>
+            <button class="nav-btn" data-page="pets">
+                <i class="fas fa-paw"></i> Мои питомцы
+            </button>
+            <button class="nav-btn" data-page="partners">
+                <i class="fas fa-store"></i> Партнёры
+            </button>
+            <button class="nav-btn" data-page="profile">
+                <i class="fas fa-user"></i> Профиль
+            </button>
+        </nav>
+        
+        <!-- Страницы -->
+        <div class="pages-container">
+            <!-- Главная страница -->
+            <div id="home-page" class="page active">
+                <header class="app-header">
+                    <div class="logo">
+                        <i class="fas fa-paw"></i>
+                        <h1>Твой Будущий Питомец</h1>
+                    </div>
+                    <p class="user-greeting" id="userGreeting">Привет!</p>
+                </header>
+                
+                <!-- Ближайшие напоминания -->
+                <section class="reminders-section">
+                    <h2><i class="fas fa-bell"></i> Ближайшие напоминания</h2>
+                    <div class="reminders-list" id="remindersList">
+                        <!-- Динамически загружаемые напоминания -->
+                    </div>
+                </section>
+                
+                <!-- Быстрые действия -->
+                <section class="quick-actions">
+                    <h2>Быстрые действия</h2>
+                    <div class="actions-grid">
+                        <button class="action-btn" onclick="showAdoptionForm()">
+                            <i class="fas fa-heart"></i>
+                            <span>Оставить заявку</span>
+                        </button>
+                        <button class="action-btn" onclick="showPage('pets')">
+                            <i class="fas fa-plus"></i>
+                            <span>Добавить питомца</span>
+                        </button>
+                        <button class="action-btn" onclick="showPage('partners')">
+                            <i class="fas fa-search"></i>
+                            <span>Найти клинику</span>
+                        </button>
+                        <button class="action-btn" onclick="showShelterPets()">
+                            <i class="fas fa-hands-helping"></i>
+                            <span>Питомцы из приютов</span>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Источник (реферальная система) -->
+                <section class="source-info">
+                    <p><i class="fas fa-info-circle"></i> Источник: <span id="sourceInfo">не указан</span></p>
+                </section>
             </div>
-            <h1>Твой Будущий Питомец</h1>
-            <p class="subtitle">Заявка на усыновление из приюта</p>
+            
+            <!-- Питомцы пользователя -->
+            <div id="pets-page" class="page">
+                <div class="page-header">
+                    <button class="back-btn" onclick="showPage('home')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2>Мои питомцы</h2>
+                </div>
+                
+                <div class="pets-list" id="petsList">
+                    <!-- Динамически загружаемые питомцы -->
+                </div>
+                
+                <button class="btn-primary" onclick="showAddPetForm()">
+                    <i class="fas fa-plus"></i> Добавить питомца
+                </button>
+            </div>
+            
+            <!-- Каталог партнёров -->
+            <div id="partners-page" class="page">
+                <div class="page-header">
+                    <button class="back-btn" onclick="showPage('home')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2>Партнёры</h2>
+                </div>
+                
+                <div class="filters">
+                    <select id="partnerTypeFilter">
+                        <option value="">Все категории</option>
+                        <option value="clinic">Ветеринарная клиника</option>
+                        <option value="shelter">Приют</option>
+                        <option value="shop">Зоомагазин</option>
+                        <option value="grooming">Груминг</option>
+                        <option value="hotel">Гостиница для животных</option>
+                    </select>
+                    
+                    <select id="districtFilter">
+                        <option value="">Все районы Казани</option>
+                        <option value="aviastroitelny">Авиастроительный</option>
+                        <option value="vakhitovsky">Вахитовский</option>
+                        <option value="kirovsky">Кировский</option>
+                        <option value="moskovsky">Московский</option>
+                        <option value="novosavinovsky">Ново-Савиновский</option>
+                        <option value="privolzhsky">Приволжский</option>
+                        <option value="sovetsky">Советский</option>
+                    </select>
+                </div>
+                
+                <div class="partners-list" id="partnersList">
+                    <!-- Динамически загружаемые партнёры -->
+                </div>
+            </div>
+            
+            <!-- Профиль пользователя -->
+            <div id="profile-page" class="page">
+                <div class="page-header">
+                    <button class="back-btn" onclick="showPage('home')">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2>Мой профиль</h2>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-data">
+                        <h3 id="userName"></h3>
+                        <p><i class="fas fa-phone"></i> <span id="userPhone"></span></p>
+                        <p><i class="fas fa-map-marker-alt"></i> <span id="userDistrict"></span></p>
+                        <p><i class="fas fa-calendar"></i> В сервисе с <span id="userSince"></span></p>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="profile-btn" onclick="editProfile()">
+                        <i class="fas fa-edit"></i> Редактировать профиль
+                    </button>
+                    <button class="profile-btn" onclick="showPrivacy()">
+                        <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+                    </button>
+                    <button class="profile-btn" onclick="getReferralLink()">
+                        <i class="fas fa-share-alt"></i> Получить реферальную ссылку
+                    </button>
+                    <button class="profile-btn logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
         </div>
         
-        <form id="adoptionForm">
-            <div class="form-group">
-                <label for="name">Ваше имя *</label>
-                <input type="text" id="name" required placeholder="Как к вам обращаться?">
-            </div>
-            
-            <div class="form-group">
-                <label for="phone">Телефон для связи *</label>
-                <input type="tel" id="phone" required placeholder="+7 (900) 000-00-00">
-            </div>
-            
-            <div class="form-group">
-                <label for="petType">Кого хотите забрать? *</label>
-                <select id="petType" required>
-                    <option value="">Выберите тип животного</option>
-                    <option value="cat">Кошку/кота</option>
-                    <option value="dog">Собаку</option>
-                    <option value="any">Любого, кто нуждается</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="comment">Расскажите о себе и условиях</label>
-                <textarea id="comment" placeholder="Есть ли у вас опыт с животными? Дети? Дом/квартира?"></textarea>
-            </div>
-            
-            <button type="submit" class="btn-submit">
-                <i class="fas fa-paper-plane"></i> Отправить заявку
-            </button>
-        </form>
+        <!-- Модальные окна -->
         
-        <div id="successMessage" class="success">
-            <div class="success-icon">
-                <i class="fas fa-check"></i>
+        <!-- Форма заявки (из ТЗ) -->
+        <div id="adoptionModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-heart"></i> Заявка на усыновление</h3>
+                    <button class="close-btn" onclick="closeModal('adoptionModal')">&times;</button>
+                </div>
+                
+                <form id="adoptionForm" class="modal-form">
+                    <div class="form-step active" data-step="1">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Ваше имя *</label>
+                            <input type="text" id="leadName" required 
+                                   placeholder="Как к вам обращаться?">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Телефон *</label>
+                            <div class="phone-input-group">
+                                <input type="tel" id="leadPhone" required 
+                                       placeholder="+7 (900) 000-00-00" readonly>
+                                <button type="button" class="btn-small" onclick="requestPhone()">
+                                    <i class="fas fa-share-alt"></i> Получить из Telegram
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-bullseye"></i> Цель обращения *</label>
+                            <select id="leadPurpose" required>
+                                <option value="">Выберите цель</option>
+                                <option value="appointment">Запись на приём</option>
+                                <option value="question">Вопрос специалисту</option>
+                                <option value="adoption">Усыновление питомца</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        
+                        <button type="button" class="btn-next" onclick="nextFormStep(2)">Далее</button>
+                    </div>
+                    
+                    <div class="form-step" data-step="2">
+                        <div class="form-group">
+                            <label><i class="fas fa-paw"></i> Выберите питомца (необязательно)</label>
+                            <select id="leadPet">
+                                <option value="">Не выбирать</option>
+                                <!-- Динамически заполняется питомцами пользователя -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-comment"></i> Комментарий</label>
+                            <textarea id="leadComment" rows="4" 
+                                      placeholder="Опишите вашу ситуацию, пожелания или вопросы..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-store"></i> Выберите партнёра *</label>
+                            <select id="leadPartner" required>
+                                <option value="">Выберите партнёра</option>
+                                <!-- Динамически заполняется партнёрами -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="leadPrivacy" required>
+                            <label for="leadPrivacy">
+                                Я согласен на обработку персональных данных
+                            </label>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn-prev" onclick="prevFormStep(1)">Назад</button>
+                            <button type="submit" class="btn-submit">
+                                <i class="fas fa-paper-plane"></i> Отправить заявку
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <h2>Заявка отправлена! 🎉</h2>
-            <p>Спасибо за ваше желание помочь!</p>
-            <p>Куратор приюта свяжется с вами в ближайшее время.</p>
+        </div>
+        
+        <!-- Форма добавления питомца -->
+        <div id="addPetModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus"></i> Добавить питомца</h3>
+                    <button class="close-btn" onclick="closeModal('addPetModal')">&times;</button>
+                </div>
+                
+                <form id="addPetForm" class="modal-form">
+                    <div class="form-group">
+                        <label>Тип животного *</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="petType" value="cat" required>
+                                <i class="fas fa-cat"></i> Кошка
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="petType" value="dog" required>
+                                <i class="fas fa-dog"></i> Собака
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Имя питомца *</label>
+                        <input type="text" id="petName" required placeholder="Кличка питомца">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Пол *</label>
+                            <select id="petSex" required>
+                                <option value="">Выберите</option>
+                                <option value="male">Мальчик</option>
+                                <option value="female">Девочка</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Возраст *</label>
+                            <input type="text" id="petAge" required placeholder="Например: 2 года">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Порода</label>
+                        <input type="text" id="petBreed" placeholder="Порода (если известна)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Вес (кг)</label>
+                        <input type="number" id="petWeight" step="0.1" placeholder="Вес в кг">
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Сохранить питомца
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Реферальная ссылка -->
+        <div id="referralModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-share-alt"></i> Ваша реферальная ссылка</h3>
+                    <button class="close-btn" onclick="closeModal('referralModal')">&times;</button>
+                </div>
+                
+                <div class="referral-content">
+                    <p>Поделитесь этой ссылкой с друзьями:</p>
+                    <div class="referral-link" id="referralLink">
+                        <code>t.me/ваш_бот?start=ref_123456</code>
+                    </div>
+                    <button class="btn-copy" onclick="copyReferralLink()">
+                        <i class="fas fa-copy"></i> Копировать ссылку
+                    </button>
+                    
+                    <div class="referral-stats">
+                        <h4>Ваша статистика:</h4>
+                        <p>👥 Приглашено: <strong>0</strong> человек</p>
+                        <p>🐾 Усыновлено через вас: <strong>0</strong> питомцев</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Сообщение об успехе -->
+        <div id="successModal" class="modal hidden">
+            <div class="modal-content success-content">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Успешно!</h3>
+                <p id="successMessage">Данные сохранены</p>
+                <button class="btn-ok" onclick="closeModal('successModal')">OK</button>
+            </div>
+        </div>
+        
+        <!-- Загрузка -->
+        <div id="loading" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p>Загрузка...</p>
         </div>
     </div>
-
-    <!-- Подключаем Font Awesome -->
-    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
     
+    <!-- Инициализация -->
     <script>
-        // Telegram Web App инициализация
-        let tg = window.Telegram.WebApp;
-        
-        // Убеждаемся, что приложение готово
-        tg.ready();
-        
-        // Раскрываем на весь экран
-        tg.expand();
-        
-        // Заполняем имя из Telegram
+        // Базовая инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Mini App loaded for FuturePetBot');
-            
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                const nameInput = document.getElementById('name');
-                if (nameInput && user.first_name) {
-                    nameInput.value = user.first_name + ' ' + (user.last_name || '');
-                }
-            }
-            
-            // Обработка формы
-            const form = document.getElementById('adoptionForm');
-            const successMessage = document.getElementById('successMessage');
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Собираем данные
-                const formData = {
-                    name: document.getElementById('name').value,
-                    phone: document.getElementById('phone').value,
-                    petType: document.getElementById('petType').value,
-                    comment: document.getElementById('comment').value,
-                    timestamp: new Date().toISOString(),
-                    userId: tg.initDataUnsafe?.user?.id || 'unknown'
-                };
-                
-                console.log('Form data:', formData);
-                
-                // Показываем успех
-                form.style.display = 'none';
-                successMessage.style.display = 'block';
-                
-                // Отправляем данные в бота
-                tg.sendData(JSON.stringify({
-                    type: 'adoption_form',
-                    data: formData
-                }));
-                
-                // Закрываем через 3 секунды
-                setTimeout(function() {
-                    tg.close();
-                }, 3000);
-            });
-            
-            // Сообщаем Telegram, что всё загружено
-            setTimeout(function() {
-                console.log('App fully initialized');
-            }, 500);
-        });
-        
-        // Обработка ошибок
-        window.addEventListener('error', function(e) {
-            console.error('App error:', e.error);
-            
-            // Показываем простую форму даже при ошибках
-            document.getElementById('adoptionForm').style.display = 'block';
+            const app = document.getElementById('app');
+            app.classList.remove('hidden');
+            console.log('App initialized');
         });
     </script>
 </body>
