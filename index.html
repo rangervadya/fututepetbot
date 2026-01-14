@@ -1654,7 +1654,6 @@
         let currentMode = 'user'; // 'user' или 'partner'
         let currentUser = {};
         let userPets = []; // Питомцы текущего пользователя
-        let shelterPets = []; // Питомцы всех приютов/организаций
         let allPets = []; // ВСЕ питомцы в системе (глобальные)
         let partners = []; // Все зарегистрированные партнёры
         let userPhotos = [];
@@ -1698,7 +1697,7 @@
             const storageKey = getUserStorageKey(key);
             try {
                 localStorage.setItem(storageKey, JSON.stringify(data));
-                console.log(`✅ Сохранено пользовательское: ${storageKey}`);
+                console.log(`✅ Сохранено пользовательское: ${storageKey}`, data);
                 return true;
             } catch (e) {
                 console.error('❌ Ошибка сохранения:', e);
@@ -1745,7 +1744,51 @@
             }
         }
         
-        // Сохранить ВСЕ данные (личные + глобальные)
+        // ИНИЦИАЛИЗАЦИЯ ХРАНИЛИЩА - ФИКСИРОВАННАЯ ВЕРСИЯ
+        function initStorage() {
+            try {
+                const userId = getUserId();
+                
+                // Загружаем личные данные пользователя
+                currentMode = loadUserData('mode', 'user');
+                const userPetsData = loadUserData('user_pets', []);
+                reminders = loadUserData('reminders', []);
+                
+                // Загружаем ГЛОБАЛЬНЫЕ данные
+                allPets = loadGlobalData('all_pets', []);
+                partners = loadGlobalData('partners', []);
+                
+                // Обновляем userPets из глобальных данных (для отображения)
+                userPets = allPets.filter(pet => pet.ownerId === userId);
+                
+                // Восстанавливаем время последнего сохранения
+                const lastSave = localStorage.getItem(getUserStorageKey('last_save'));
+                if (lastSave) {
+                    lastSaveTime = new Date(lastSave);
+                }
+                
+                console.log('📂 ИНИЦИАЛИЗИРОВАНЫ ДАННЫЕ:', {
+                    userPets: userPets.length,
+                    allPets: allPets.length,
+                    partners: partners.length,
+                    reminders: reminders.length,
+                    mode: currentMode,
+                    userId: userId,
+                    lastSave: lastSaveTime ? lastSaveTime.toLocaleTimeString() : 'никогда'
+                });
+                
+                updateStorageStatus();
+                updatePartnerStatus();
+                updateReminderFab();
+                return true;
+            } catch (e) {
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при инициализации хранилища:', e);
+                showNotification('Ошибка загрузки данных', 'error');
+                return false;
+            }
+        }
+        
+        // Сохранить ВСЕ данные (личные + глобальные) - ФИКСИРОВАННАЯ ВЕРСИЯ
         function saveAllData() {
             try {
                 const userId = getUserId();
@@ -1753,26 +1796,23 @@
                 // Сохраняем личные данные пользователя
                 const userSuccess = [
                     saveUserData('mode', currentMode),
-                    saveUserData('user_pets', userPets.filter(p => p.ownerId === userId)),
-                    saveUserData('profile', currentUser),
                     saveUserData('reminders', reminders)
                 ].every(result => result === true);
                 
                 // Сохраняем ГЛОБАЛЬНЫЕ данные (все питомцы и партнёры)
                 const globalSuccess = [
                     saveGlobalData('all_pets', allPets),
-                    saveGlobalData('shelter_pets', shelterPets),
                     saveGlobalData('partners', partners)
                 ].every(result => result === true);
                 
                 if (userSuccess && globalSuccess) {
                     lastSaveTime = new Date();
                     localStorage.setItem(getUserStorageKey('last_save'), lastSaveTime.toISOString());
-                    console.log('💾 Все данные сохранены в', lastSaveTime.toLocaleTimeString());
-                    console.log('📊 Статистика:', {
-                        userPets: userPets.filter(p => p.ownerId === userId).length,
+                    
+                    console.log('💾 ВСЕ ДАННЫЕ УСПЕШНО СОХРАНЕНЫ в', lastSaveTime.toLocaleTimeString());
+                    console.log('📊 СТАТИСТИКА:', {
+                        userPets: userPets.length,
                         allPets: allPets.length,
-                        shelterPets: shelterPets.length,
                         partners: partners.length,
                         reminders: reminders.length
                     });
@@ -1786,57 +1826,8 @@
                 }
                 return false;
             } catch (e) {
-                console.error('❌ Ошибка при сохранении всех данных:', e);
-                showNotification('Ошибка сохранения данных', 'error');
-                return false;
-            }
-        }
-        
-        // Загрузить ВСЕ данные
-        function loadAllData() {
-            try {
-                const userId = getUserId();
-                
-                // Загружаем личные данные пользователя
-                currentMode = loadUserData('mode', 'user');
-                const userPetsData = loadUserData('user_pets', []);
-                reminders = loadUserData('reminders', []);
-                
-                // Загружаем ГЛОБАЛЬНЫЕ данные
-                shelterPets = loadGlobalData('shelter_pets', []);
-                allPets = loadGlobalData('all_pets', []);
-                partners = loadGlobalData('partners', []);
-                
-                // Объединяем личные питомцы пользователя с глобальными
-                userPets = userPetsData.map(pet => ({
-                    ...pet,
-                    ownerId: pet.ownerId || userId
-                }));
-                
-                // Восстанавливаем время последнего сохранения
-                const lastSave = localStorage.getItem(getUserStorageKey('last_save'));
-                if (lastSave) {
-                    lastSaveTime = new Date(lastSave);
-                }
-                
-                console.log('📂 Данные загружены:', {
-                    userPets: userPets.filter(p => p.ownerId === userId).length,
-                    shelterPets: shelterPets.length,
-                    allPets: allPets.length,
-                    partners: partners.length,
-                    reminders: reminders.length,
-                    mode: currentMode,
-                    lastSave: lastSaveTime ? lastSaveTime.toLocaleTimeString() : 'никогда'
-                });
-                
-                updateStorageStatus();
-                updatePartnerStatus();
-                updateReminderFab();
-                updateNavigation();
-                return true;
-            } catch (e) {
-                console.error('❌ Ошибка при загрузке всех данных:', e);
-                showNotification('Ошибка загрузки данных', 'error');
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при сохранении всех данных:', e);
+                showNotification('Критическая ошибка сохранения', 'error');
                 return false;
             }
         }
@@ -2263,7 +2254,7 @@
             showPage(currentMode + '-home');
         }
         
-        // ===== ИСПРАВЛЕНИЕ СОХРАНЕНИЯ ОРГАНИЗАЦИИ =====
+        // ===== ИСПРАВЛЕНИЕ СОХРАНЕНИЯ ОРГАНИЗАЦИИ И ПИТОМЦЕВ =====
         
         // Обновить статус партнёра
         function updatePartnerStatus() {
@@ -2302,7 +2293,7 @@
             const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
             
             if (shelterPetCount) {
-                const userShelterPets = shelterPets.filter(pet => pet.ownerId === userId);
+                const userShelterPets = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
                 shelterPetCount.textContent = userShelterPets.length;
                 shelterAdoptedCount.textContent = userShelterPets.filter(p => p.status === 'adopted').length;
             }
@@ -2401,8 +2392,8 @@
             // 2. Инициализация пользователя
             initializeUser();
             
-            // 3. Загрузка всех данных
-            loadAllData();
+            // 3. Инициализация хранилища (ФИКСИРОВАННАЯ ВЕРСИЯ)
+            initStorage();
             
             // 4. Инициализация навигации
             updateNavigation();
@@ -2520,7 +2511,7 @@
         
         // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
         function initForms() {
-            // Форма пользователя
+            // Форма пользователя - ФИКСИРОВАННАЯ
             const userForm = document.getElementById('userAddPetForm');
             if (userForm) {
                 userForm.addEventListener('submit', function(e) {
@@ -2545,15 +2536,16 @@
                         updatedAt: new Date().toISOString()
                     };
                     
-                    // Сохраняем в личные данные пользователя
-                    userPets.push(newPet);
+                    console.log('📝 Создание нового питомца:', newPet);
                     
-                    // Сохраняем в ГЛОБАЛЬНЫЕ данные (видны всем)
+                    // Добавляем в глобальный массив всех питомцев
                     allPets.unshift(newPet);
                     
-                    // Сохраняем в localStorage
-                    saveUserData('user_pets', userPets.filter(p => p.ownerId === userId));
-                    saveGlobalData('all_pets', allPets);
+                    // Обновляем массив userPets для отображения
+                    userPets = allPets.filter(pet => pet.ownerId === userId);
+                    
+                    // Сохраняем ВСЕ данные
+                    saveAllData();
                     
                     // Очищаем форму
                     this.reset();
@@ -2585,7 +2577,7 @@
                 });
             }
             
-            // Форма добавления питомца партнёром
+            // Форма добавления питомца партнёром - ФИКСИРОВАННАЯ
             const partnerPetForm = document.getElementById('partnerAddPetForm');
             if (partnerPetForm) {
                 partnerPetForm.addEventListener('submit', function(e) {
@@ -2613,15 +2605,13 @@
                         updatedAt: new Date().toISOString()
                     };
                     
-                    // Сохраняем в shelterPets
-                    shelterPets.push(newPet);
+                    console.log('📝 Создание питомца партнёра:', newPet);
                     
-                    // Сохраняем в ГЛОБАЛЬНЫЕ данные (видны всем)
+                    // Добавляем в глобальный массив всех питомцев
                     allPets.unshift(newPet);
                     
-                    // Сохраняем в localStorage
-                    saveGlobalData('shelter_pets', shelterPets);
-                    saveGlobalData('all_pets', allPets);
+                    // Сохраняем ВСЕ данные
+                    saveAllData();
                     
                     // Очищаем форму
                     this.reset();
@@ -2690,8 +2680,7 @@
                 showNotification('Организация успешно зарегистрирована!', 'success');
             }
             
-            // Сохраняем данные (ВСЕ ГЛОБАЛЬНЫЕ ДАННЫЕ)
-            saveGlobalData('partners', partners);
+            // Сохраняем ВСЕ данные
             saveAllData();
             
             // Обновляем статус партнёра
@@ -2982,9 +2971,6 @@
         
         // ===== ЗАГРУЗКА ДАННЫХ =====
         function loadInitialData() {
-            // Загружаем данные из localStorage
-            loadAllData();
-            
             // Загружаем главную страницу
             loadUserHome();
         }
@@ -3062,12 +3048,70 @@
             return card;
         }
         
+        // Загрузка питомцев пользователя
+        function loadUserPets() {
+            const container = document.getElementById('userPetsList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const userPetList = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'user');
+            
+            container.innerHTML = '';
+            
+            if (userPetList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет питомцев</h3>
+                        <p class="text-muted">Добавьте вашего первого питомца!</p>
+                        <button class="btn btn-primary mt-20" onclick="showPage('user-add-pet')">
+                            <i class="fas fa-plus"></i> Добавить питомца
+                        </button>
+                    </div>
+                `;
+            } else {
+                userPetList.forEach(pet => {
+                    const petCard = createPetCard(pet);
+                    container.appendChild(petCard);
+                });
+            }
+        }
+        
+        // Загрузка питомцев приюта
+        function loadShelterPets() {
+            const container = document.getElementById('shelterPetsList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const shelterPetList = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
+            
+            container.innerHTML = '';
+            
+            if (shelterPetList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет питомцев в организации</h3>
+                        <p class="text-muted">Добавьте первого питомца в вашу организацию!</p>
+                        <button class="btn btn-primary mt-20" onclick="showPage('partner-add-pet')">
+                            <i class="fas fa-plus"></i> Добавить питомца
+                        </button>
+                    </div>
+                `;
+            } else {
+                shelterPetList.forEach(pet => {
+                    const petCard = createPetCard(pet);
+                    container.appendChild(petCard);
+                });
+            }
+        }
+        
         function loadUserActivity() {
             const container = document.getElementById('userRecentActivity');
             if (!container) return;
             
             const userId = getUserId();
-            const userPetCount = userPets.filter(pet => pet.ownerId === userId).length;
+            const userPetCount = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'user').length;
             const availablePets = allPets.filter(p => p.status === 'available').length;
             
             container.innerHTML = `
@@ -3244,7 +3288,7 @@
             if (storageStats) {
                 const userId = getUserId();
                 storageStats.innerHTML = `
-                    <div>Ваших питомцев: ${userPets.filter(p => p.ownerId === userId).length}</div>
+                    <div>Ваших питомцев: ${allPets.filter(p => p.ownerId === userId && p.ownerType === 'user').length}</div>
                     <div>Всего питомцев в системе: ${allPets.length}</div>
                     <div>Партнёров в системе: ${partners.length}</div>
                     <div>Напоминаний: ${reminders.filter(r => r.userId === userId).length}</div>
@@ -3266,6 +3310,384 @@
         function forceSave() {
             if (saveAllData()) {
                 showNotification('Данные успешно сохранены', 'success');
+            }
+        }
+        
+        // Загрузка страницы настроек пользователя
+        function loadUserSettings() {
+            updateStorageStatus();
+        }
+        
+        // Загрузка страницы настроек партнёра
+        function loadPartnerSettings() {
+            updateStorageStatus();
+            updatePartnerStatus();
+        }
+        
+        // Загрузка регистрации партнёра
+        function loadPartnerRegister() {
+            const userId = getUserId();
+            const existingPartner = partners.find(p => p.userId === userId);
+            
+            if (existingPartner) {
+                // Заполняем форму существующими данными
+                setTimeout(() => {
+                    document.getElementById('partnerType').value = existingPartner.type;
+                    document.getElementById('partnerName').value = existingPartner.name;
+                    document.getElementById('partnerDescription').value = existingPartner.description;
+                    document.getElementById('partnerYear').value = existingPartner.year || '';
+                    document.getElementById('partnerCity').value = existingPartner.city;
+                    document.getElementById('partnerAddress').value = existingPartner.address;
+                    document.getElementById('partnerPhone').value = existingPartner.phone;
+                    document.getElementById('partnerEmail').value = existingPartner.email || '';
+                    document.getElementById('partnerTelegram').value = existingPartner.telegram || '';
+                    document.getElementById('partnerWebsite').value = existingPartner.website || '';
+                    document.getElementById('partnerHours').value = existingPartner.hours;
+                    document.getElementById('partnerServicesInfo').value = existingPartner.servicesInfo || '';
+                    document.getElementById('partnerLicenses').value = existingPartner.licenses || '';
+                    
+                    // Заполняем услуги
+                    ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'].forEach(service => {
+                        const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
+                        if (checkbox && existingPartner.services && existingPartner.services.includes(service)) {
+                            checkbox.checked = true;
+                        }
+                    });
+                    
+                    // Заполняем специализации
+                    selectedSpecializations = existingPartner.specializations || [];
+                    selectedSpecializations.forEach(spec => {
+                        const btn = document.getElementById(`spec${spec.charAt(0).toUpperCase() + spec.slice(1)}`);
+                        if (btn) {
+                            btn.style.background = 'var(--primary)';
+                            btn.style.color = 'white';
+                        }
+                    });
+                    
+                    // Заполняем логотип
+                    if (existingPartner.logo) {
+                        partnerLogo = existingPartner.logo;
+                        const preview = document.getElementById('partnerLogoPreview');
+                        const img = document.getElementById('partnerLogoPreviewImg');
+                        if (img && preview) {
+                            img.src = existingPartner.logo;
+                            preview.style.display = 'block';
+                        }
+                    }
+                    
+                    updatePartnerTypeIcon();
+                }, 100);
+            }
+        }
+        
+        function loadPartnerHome() {
+            updatePartnerStatus();
+        }
+        
+        function loadPartnerLeads() {
+            // Заглушка для заявок
+            const container = document.getElementById('partnerLeadsList');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class="fas fa-inbox" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
+                        <p class="text-muted">Здесь будут отображаться заявки на усыновление ваших питомцев</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Вспомогательные функции
+        function contactPartner(partnerId) {
+            const partner = partners.find(p => p.id === partnerId);
+            if (partner) {
+                showNotification(`Связаться с ${partner.name} по телефону: ${partner.phone}`, 'info');
+            }
+        }
+        
+        function showShelterDetails(partnerId) {
+            const partner = partners.find(p => p.id === partnerId);
+            if (partner) {
+                alert(`${partner.name}\n\n${partner.description}\n\nАдрес: ${partner.address}\nТелефон: ${partner.phone}\nЧасы работы: ${partner.hours}`);
+            }
+        }
+        
+        function showPetDetail(petId) {
+            const pet = allPets.find(p => p.id === petId);
+            if (pet) {
+                const container = document.getElementById('petDetailContent');
+                container.innerHTML = `
+                    <div class="text-center mb-20">
+                        ${pet.photos && pet.photos.length > 0 ? 
+                            `<img src="${pet.photos[0]}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; margin-bottom: 20px;" alt="${pet.name}">` : 
+                            `<div style="width: 100%; height: 200px; background: var(--light); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 48px; color: var(--gray);">
+                                <i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}"></i>
+                            </div>`
+                        }
+                        <h2 style="color: var(--dark); margin-bottom: 10px;">${pet.name}</h2>
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                            <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
+                                ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
+                            </span>
+                            <span class="status status-${pet.status}">
+                                ${pet.status === 'available' ? 'Ищет дом' : 
+                                  pet.status === 'reserved' ? 'Забронирован' : 'Пристроен'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Тип</div>
+                            <div style="font-weight: 600;">${pet.type === 'cat' ? 'Кошка' : pet.type === 'dog' ? 'Собака' : 'Другое животное'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Пол</div>
+                            <div style="font-weight: 600;">${pet.sex === 'male' ? 'Мальчик' : 'Девочка'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Возраст</div>
+                            <div style="font-weight: 600;">${pet.age || 'Не указан'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Порода</div>
+                            <div style="font-weight: 600;">${pet.breed || 'Не указана'}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">Описание</div>
+                        <div style="background: var(--light); padding: 15px; border-radius: 12px;">${pet.description}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">Местоположение</div>
+                        <div style="font-weight: 600;">
+                            <i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 8px;"></i>
+                            ${pet.location}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <div style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">Контакты для связи</div>
+                        <div style="font-weight: 600;">
+                            <i class="fas fa-phone" style="color: var(--secondary); margin-right: 8px;"></i>
+                            ${pet.contact}
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="showNotification('Функция связи скоро будет доступна!', 'info')">
+                        <i class="fas fa-comment"></i> Связаться с владельцем
+                    </button>
+                `;
+                showPage('pet-detail');
+            }
+        }
+        
+        // Экспорт/импорт данных
+        function exportUserData() {
+            const userId = getUserId();
+            const data = {
+                user: currentUser,
+                pets: allPets.filter(pet => pet.ownerId === userId),
+                reminders: reminders.filter(r => r.userId === userId),
+                partners: partners.filter(p => p.userId === userId),
+                exportDate: new Date().toISOString(),
+                version: '1.2.0'
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `futurepet_export_${userId}_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('Данные экспортированы', 'success');
+        }
+        
+        function importUserData() {
+            document.getElementById('importModal').classList.remove('hidden');
+        }
+        
+        function closeImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+        }
+        
+        function processImport() {
+            const fileInput = document.getElementById('importFileInput');
+            const importType = document.getElementById('importType').value;
+            
+            if (!fileInput.files.length) {
+                showNotification('Выберите файл для импорта', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    const userId = getUserId();
+                    
+                    if (importType === 'replace') {
+                        // Заменяем данные
+                        if (importedData.pets) {
+                            // Удаляем старые питомцы пользователя
+                            allPets = allPets.filter(pet => pet.ownerId !== userId);
+                            // Добавляем импортированных питомцев
+                            importedData.pets.forEach(pet => {
+                                pet.id = pet.id || 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                allPets.push(pet);
+                            });
+                        }
+                        
+                        if (importedData.reminders) {
+                            reminders = reminders.filter(r => r.userId !== userId);
+                            importedData.reminders.forEach(reminder => {
+                                reminder.id = reminder.id || 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                reminders.push(reminder);
+                            });
+                        }
+                        
+                        if (importedData.partners) {
+                            partners = partners.filter(p => p.userId !== userId);
+                            importedData.partners.forEach(partner => {
+                                partner.id = partner.id || 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                partners.push(partner);
+                            });
+                        }
+                    } else {
+                        // Объединяем данные
+                        if (importedData.pets) {
+                            importedData.pets.forEach(pet => {
+                                const existingIndex = allPets.findIndex(p => p.id === pet.id);
+                                if (existingIndex === -1) {
+                                    pet.id = pet.id || 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                    allPets.push(pet);
+                                }
+                            });
+                        }
+                        
+                        if (importedData.reminders) {
+                            importedData.reminders.forEach(reminder => {
+                                const existingIndex = reminders.findIndex(r => r.id === reminder.id);
+                                if (existingIndex === -1) {
+                                    reminder.id = reminder.id || 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                    reminders.push(reminder);
+                                }
+                            });
+                        }
+                        
+                        if (importedData.partners) {
+                            importedData.partners.forEach(partner => {
+                                const existingIndex = partners.findIndex(p => p.id === partner.id);
+                                if (existingIndex === -1) {
+                                    partner.id = partner.id || 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                    partners.push(partner);
+                                }
+                            });
+                        }
+                    }
+                    
+                    saveAllData();
+                    closeImportModal();
+                    showNotification('Данные успешно импортированы', 'success');
+                    loadUserPets();
+                    loadShelterPets();
+                    updatePartnerStatus();
+                    
+                } catch (e) {
+                    console.error('Ошибка импорта:', e);
+                    showNotification('Ошибка импорта данных', 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showNotification('Ошибка чтения файла', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function clearUserData() {
+            if (confirm('Вы уверены, что хотите удалить ВСЕ ваши данные? Это действие нельзя отменить.')) {
+                const userId = getUserId();
+                
+                // Удаляем питомцев пользователя
+                allPets = allPets.filter(pet => pet.ownerId !== userId);
+                
+                // Удаляем напоминания пользователя
+                reminders = reminders.filter(r => r.userId !== userId);
+                
+                // Удаляем партнёра пользователя
+                partners = partners.filter(p => p.userId !== userId);
+                
+                // Сохраняем изменения
+                saveAllData();
+                
+                // Обновляем интерфейс
+                loadUserPets();
+                loadShelterPets();
+                updatePartnerStatus();
+                updateReminderFab();
+                
+                showNotification('Все ваши данные удалены', 'success');
+            }
+        }
+        
+        function exportShelterData() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            
+            if (!partner) {
+                showNotification('У вас нет профиля организации', 'error');
+                return;
+            }
+            
+            const data = {
+                partner: partner,
+                pets: allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter'),
+                exportDate: new Date().toISOString(),
+                version: '1.2.0'
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `futurepet_shelter_${partner.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('Данные организации экспортированы', 'success');
+        }
+        
+        function clearShelterData() {
+            if (confirm('Вы уверены, что хотите удалить профиль организации? Все питомцы организации также будут удалены.')) {
+                const userId = getUserId();
+                
+                // Удаляем партнёра
+                partners = partners.filter(p => p.userId !== userId);
+                
+                // Удаляем питомцев организации
+                allPets = allPets.filter(pet => !(pet.ownerId === userId && pet.ownerType === 'shelter'));
+                
+                // Сохраняем изменения
+                saveAllData();
+                
+                // Обновляем интерфейс
+                updatePartnerStatus();
+                loadShelterPets();
+                
+                showNotification('Профиль организации удалён', 'success');
             }
         }
         
