@@ -1654,7 +1654,6 @@
                 
                 // Загружаем личные данные пользователя
                 currentMode = loadUserData('mode', 'user');
-                const userPetsData = loadUserData('user_pets', []);
                 reminders = loadUserData('reminders', []);
                 
                 // Загружаем ГЛОБАЛЬНЫЕ данные (все питомцы и партнеры)
@@ -1933,7 +1932,7 @@
                 });
             }
             
-            // Форма добавления питомца партнёром - ИСПРАВЛЕНА
+            // Форма добавления питомца партнёром
             const partnerPetForm = document.getElementById('partnerAddPetForm');
             if (partnerPetForm) {
                 partnerPetForm.addEventListener('submit', function(e) {
@@ -1954,7 +1953,7 @@
                         description: document.getElementById('shelterPetDescription').value,
                         specialNeeds: document.getElementById('shelterPetSpecialNeeds').value || null,
                         status: document.getElementById('shelterPetStatus').value,
-                        photos: shelterPhotos, // ФОТО СОХРАНЯЕТСЯ!
+                        photos: shelterPhotos,
                         location: 'Организация',
                         contact: 'Через организацию',
                         createdAt: new Date().toISOString(),
@@ -1981,6 +1980,15 @@
                     // Показываем успех
                     showPage('partner-pets');
                     showNotification('Питомец добавлен! Теперь его видят все пользователи.', 'success');
+                });
+            }
+            
+            // Форма добавления напоминания
+            const reminderForm = document.getElementById('addReminderForm');
+            if (reminderForm) {
+                reminderForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    addReminder();
                 });
             }
         }
@@ -2760,32 +2768,231 @@
             }
         }
         
-        // Система напоминаний (упрощенная)
+        // ===== СИСТЕМА НАПОМИНАНИЙ =====
         function initReminderSystem() {
-            // Простая заглушка
+            // Проверяем напоминания каждую минуту
+            notificationCheckInterval = setInterval(checkReminders, 60000);
+            
+            // Проверяем сразу при загрузке
+            checkReminders();
         }
         
         function loadRemindersPage() {
             const container = document.getElementById('remindersContainer');
             if (!container) return;
             
-            container.innerHTML = `
-                <div class="text-center" style="padding: 40px 20px;">
-                    <i class="fas fa-bell-slash" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
-                    <h3 style="color: var(--dark); margin-bottom: 10px;">Система напоминаний</h3>
-                    <p class="text-muted">Функция будет доступна в следующем обновлении</p>
-                </div>
-            `;
+            const userId = getUserId();
+            container.innerHTML = '';
+            
+            if (reminders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class="fas fa-bell-slash" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
+                        <p class="text-muted">Добавьте напоминание для вашего питомца</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Сортируем напоминания по дате
+            const sortedReminders = [...reminders].sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+            
+            sortedReminders.forEach(reminder => {
+                const reminderItem = document.createElement('div');
+                reminderItem.className = 'reminder-item';
+                
+                if (reminder.priority === 'urgent') {
+                    reminderItem.classList.add('urgent');
+                } else if (reminder.priority === 'high') {
+                    reminderItem.classList.add('warning');
+                }
+                
+                // Находим питомца по ID
+                const pet = allPets.find(p => p.id === reminder.petId);
+                const petName = pet ? pet.name : 'Неизвестный питомец';
+                
+                // Форматируем дату
+                const date = new Date(reminder.dateTime);
+                const formattedDate = date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                let repeatText = '';
+                if (reminder.repeat !== 'none') {
+                    const repeatMap = {
+                        'daily': 'Ежедневно',
+                        'weekly': 'Еженедельно',
+                        'monthly': 'Ежемесячно',
+                        'yearly': 'Ежегодно'
+                    };
+                    repeatText = ` • ${repeatMap[reminder.repeat]}`;
+                }
+                
+                reminderItem.innerHTML = `
+                    <div class="reminder-header">
+                        <div class="reminder-title">${reminder.title}</div>
+                        <div class="reminder-date">${formattedDate}${repeatText}</div>
+                    </div>
+                    <div class="reminder-description">${reminder.description || 'Без описания'}</div>
+                    <div class="reminder-pet">
+                        <i class="fas fa-paw"></i>
+                        <span>${petName}</span>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn btn-outline btn-small" onclick="completeReminder('${reminder.id}')">
+                            <i class="fas fa-check"></i> Выполнено
+                        </button>
+                        <button class="btn btn-outline btn-small" onclick="deleteReminder('${reminder.id}')" style="color: var(--danger); border-color: var(--danger);">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(reminderItem);
+            });
         }
         
         function showAddReminderModal() {
-            showNotification('Добавление напоминаний будет доступно в следующем обновлении', 'info');
+            const modal = document.getElementById('addReminderModal');
+            const petSelect = document.getElementById('reminderPet');
+            
+            if (!modal || !petSelect) return;
+            
+            // Заполняем список питомцев
+            petSelect.innerHTML = '<option value="">Выберите питомца</option>';
+            
+            const userId = getUserId();
+            const userPetList = allPets.filter(pet => pet.ownerId === userId);
+            
+            userPetList.forEach(pet => {
+                const option = document.createElement('option');
+                option.value = pet.id;
+                option.textContent = pet.name;
+                petSelect.appendChild(option);
+            });
+            
+            // Устанавливаем минимальную дату (сегодня)
+            const dateInput = document.getElementById('reminderDateTime');
+            if (dateInput) {
+                const now = new Date();
+                const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                dateInput.value = localDateTime;
+                dateInput.min = localDateTime;
+            }
+            
+            modal.classList.remove('hidden');
         }
         
-        function closeAddReminderModal() {}
+        function closeAddReminderModal() {
+            document.getElementById('addReminderModal').classList.add('hidden');
+            document.getElementById('addReminderForm').reset();
+        }
+        
+        function addReminder() {
+            const form = document.getElementById('addReminderForm');
+            if (!form) return;
+            
+            const userId = getUserId();
+            const newReminder = {
+                id: 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                userId: userId,
+                petId: document.getElementById('reminderPet').value,
+                type: document.getElementById('reminderType').value,
+                title: document.getElementById('reminderTitle').value,
+                description: document.getElementById('reminderDescription').value,
+                dateTime: document.getElementById('reminderDateTime').value,
+                repeat: document.getElementById('reminderRepeat').value,
+                priority: document.getElementById('reminderPriority').value,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            reminders.push(newReminder);
+            saveAllData();
+            
+            closeAddReminderModal();
+            loadRemindersPage();
+            updateReminderFab();
+            
+            showNotification('Напоминание добавлено!', 'success');
+        }
+        
+        function completeReminder(reminderId) {
+            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
+            if (reminderIndex !== -1) {
+                reminders[reminderIndex].completed = true;
+                saveAllData();
+                loadRemindersPage();
+                updateReminderFab();
+                showNotification('Напоминание отмечено как выполненное', 'success');
+            }
+        }
+        
+        function deleteReminder(reminderId) {
+            if (confirm('Удалить это напоминание?')) {
+                reminders = reminders.filter(r => r.id !== reminderId);
+                saveAllData();
+                loadRemindersPage();
+                updateReminderFab();
+                showNotification('Напоминание удалено', 'success');
+            }
+        }
+        
+        function checkReminders() {
+            const now = new Date();
+            const userId = getUserId();
+            let hasUpcomingReminders = false;
+            
+            reminders.forEach(reminder => {
+                if (reminder.userId !== userId || reminder.completed) return;
+                
+                const reminderTime = new Date(reminder.dateTime);
+                const timeDiff = reminderTime - now;
+                
+                // Напоминания, которые наступят в течение часа
+                if (timeDiff > 0 && timeDiff <= 3600000) {
+                    hasUpcomingReminders = true;
+                    
+                    // Находим питомца
+                    const pet = allPets.find(p => p.id === reminder.petId);
+                    const petName = pet ? pet.name : 'питомца';
+                    
+                    showNotification(`Через ${Math.round(timeDiff / 60000)} минут: ${reminder.title} для ${petName}`, 'info');
+                }
+            });
+            
+            updateReminderFab();
+        }
         
         function updateReminderFab() {
-            // Простая заглушка
+            const fab = document.getElementById('reminderFab');
+            const badge = document.getElementById('reminderBadge');
+            
+            if (!fab || !badge) return;
+            
+            const userId = getUserId();
+            const now = new Date();
+            
+            // Считаем активные напоминания
+            const activeReminders = reminders.filter(r => 
+                r.userId === userId && 
+                !r.completed && 
+                new Date(r.dateTime) > now
+            );
+            
+            if (activeReminders.length > 0) {
+                fab.classList.add('has-notifications');
+                badge.textContent = activeReminders.length;
+                badge.classList.remove('hidden');
+            } else {
+                fab.classList.remove('has-notifications');
+                badge.classList.add('hidden');
+            }
         }
         
         console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
