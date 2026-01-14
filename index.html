@@ -1928,6 +1928,39 @@
                 userForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
+                    // ВАЖНОЕ ИСПРАВЛЕНИЕ: Проверка обязательных полей перед сохранением
+                    // Проверяем, выбран ли тип питомца
+                    if (!window.selectedPetType) {
+                        showNotification('Выберите тип животного', 'error');
+                        return;
+                    }
+                    
+                    // Проверяем, загружено ли фото
+                    if (userPhotos.length === 0) {
+                        showNotification('Загрузите фотографию питомца', 'error');
+                        return;
+                    }
+                    
+                    // Проверяем обязательные поля формы
+                    const requiredFields = [
+                        {id: 'petName', name: 'Имя питомца'},
+                        {id: 'petSex', name: 'Пол'},
+                        {id: 'petAge', name: 'Возраст'},
+                        {id: 'petDescription', name: 'Описание'},
+                        {id: 'petLocation', name: 'Местоположение'},
+                        {id: 'petContact', name: 'Контакты для связи'},
+                        {id: 'petStatus', name: 'Статус'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
                     // Принудительно сохраняем перед добавлением
                     safeSaveData();
                     
@@ -1937,13 +1970,13 @@
                         ownerId: userId,
                         ownerType: 'user',
                         type: window.selectedPetType || 'other',
-                        name: document.getElementById('petName').value,
+                        name: document.getElementById('petName').value.trim(),
                         sex: document.getElementById('petSex').value,
-                        age: document.getElementById('petAge').value,
-                        breed: document.getElementById('petBreed').value,
-                        description: document.getElementById('petDescription').value,
-                        location: document.getElementById('petLocation').value,
-                        contact: document.getElementById('petContact').value,
+                        age: document.getElementById('petAge').value.trim(),
+                        breed: document.getElementById('petBreed').value.trim() || null,
+                        description: document.getElementById('petDescription').value.trim(),
+                        location: document.getElementById('petLocation').value.trim(),
+                        contact: document.getElementById('petContact').value.trim(),
                         status: document.getElementById('petStatus').value,
                         photos: userPhotos,
                         createdAt: new Date().toISOString(),
@@ -1971,6 +2004,7 @@
                             if (btn) {
                                 btn.style.background = 'transparent';
                                 btn.style.color = 'var(--primary)';
+                                btn.style.border = '2px solid var(--primary)';
                             }
                         });
                         window.selectedPetType = null;
@@ -1999,6 +2033,30 @@
                 partnerPetForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
+                    // Проверка обязательных полей для партнера
+                    if (shelterPhotos.length === 0) {
+                        showNotification('Загрузите хотя бы одну фотографию питомца', 'error');
+                        return;
+                    }
+                    
+                    const requiredFields = [
+                        {id: 'shelterPetType', name: 'Тип животного'},
+                        {id: 'shelterPetName', name: 'Имя питомца'},
+                        {id: 'shelterPetSex', name: 'Пол'},
+                        {id: 'shelterPetAge', name: 'Возраст'},
+                        {id: 'shelterPetDescription', name: 'Описание'},
+                        {id: 'shelterPetStatus', name: 'Статус'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
                     // Принудительно сохраняем перед добавлением
                     safeSaveData();
                     
@@ -2008,14 +2066,14 @@
                         ownerId: userId,
                         ownerType: 'shelter',
                         type: document.getElementById('shelterPetType').value,
-                        name: document.getElementById('shelterPetName').value,
+                        name: document.getElementById('shelterPetName').value.trim(),
                         sex: document.getElementById('shelterPetSex').value,
-                        age: document.getElementById('shelterPetAge').value,
-                        breed: document.getElementById('shelterPetBreed').value || null,
+                        age: document.getElementById('shelterPetAge').value.trim(),
+                        breed: document.getElementById('shelterPetBreed').value.trim() || null,
                         vaccinated: document.getElementById('shelterPetVaccinated').value,
                         sterilized: document.getElementById('shelterPetSterilized').value,
-                        description: document.getElementById('shelterPetDescription').value,
-                        specialNeeds: document.getElementById('shelterPetSpecialNeeds').value || null,
+                        description: document.getElementById('shelterPetDescription').value.trim(),
+                        specialNeeds: document.getElementById('shelterPetSpecialNeeds').value.trim() || null,
                         status: document.getElementById('shelterPetStatus').value,
                         photos: shelterPhotos,
                         location: 'Организация',
@@ -2106,16 +2164,16 @@
                 id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 userId: userId,
                 type: document.getElementById('partnerType').value,
-                name: document.getElementById('partnerName').value,
+                name: document.getElementById('partnerName').value.trim(),
                 logo: partnerLogo,
-                description: document.getElementById('partnerDescription').value,
+                description: document.getElementById('partnerDescription').value.trim(),
                 city: document.getElementById('partnerCity').value,
-                address: document.getElementById('partnerAddress').value,
-                phone: document.getElementById('partnerPhone').value,
-                email: document.getElementById('partnerEmail').value || null,
-                hours: document.getElementById('partnerHours').value,
+                address: document.getElementById('partnerAddress').value.trim(),
+                phone: document.getElementById('partnerPhone').value.trim(),
+                email: document.getElementById('partnerEmail').value.trim() || null,
+                hours: document.getElementById('partnerHours').value.trim(),
                 services: services,
-                servicesInfo: document.getElementById('partnerServicesInfo').value || null,
+                servicesInfo: document.getElementById('partnerServicesInfo').value.trim() || null,
                 registeredAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -2338,6 +2396,12 @@
             const file = event.target.files[0];
             if (!file) return;
             
+            // Проверяем размер файла (максимум 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Файл слишком большой. Максимальный размер: 5MB', 'error');
+                return;
+            }
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const preview = document.getElementById(previewId);
@@ -2376,6 +2440,13 @@
             
             for (let i = 0; i < maxPhotos; i++) {
                 const file = files[i];
+                
+                // Проверяем размер файла (максимум 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification(`Фото ${i+1} слишком большое. Максимальный размер: 5MB`, 'error');
+                    continue;
+                }
+                
                 const reader = new FileReader();
                 
                 reader.onload = (function(index) {
@@ -2400,7 +2471,9 @@
                 reader.readAsDataURL(file);
             }
             
-            showNotification(`Загружено ${maxPhotos} фотографий`, 'success');
+            if (shelterPhotos.length > 0) {
+                showNotification(`Загружено ${shelterPhotos.length} фотографий`, 'success');
+            }
         }
         
         // ===== ЗАГРУЗКА ДАННЫХ =====
