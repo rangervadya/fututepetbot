@@ -752,26 +752,6 @@
             font-size: 12px;
             font-weight: bold;
         }
-        
-        /* ===== ИСПРАВЛЕНИЯ ДЛЯ ФОРМЫ ПАРТНЁРА ===== */
-        .form-tab-content {
-            display: none;
-        }
-        
-        .form-tab-content.active {
-            display: block;
-        }
-        
-        #partnerSubmitBtn {
-            position: relative;
-            z-index: 10;
-            cursor: pointer !important;
-        }
-        
-        #partnerSubmitBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed !important;
-        }
     </style>
 </head>
 <body>
@@ -974,7 +954,7 @@
                 </div>
             </div>
             
-            <!-- Регистрация партнёра -->
+            <!-- Регистрация партнёра (УПРОЩЕННАЯ ВЕРСИЯ) -->
             <div id="partner-register" class="page">
                 <div class="card">
                     <div class="card-header">
@@ -986,211 +966,116 @@
                         </button>
                     </div>
                     
-                    <div class="form-tabs">
-                        <button type="button" class="form-tab active" onclick="showPartnerFormTab('organization')">
-                            <i class="fas fa-building"></i> Организация
-                        </button>
-                        <button type="button" class="form-tab" onclick="showPartnerFormTab('contacts')">
-                            <i class="fas fa-address-card"></i> Контакты
-                        </button>
-                        <button type="button" class="form-tab" onclick="showPartnerFormTab('services')">
-                            <i class="fas fa-concierge-bell"></i> Услуги
-                        </button>
-                    </div>
-                    
                     <form id="partnerRegisterForm">
-                        <!-- Вкладка 1: Информация об организации -->
-                        <div id="organization-tab" class="form-tab-content active">
-                            <div class="form-group">
-                                <label>Тип организации *</label>
-                                <select class="form-select" id="partnerType" required onchange="updatePartnerTypeIcon()">
-                                    <option value="">Выберите тип</option>
-                                    <option value="shelter">Приют для животных</option>
-                                    <option value="clinic">Ветеринарная клиника</option>
-                                    <option value="hotel">Гостиница для животных</option>
-                                    <option value="grooming">Груминг-салон</option>
-                                    <option value="store">Зоомагазин</option>
-                                    <option value="volunteer">Волонтёрская организация</option>
-                                    <option value="other">Другое</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Название организации *</label>
-                                <input type="text" class="form-input" id="partnerName" required 
-                                       placeholder="Например: Приют 'Лапа помощи'">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Логотип организации</label>
-                                <div class="photo-upload" onclick="document.getElementById('partnerLogoInput').click()">
-                                    <i class="fas fa-image" id="partnerLogoIcon"></i>
-                                    <p>Нажмите чтобы загрузить логотип</p>
-                                    <p class="text-muted">Опционально, рекомендуется 500x500 пикселей</p>
-                                    <input type="file" id="partnerLogoInput" accept="image/*" class="hidden" 
-                                           onchange="handlePartnerLogoUpload(event)">
-                                </div>
-                                <div class="photo-preview" id="partnerLogoPreview">
-                                    <img id="partnerLogoPreviewImg" src="" alt="Предпросмотр логотипа">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Описание организации *</label>
-                                <textarea class="form-textarea" id="partnerDescription" required 
-                                          placeholder="Расскажите о вашей организации, миссии, целях..."></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Год основания</label>
-                                <input type="number" class="form-input" id="partnerYear" 
-                                       placeholder="Например: 2010" min="1900" max="2024">
-                            </div>
-                            
-                            <button type="button" class="btn btn-primary" onclick="showPartnerFormTab('contacts')">
-                                Далее: Контакты <i class="fas fa-arrow-right"></i>
-                            </button>
+                        <!-- Информация об организации -->
+                        <div class="form-group">
+                            <label>Тип организации *</label>
+                            <select class="form-select" id="partnerType" required>
+                                <option value="">Выберите тип</option>
+                                <option value="shelter">Приют для животных</option>
+                                <option value="clinic">Ветеринарная клиника</option>
+                                <option value="hotel">Гостиница для животных</option>
+                                <option value="grooming">Груминг-салон</option>
+                                <option value="store">Зоомагазин</option>
+                                <option value="volunteer">Волонтёрская организация</option>
+                                <option value="other">Другое</option>
+                            </select>
                         </div>
                         
-                        <!-- Вкладка 2: Контактная информация -->
-                        <div id="contacts-tab" class="form-tab-content">
-                            <div class="form-group">
-                                <label>Город *</label>
-                                <select class="form-select" id="partnerCity" required>
-                                    <option value="">Выберите город</option>
-                                    <option value="kazan">Казань</option>
-                                    <option value="moscow">Москва</option>
-                                    <option value="spb">Санкт-Петербург</option>
-                                    <option value="novosibirsk">Новосибирск</option>
-                                    <option value="ekaterinburg">Екатеринбург</option>
-                                    <option value="other">Другой город</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Адрес *</label>
-                                <input type="text" class="form-input" id="partnerAddress" required 
-                                       placeholder="Улица, дом, корпус">
-                            </div>
-                            
-                            <div style="display: flex; gap: 15px;">
-                                <div class="form-group" style="flex: 1;">
-                                    <label>Телефон *</label>
-                                    <input type="tel" class="form-input" id="partnerPhone" required 
-                                           placeholder="+7 (XXX) XXX-XX-XX">
-                                </div>
-                                
-                                <div class="form-group" style="flex: 1;">
-                                    <label>Email</label>
-                                    <input type="email" class="form-input" id="partnerEmail" 
-                                           placeholder="info@example.com">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Telegram (опционально)</label>
-                                <input type="text" class="form-input" id="partnerTelegram" 
-                                       placeholder="@username">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Веб-сайт (опционально)</label>
-                                <input type="url" class="form-input" id="partnerWebsite" 
-                                       placeholder="https://example.com">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Режим работы *</label>
-                                <input type="text" class="form-input" id="partnerHours" required 
-                                       placeholder="Например: Пн-Пт 9:00-18:00, Сб 10:00-16:00">
-                            </div>
-                            
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" class="btn btn-outline" onclick="showPartnerFormTab('organization')">
-                                    <i class="fas fa-arrow-left"></i> Назад
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="showPartnerFormTab('services')">
-                                    Далее: Услуги <i class="fas fa-arrow-right"></i>
-                                </button>
+                        <div class="form-group">
+                            <label>Название организации *</label>
+                            <input type="text" class="form-input" id="partnerName" required 
+                                   placeholder="Например: Приют 'Лапа помощи'">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Описание организации *</label>
+                            <textarea class="form-textarea" id="partnerDescription" required 
+                                      placeholder="Расскажите о вашей организации, миссии, целях..."></textarea>
+                        </div>
+                        
+                        <!-- Контактная информация -->
+                        <div class="form-group">
+                            <label>Город *</label>
+                            <select class="form-select" id="partnerCity" required>
+                                <option value="">Выберите город</option>
+                                <option value="kazan">Казань</option>
+                                <option value="moscow">Москва</option>
+                                <option value="spb">Санкт-Петербург</option>
+                                <option value="novosibirsk">Новосибирск</option>
+                                <option value="ekaterinburg">Екатеринбург</option>
+                                <option value="other">Другой город</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Адрес *</label>
+                            <input type="text" class="form-input" id="partnerAddress" required 
+                                   placeholder="Улица, дом, корпус">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Телефон *</label>
+                            <input type="tel" class="form-input" id="partnerPhone" required 
+                                   placeholder="+7 (XXX) XXX-XX-XX">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-input" id="partnerEmail" 
+                                   placeholder="info@example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Режим работы *</label>
+                            <input type="text" class="form-input" id="partnerHours" required 
+                                   placeholder="Например: Пн-Пт 9:00-18:00, Сб 10:00-16:00">
+                        </div>
+                        
+                        <!-- Услуги -->
+                        <div class="form-group">
+                            <label>Основные услуги *</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="serviceAdoption" value="adoption">
+                                    <span>Усыновление животных</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="serviceTreatment" value="treatment">
+                                    <span>Ветеринарная помощь</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="serviceHotel" value="hotel">
+                                    <span>Передержка животных</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="serviceGrooming" value="grooming">
+                                    <span>Груминг</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="serviceTraining" value="training">
+                                    <span>Дрессировка</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="serviceConsultation" value="consultation">
+                                    <span>Консультации</span>
+                                </label>
                             </div>
                         </div>
                         
-                        <!-- Вкладка 3: Услуги -->
-                        <div id="services-tab" class="form-tab-content">
-                            <div class="form-group">
-                                <label>Основные услуги *</label>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="serviceAdoption" value="adoption">
-                                        <span>Усыновление животных</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="serviceTreatment" value="treatment">
-                                        <span>Ветеринарная помощь</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="serviceHotel" value="hotel">
-                                        <span>Передержка животных</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="serviceGrooming" value="grooming">
-                                        <span>Груминг</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="serviceTraining" value="training">
-                                        <span>Дрессировка</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="serviceConsultation" value="consultation">
-                                        <span>Консультации</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Дополнительная информация об услугах</label>
-                                <textarea class="form-textarea" id="partnerServicesInfo" 
-                                          placeholder="Подробное описание услуг, цены, особенности..."></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Специализация (какими животными занимаетесь)</label>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <button type="button" class="btn btn-outline btn-small" onclick="toggleSpecialization('cats')" id="specCats">
-                                        <i class="fas fa-cat"></i> Кошки
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-small" onclick="toggleSpecialization('dogs')" id="specDogs">
-                                        <i class="fas fa-dog"></i> Собаки
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-small" onclick="toggleSpecialization('rodents')" id="specRodents">
-                                        <i class="fas fa-rat"></i> Грызуны
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-small" onclick="toggleSpecialization('birds')" id="specBirds">
-                                        <i class="fas fa-dove"></i> Птицы
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-small" onclick="toggleSpecialization('reptiles')" id="specReptiles">
-                                        <i class="fas fa-dragon"></i> Рептилии
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-small" onclick="toggleSpecialization('all')" id="specAll">
-                                        <i class="fas fa-paw"></i> Все животные
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Лицензии и сертификаты (если есть)</label>
-                                <textarea class="form-textarea" id="partnerLicenses" 
-                                          placeholder="Перечислите лицензии, сертификаты, награды..."></textarea>
-                            </div>
-                            
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" class="btn btn-outline" onclick="showPartnerFormTab('contacts')">
-                                    <i class="fas fa-arrow-left"></i> Назад
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="partnerSubmitBtn">
-                                    <i class="fas fa-check"></i> Завершить регистрацию
-                                </button>
-                            </div>
+                        <div class="form-group">
+                            <label>Дополнительная информация об услугах</label>
+                            <textarea class="form-textarea" id="partnerServicesInfo" 
+                                      placeholder="Подробное описание услуг, цены, особенности..."></textarea>
+                        </div>
+                        
+                        <!-- Кнопка завершения -->
+                        <button type="submit" class="btn btn-primary mt-20" id="partnerSubmitBtn">
+                            <i class="fas fa-check"></i> Завершить регистрацию
+                        </button>
+                        
+                        <div class="text-center mt-10">
+                            <p class="text-muted">* - обязательные поля</p>
                         </div>
                     </form>
                 </div>
@@ -1681,8 +1566,6 @@
         let partnerLogo = null;
         let lastSaveTime = null;
         let saveInterval = null;
-        let currentPartnerFormTab = 'organization';
-        let selectedSpecializations = [];
         let reminders = []; // Напоминания пользователя
         let notificationCheckInterval = null;
         
@@ -1764,7 +1647,7 @@
             }
         }
         
-        // ИНИЦИАЛИЗАЦИЯ ХРАНИЛИЩА - ФИКСИРОВАННАЯ ВЕРСИЯ
+        // ИНИЦИАЛИЗАЦИЯ ХРАНИЛИЩА
         function initStorage() {
             try {
                 const userId = getUserId();
@@ -1808,7 +1691,7 @@
             }
         }
         
-        // Сохранить ВСЕ данные (личные + глобальные) - ФИКСИРОВАННАЯ ВЕРСИЯ
+        // Сохранить ВСЕ данные (личные + глобальные)
         function saveAllData() {
             try {
                 const userId = getUserId();
@@ -1852,557 +1735,6 @@
             }
         }
         
-        // ===== СИСТЕМА НАПОМИНАНИЙ =====
-        
-        // Инициализация системы напоминаний
-        function initReminderSystem() {
-            // Загружаем напоминания
-            reminders = loadUserData('reminders', []);
-            
-            // Проверяем напоминания каждую минуту
-            notificationCheckInterval = setInterval(checkReminders, 60000);
-            
-            // Проверяем сразу при загрузке
-            setTimeout(checkReminders, 1000);
-            
-            // Обновляем FAB кнопку
-            updateReminderFab();
-        }
-        
-        // Проверить напоминания
-        function checkReminders() {
-            const now = new Date();
-            const userId = getUserId();
-            const activeReminders = reminders.filter(r => !r.completed && r.userId === userId);
-            
-            let hasNotifications = false;
-            
-            activeReminders.forEach(reminder => {
-                const reminderTime = new Date(reminder.dateTime);
-                const timeDiff = reminderTime - now;
-                
-                // Если напоминание наступило (или просрочено до 1 дня)
-                if (timeDiff <= 0 && timeDiff > -24 * 60 * 60 * 1000) {
-                    if (!reminder.notified) {
-                        showReminderNotification(reminder);
-                        reminder.notified = true;
-                        hasNotifications = true;
-                    }
-                }
-                
-                // Если напоминание просрочено более чем на 1 день, помечаем как просроченное
-                if (timeDiff < -24 * 60 * 60 * 1000 && !reminder.overdue) {
-                    reminder.overdue = true;
-                }
-            });
-            
-            if (hasNotifications) {
-                saveUserData('reminders', reminders);
-            }
-            
-            updateReminderFab();
-        }
-        
-        // Показать уведомление о напоминании
-        function showReminderNotification(reminder) {
-            const pet = allPets.find(p => p.id === reminder.petId);
-            const petName = pet ? pet.name : 'питомца';
-            
-            let message = `🔔 ${reminder.title}`;
-            if (pet) {
-                message += ` для ${petName}`;
-            }
-            
-            // Отображаем уведомление в приложении
-            showNotification(message, 'info');
-            
-            // В реальном приложении можно использовать Web Notifications API
-            if ("Notification" in window) {
-                if (Notification.permission === "granted") {
-                    new Notification(`Напоминание: ${reminder.title}`, {
-                        body: pet ? `для ${petName}` : reminder.description || '',
-                        icon: 'https://cdn-icons-png.flaticon.com/512/1076/1076986.png'
-                    });
-                } else if (Notification.permission !== "denied") {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === "granted") {
-                            new Notification(`Напоминание: ${reminder.title}`, {
-                                body: pet ? `для ${petName}` : reminder.description || '',
-                                icon: 'https://cdn-icons-png.flaticon.com/512/1076/1076986.png'
-                            });
-                        }
-                    });
-                }
-            }
-        }
-        
-        // Обновить кнопку напоминаний
-        function updateReminderFab() {
-            const fab = document.getElementById('reminderFab');
-            const badge = document.getElementById('reminderBadge');
-            if (!fab) return;
-            
-            const userId = getUserId();
-            const now = new Date();
-            
-            // Активные напоминания (не выполненные)
-            const activeReminders = reminders.filter(r => 
-                !r.completed && 
-                r.userId === userId
-            );
-            
-            // Срочные напоминания (просроченные или на сегодня)
-            const urgentReminders = activeReminders.filter(r => {
-                const reminderTime = new Date(r.dateTime);
-                const timeDiff = reminderTime - now;
-                return r.overdue || timeDiff < 24 * 60 * 60 * 1000;
-            });
-            
-            if (activeReminders.length > 0) {
-                fab.classList.add('has-notifications');
-                if (badge) {
-                    badge.classList.remove('hidden');
-                    badge.textContent = urgentReminders.length > 9 ? '9+' : urgentReminders.length;
-                }
-            } else {
-                fab.classList.remove('has-notifications');
-                if (badge) {
-                    badge.classList.add('hidden');
-                }
-            }
-        }
-        
-        // Загрузить страницу напоминаний
-        function loadRemindersPage() {
-            const container = document.getElementById('remindersContainer');
-            if (!container) return;
-            
-            const userId = getUserId();
-            const userReminders = reminders.filter(r => r.userId === userId);
-            
-            if (userReminders.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center" style="padding: 40px 20px;">
-                        <i class="fas fa-bell-slash" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
-                        <p class="text-muted">Добавьте напоминания для ваших питомцев</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Сортируем напоминания: просроченные -> предстоящие -> выполненные
-            const now = new Date();
-            const overdueReminders = userReminders.filter(r => !r.completed && r.overdue);
-            const upcomingReminders = userReminders.filter(r => 
-                !r.completed && 
-                !r.overdue && 
-                new Date(r.dateTime) > now
-            );
-            const pastReminders = userReminders.filter(r => 
-                !r.completed && 
-                !r.overdue && 
-                new Date(r.dateTime) <= now
-            );
-            const completedReminders = userReminders.filter(r => r.completed);
-            
-            container.innerHTML = '';
-            
-            // Просроченные напоминания
-            if (overdueReminders.length > 0) {
-                const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--danger); margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i> Просроченные (${overdueReminders.length})</h3>`;
-                overdueReminders.forEach(reminder => {
-                    section.appendChild(createReminderElement(reminder));
-                });
-                container.appendChild(section);
-            }
-            
-            // Предстоящие напоминания
-            if (upcomingReminders.length > 0) {
-                const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--dark); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-clock"></i> Предстоящие (${upcomingReminders.length})</h3>`;
-                upcomingReminders.forEach(reminder => {
-                    section.appendChild(createReminderElement(reminder));
-                });
-                container.appendChild(section);
-            }
-            
-            // Прошедшие напоминания (не выполненные)
-            if (pastReminders.length > 0) {
-                const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--gray); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-history"></i> Прошедшие (${pastReminders.length})</h3>`;
-                pastReminders.forEach(reminder => {
-                    section.appendChild(createReminderElement(reminder));
-                });
-                container.appendChild(section);
-            }
-            
-            // Выполненные напоминания
-            if (completedReminders.length > 0) {
-                const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--primary); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-check-circle"></i> Выполненные (${completedReminders.length})</h3>`;
-                completedReminders.forEach(reminder => {
-                    section.appendChild(createReminderElement(reminder));
-                });
-                container.appendChild(section);
-            }
-        }
-        
-        // Создать элемент напоминания
-        function createReminderElement(reminder) {
-            const element = document.createElement('div');
-            element.className = `reminder-item ${reminder.priority === 'urgent' ? 'urgent' : reminder.priority === 'high' ? 'warning' : ''}`;
-            if (reminder.completed) {
-                element.style.opacity = '0.7';
-            }
-            
-            const pet = allPets.find(p => p.id === reminder.petId);
-            const petName = pet ? pet.name : 'Неизвестный питомец';
-            
-            const date = new Date(reminder.dateTime);
-            const formattedDate = date.toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            let repeatText = '';
-            if (reminder.repeat !== 'none') {
-                const repeatNames = {
-                    'daily': 'ежедневно',
-                    'weekly': 'еженедельно',
-                    'monthly': 'ежемесячно',
-                    'yearly': 'ежегодно'
-                };
-                repeatText = ` • ${repeatNames[reminder.repeat]}`;
-            }
-            
-            element.innerHTML = `
-                <div class="reminder-header">
-                    <div class="reminder-title">${reminder.title}</div>
-                    <div class="reminder-date">${formattedDate}${repeatText}</div>
-                </div>
-                ${reminder.description ? `<div class="reminder-description">${reminder.description}</div>` : ''}
-                <div class="reminder-pet">
-                    <i class="fas fa-paw"></i> ${petName}
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn btn-outline btn-small" onclick="markReminderAsCompleted('${reminder.id}')" ${reminder.completed ? 'disabled' : ''}>
-                        <i class="fas fa-check"></i> ${reminder.completed ? 'Выполнено' : 'Отметить выполненным'}
-                    </button>
-                    <button class="btn btn-outline btn-small" onclick="editReminder('${reminder.id}')">
-                        <i class="fas fa-edit"></i> Редактировать
-                    </button>
-                    <button class="btn btn-outline btn-small" onclick="deleteReminder('${reminder.id}')" style="background: #FFEBEE; color: #C62828; border-color: #C62828;">
-                        <i class="fas fa-trash"></i> Удалить
-                    </button>
-                </div>
-            `;
-            
-            return element;
-        }
-        
-        // Показать модальное окно добавления напоминания
-        function showAddReminderModal() {
-            const modal = document.getElementById('addReminderModal');
-            const petSelect = document.getElementById('reminderPet');
-            
-            // Очищаем форму
-            document.getElementById('addReminderForm').reset();
-            
-            // Загружаем питомцев пользователя
-            const userId = getUserId();
-            const userPetList = userPets.filter(pet => pet.ownerId === userId);
-            
-            petSelect.innerHTML = '<option value="">Выберите питомца</option>';
-            userPetList.forEach(pet => {
-                const option = document.createElement('option');
-                option.value = pet.id;
-                option.textContent = pet.name;
-                petSelect.appendChild(option);
-            });
-            
-            // Устанавливаем дату на завтра в 10:00
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(10, 0, 0, 0);
-            document.getElementById('reminderDateTime').value = tomorrow.toISOString().slice(0, 16);
-            
-            modal.classList.remove('hidden');
-        }
-        
-        function closeAddReminderModal() {
-            document.getElementById('addReminderModal').classList.add('hidden');
-        }
-        
-        // Добавить напоминание
-        function addReminder(event) {
-            event.preventDefault();
-            
-            const userId = getUserId();
-            const form = document.getElementById('addReminderForm');
-            
-            const newReminder = {
-                id: 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                userId: userId,
-                petId: document.getElementById('reminderPet').value,
-                type: document.getElementById('reminderType').value,
-                title: document.getElementById('reminderTitle').value,
-                description: document.getElementById('reminderDescription').value,
-                dateTime: document.getElementById('reminderDateTime').value,
-                repeat: document.getElementById('reminderRepeat').value,
-                priority: document.getElementById('reminderPriority').value,
-                completed: false,
-                notified: false,
-                overdue: false,
-                createdAt: new Date().toISOString()
-            };
-            
-            reminders.push(newReminder);
-            saveUserData('reminders', reminders);
-            
-            form.reset();
-            closeAddReminderModal();
-            
-            showNotification('Напоминание добавлено', 'success');
-            loadRemindersPage();
-            updateReminderFab();
-        }
-        
-        // Отметить напоминание как выполненное
-        function markReminderAsCompleted(reminderId) {
-            const reminder = reminders.find(r => r.id === reminderId);
-            if (reminder) {
-                reminder.completed = true;
-                reminder.completedAt = new Date().toISOString();
-                saveUserData('reminders', reminders);
-                
-                showNotification('Напоминание отмечено как выполненное', 'success');
-                loadRemindersPage();
-                updateReminderFab();
-            }
-        }
-        
-        // Редактировать напоминание
-        function editReminder(reminderId) {
-            const reminder = reminders.find(r => r.id === reminderId);
-            if (reminder) {
-                showAddReminderModal();
-                
-                // Заполняем форму
-                setTimeout(() => {
-                    document.getElementById('reminderPet').value = reminder.petId;
-                    document.getElementById('reminderType').value = reminder.type;
-                    document.getElementById('reminderTitle').value = reminder.title;
-                    document.getElementById('reminderDescription').value = reminder.description || '';
-                    document.getElementById('reminderDateTime').value = reminder.dateTime.slice(0, 16);
-                    document.getElementById('reminderRepeat').value = reminder.repeat;
-                    document.getElementById('reminderPriority').value = reminder.priority;
-                    
-                    // Изменяем обработчик формы
-                    const form = document.getElementById('addReminderForm');
-                    const originalSubmit = form.onsubmit;
-                    form.onsubmit = function(e) {
-                        e.preventDefault();
-                        updateReminder(reminderId);
-                        form.onsubmit = originalSubmit;
-                    };
-                    
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Обновить напоминание';
-                }, 100);
-            }
-        }
-        
-        // Обновить напоминание
-        function updateReminder(reminderId) {
-            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
-            if (reminderIndex !== -1) {
-                reminders[reminderIndex] = {
-                    ...reminders[reminderIndex],
-                    petId: document.getElementById('reminderPet').value,
-                    type: document.getElementById('reminderType').value,
-                    title: document.getElementById('reminderTitle').value,
-                    description: document.getElementById('reminderDescription').value,
-                    dateTime: document.getElementById('reminderDateTime').value,
-                    repeat: document.getElementById('reminderRepeat').value,
-                    priority: document.getElementById('reminderPriority').value,
-                    notified: false,
-                    overdue: false
-                };
-                
-                saveUserData('reminders', reminders);
-                
-                document.getElementById('addReminderForm').reset();
-                closeAddReminderModal();
-                
-                showNotification('Напоминание обновлено', 'success');
-                loadRemindersPage();
-                updateReminderFab();
-            }
-        }
-        
-        // Удалить напоминание
-        function deleteReminder(reminderId) {
-            if (confirm('Вы уверены, что хотите удалить это напоминание?')) {
-                reminders = reminders.filter(r => r.id !== reminderId);
-                saveUserData('reminders', reminders);
-                
-                showNotification('Напоминание удалено', 'success');
-                loadRemindersPage();
-                updateReminderFab();
-            }
-        }
-        
-        // ===== УПРАВЛЕНИЕ РЕЖИМАМИ =====
-        function toggleMode() {
-            if (currentMode === 'user') {
-                currentMode = 'partner';
-                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
-                showNotification('Переключено в режим партнёра', 'info');
-            } else {
-                currentMode = 'user';
-                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
-                showNotification('Переключено в режим пользователя', 'info');
-            }
-            
-            saveUserData('mode', currentMode);
-            updateNavigation();
-            showPage(currentMode + '-home');
-        }
-        
-        // ===== ИСПРАВЛЕНИЕ СОХРАНЕНИЯ ОРГАНИЗАЦИИ И ПИТОМЦЕВ =====
-        
-        // Обновить статус партнёра
-        function updatePartnerStatus() {
-            const userId = getUserId();
-            const partner = partners.find(p => p.userId === userId);
-            
-            const statusPanel = document.getElementById('partnerStatusPanel');
-            const statusIcon = document.getElementById('partnerStatusIcon');
-            const statusTitle = document.getElementById('partnerStatusTitle');
-            const statusDescription = document.getElementById('partnerStatusDescription');
-            const addPetBtn = document.getElementById('partnerAddPetBtn');
-            const petsBtn = document.getElementById('partnerPetsBtn');
-            
-            if (statusPanel && partner) {
-                statusIcon.innerHTML = `<i class="fas fa-building"></i>`;
-                statusTitle.textContent = partner.name;
-                statusDescription.textContent = `${getPartnerTypeName(partner.type)} • ${partner.city}`;
-                statusPanel.style.background = 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)';
-                
-                // Активируем кнопки
-                if (addPetBtn) addPetBtn.disabled = false;
-                if (petsBtn) petsBtn.disabled = false;
-            } else if (statusPanel) {
-                statusIcon.innerHTML = `<i class="fas fa-user-clock"></i>`;
-                statusTitle.textContent = 'Требуется регистрация';
-                statusDescription.textContent = 'Заполните информацию о вашей организации';
-                statusPanel.style.background = 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)';
-                
-                // Деактивируем кнопки
-                if (addPetBtn) addPetBtn.disabled = true;
-                if (petsBtn) petsBtn.disabled = true;
-            }
-            
-            // Обновляем статистику партнёра
-            const shelterPetCount = document.getElementById('shelterPetCount');
-            const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
-            
-            if (shelterPetCount) {
-                const userShelterPets = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
-                shelterPetCount.textContent = userShelterPets.length;
-                shelterAdoptedCount.textContent = userShelterPets.filter(p => p.status === 'adopted').length;
-            }
-            
-            // Обновляем информацию о профиле партнёра
-            updatePartnerProfileInfo();
-        }
-        
-        // Получить название типа партнёра
-        function getPartnerTypeName(type) {
-            const types = {
-                'shelter': 'Приют для животных',
-                'clinic': 'Ветеринарная клиника',
-                'hotel': 'Гостиница для животных',
-                'grooming': 'Груминг-салон',
-                'store': 'Зоомагазин',
-                'volunteer': 'Волонтёрская организация',
-                'other': 'Другая организация'
-            };
-            return types[type] || 'Организация';
-        }
-        
-        // Получить иконку для типа партнёра
-        function getPartnerTypeIcon(type) {
-            const icons = {
-                'shelter': 'home',
-                'clinic': 'heartbeat',
-                'hotel': 'bed',
-                'grooming': 'cut',
-                'store': 'shopping-bag',
-                'volunteer': 'hands-helping',
-                'other': 'building'
-            };
-            return icons[type] || 'building';
-        }
-        
-        // Обновить информацию о профиле партнёра
-        function updatePartnerProfileInfo() {
-            const userId = getUserId();
-            const partner = partners.find(p => p.userId === userId);
-            const profileInfo = document.getElementById('partnerProfileInfo');
-            
-            if (profileInfo && partner) {
-                profileInfo.innerHTML = `
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        ${partner.logo ? 
-                            `<img src="${partner.logo}" style="width: 60px; height: 60px; border-radius: 12px; margin-right: 15px; object-fit: cover;">` :
-                            `<div class="shelter-icon" style="margin-right: 15px;">
-                                <i class="fas fa-${getPartnerTypeIcon(partner.type)}"></i>
-                            </div>`
-                        }
-                        <div>
-                            <h3 style="color: var(--dark); margin-bottom: 5px;">${partner.name}</h3>
-                            <p style="color: var(--gray); font-size: 14px;">${getPartnerTypeName(partner.type)}</p>
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                        <div style="font-size: 14px;">
-                            <div style="color: var(--gray);">Город:</div>
-                            <div style="font-weight: 600;">${getCityName(partner.city)}</div>
-                        </div>
-                        <div style="font-size: 14px;">
-                            <div style="color: var(--gray);">Телефон:</div>
-                            <div style="font-weight: 600;">${partner.phone}</div>
-                        </div>
-                        <div style="font-size: 14px; grid-column: 1 / -1;">
-                            <div style="color: var(--gray);">Адрес:</div>
-                            <div style="font-weight: 600;">${partner.address}</div>
-                        </div>
-                        <div style="font-size: 14px; grid-column: 1 / -1;">
-                            <div style="color: var(--gray);">Режим работы:</div>
-                            <div style="font-weight: 600;">${partner.hours}</div>
-                        </div>
-                    </div>
-                `;
-            } else if (profileInfo) {
-                profileInfo.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 15px;"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет профиля организации</h3>
-                        <p style="color: var(--gray); font-size: 14px;">Зарегистрируйте вашу организацию, чтобы начать работу</p>
-                        <button class="btn btn-primary mt-20" onclick="showPage('partner-register')">
-                            <i class="fas fa-user-plus"></i> Зарегистрировать организацию
-                        </button>
-                    </div>
-                `;
-            }
-        }
-        
         // ===== ИНИЦИАЛИЗАЦИЯ =====
         document.addEventListener('DOMContentLoaded', function() {
             // 1. Инициализация Telegram
@@ -2412,7 +1744,7 @@
             // 2. Инициализация пользователя
             initializeUser();
             
-            // 3. Инициализация хранилища (ФИКСИРОВАННАЯ ВЕРСИЯ)
+            // 3. Инициализация хранилища
             initStorage();
             
             // 4. Инициализация навигации
@@ -2429,9 +1761,6 @@
             
             // 8. Инициализация системы напоминаний
             initReminderSystem();
-            
-            // 9. Добавляем обработчик для формы напоминаний
-            document.getElementById('addReminderForm').addEventListener('submit', addReminder);
             
             showNotification(`Добро пожаловать, ${currentUser.name || 'Пользователь'}!`, 'info');
         });
@@ -2531,7 +1860,7 @@
         
         // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
         function initForms() {
-            // Форма пользователя - ФИКСИРОВАННАЯ
+            // Форма пользователя
             const userForm = document.getElementById('userAddPetForm');
             if (userForm) {
                 userForm.addEventListener('submit', function(e) {
@@ -2588,17 +1917,16 @@
                 });
             }
             
-            // Форма регистрации партнёра (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+            // Форма регистрации партнёра (ПРОСТАЯ ВЕРСИЯ)
             const partnerRegisterForm = document.getElementById('partnerRegisterForm');
             if (partnerRegisterForm) {
                 partnerRegisterForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     savePartnerForm();
-                    return false;
                 });
             }
             
-            // Форма добавления питомца партнёром - ФИКСИРОВАННАЯ
+            // Форма добавления питомца партнёром
             const partnerPetForm = document.getElementById('partnerAddPetForm');
             if (partnerPetForm) {
                 partnerPetForm.addEventListener('submit', function(e) {
@@ -2650,7 +1978,7 @@
             }
         }
         
-        // Функция сохранения формы партнёра (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+        // Функция сохранения формы партнёра (ПРОСТАЯ ВЕРСИЯ)
         function savePartnerForm() {
             const userId = getUserId();
             
@@ -2670,13 +1998,6 @@
                 if (!element || !element.value.trim()) {
                     showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
                     element?.focus();
-                    
-                    // Переключаемся на нужную вкладку
-                    if (field.id === 'partnerType' || field.id === 'partnerName' || field.id === 'partnerDescription') {
-                        showPartnerFormTab('organization');
-                    } else if (field.id === 'partnerCity' || field.id === 'partnerAddress' || field.id === 'partnerPhone' || field.id === 'partnerHours') {
-                        showPartnerFormTab('contacts');
-                    }
                     return false;
                 }
             }
@@ -2696,7 +2017,6 @@
             
             if (!hasServices) {
                 showNotification('Выберите хотя бы одну услугу', 'error');
-                showPartnerFormTab('services');
                 return false;
             }
             
@@ -2708,18 +2028,13 @@
                 name: document.getElementById('partnerName').value,
                 logo: partnerLogo,
                 description: document.getElementById('partnerDescription').value,
-                year: document.getElementById('partnerYear').value || null,
                 city: document.getElementById('partnerCity').value,
                 address: document.getElementById('partnerAddress').value,
                 phone: document.getElementById('partnerPhone').value,
                 email: document.getElementById('partnerEmail').value || null,
-                telegram: document.getElementById('partnerTelegram').value || null,
-                website: document.getElementById('partnerWebsite').value || null,
                 hours: document.getElementById('partnerHours').value,
                 services: services,
                 servicesInfo: document.getElementById('partnerServicesInfo').value || null,
-                specializations: selectedSpecializations,
-                licenses: document.getElementById('partnerLicenses').value || null,
                 registeredAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -2749,6 +2064,66 @@
             showPage('partner-home');
             
             return true;
+        }
+        
+        // Обновить статус партнёра
+        function updatePartnerStatus() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            
+            const statusPanel = document.getElementById('partnerStatusPanel');
+            const statusIcon = document.getElementById('partnerStatusIcon');
+            const statusTitle = document.getElementById('partnerStatusTitle');
+            const statusDescription = document.getElementById('partnerStatusDescription');
+            const addPetBtn = document.getElementById('partnerAddPetBtn');
+            const petsBtn = document.getElementById('partnerPetsBtn');
+            
+            if (statusPanel && partner) {
+                statusIcon.innerHTML = `<i class="fas fa-building"></i>`;
+                statusTitle.textContent = partner.name;
+                statusDescription.textContent = `${getPartnerTypeName(partner.type)} • ${partner.city}`;
+                statusPanel.style.background = 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)';
+                
+                // Активируем кнопки
+                if (addPetBtn) addPetBtn.disabled = false;
+                if (petsBtn) petsBtn.disabled = false;
+            } else if (statusPanel) {
+                statusIcon.innerHTML = `<i class="fas fa-user-clock"></i>`;
+                statusTitle.textContent = 'Требуется регистрация';
+                statusDescription.textContent = 'Заполните информацию о вашей организации';
+                statusPanel.style.background = 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)';
+                
+                // Деактивируем кнопки
+                if (addPetBtn) addPetBtn.disabled = true;
+                if (petsBtn) petsBtn.disabled = true;
+            }
+            
+            // Обновляем статистику партнёра
+            const shelterPetCount = document.getElementById('shelterPetCount');
+            const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
+            
+            if (shelterPetCount) {
+                const userShelterPets = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
+                shelterPetCount.textContent = userShelterPets.length;
+                shelterAdoptedCount.textContent = userShelterPets.filter(p => p.status === 'adopted').length;
+            }
+            
+            // Обновляем информацию о профиле партнёра
+            updatePartnerProfileInfo();
+        }
+        
+        // Получить название типа партнёра
+        function getPartnerTypeName(type) {
+            const types = {
+                'shelter': 'Приют для животных',
+                'clinic': 'Ветеринарная клиника',
+                'hotel': 'Гостиница для животных',
+                'grooming': 'Груминг-салон',
+                'store': 'Зоомагазин',
+                'volunteer': 'Волонтёрская организация',
+                'other': 'Другая организация'
+            };
+            return types[type] || 'Организация';
         }
         
         // Показать страницу
@@ -2815,200 +2190,29 @@
             window.scrollTo(0, 0);
         }
         
-        function goBack() {
-            if (currentMode === 'user') {
-                showPage('user-home');
-            } else {
-                showPage('partner-home');
-            }
-        }
-        
         // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-        function showPartnerFormTab(tabName) {
-            currentPartnerFormTab = tabName;
+        function showNotification(text, type = 'info') {
+            const notification = document.getElementById('notification');
+            const textElement = document.getElementById('notificationText');
             
-            // Обновляем активные табы
-            document.querySelectorAll('.form-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.form-tab-content').forEach(content => {
-                content.classList.remove('active');
-                content.style.display = 'none';
-            });
-            
-            // Активируем выбранный таб
-            const activeTab = document.querySelector(`.form-tab[onclick*="${tabName}"]`);
-            if (activeTab) {
-                activeTab.classList.add('active');
-            }
-            
-            // Показываем выбранный контент
-            const activeContent = document.getElementById(`${tabName}-tab`);
-            if (activeContent) {
-                activeContent.classList.add('active');
-                activeContent.style.display = 'block';
-            }
-        }
-        
-        function updatePartnerTypeIcon() {
-            const type = document.getElementById('partnerType').value;
-            const icon = document.getElementById('partnerLogoIcon');
-            
-            if (icon && type) {
-                icon.className = `fas fa-${getPartnerTypeIcon(type)}`;
-            }
-        }
-        
-        function handlePartnerLogoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Проверяем размер файла (максимум 2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                showNotification('Файл слишком большой (макс. 2MB)', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                partnerLogo = e.target.result;
-                
-                const preview = document.getElementById('partnerLogoPreview');
-                const img = document.getElementById('partnerLogoPreviewImg');
-                
-                if (img && preview) {
-                    img.src = e.target.result;
-                    preview.style.display = 'block';
-                }
-            };
-            reader.onerror = function() {
-                showNotification('Ошибка загрузки логотипа', 'error');
-            };
-            reader.readAsDataURL(file);
-        }
-        
-        function toggleSpecialization(spec) {
-            const btn = document.getElementById(`spec${spec.charAt(0).toUpperCase() + spec.slice(1)}`);
-            
-            if (selectedSpecializations.includes(spec)) {
-                // Убираем специализацию
-                selectedSpecializations = selectedSpecializations.filter(s => s !== spec);
-                if (btn) {
-                    btn.style.background = 'transparent';
-                    btn.style.color = 'var(--primary)';
-                }
+            const icon = notification.querySelector('i');
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+                notification.style.background = 'var(--primary)';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+                notification.style.background = 'var(--danger)';
             } else {
-                // Добавляем специализацию
-                selectedSpecializations.push(spec);
-                if (btn) {
-                    btn.style.background = 'var(--primary)';
-                    btn.style.color = 'white';
-                }
-            }
-        }
-        
-        function handlePhotoUpload(event, previewId) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Проверяем размер файла (максимум 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                showNotification('Файл слишком большой (макс. 5MB)', 'error');
-                return;
+                icon.className = 'fas fa-info-circle';
+                notification.style.background = 'var(--secondary)';
             }
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById(previewId);
-                const img = document.getElementById(previewId + 'Img');
-                
-                if (img) {
-                    img.src = e.target.result;
-                    preview.style.display = 'block';
-                    
-                    // Сохраняем фото
-                    userPhotos = [e.target.result];
-                }
-            };
-            reader.onerror = function() {
-                showNotification('Ошибка загрузки фото', 'error');
-            };
-            reader.readAsDataURL(file);
-        }
-        
-        function handleMultiplePhotosUpload(event, previewId) {
-            const files = event.target.files;
-            if (!files.length) return;
+            textElement.textContent = text;
+            notification.classList.remove('hidden');
             
-            const preview = document.getElementById(previewId);
-            preview.innerHTML = '';
-            shelterPhotos = [];
-            
-            // Ограничиваем количество файлов
-            const maxFiles = Math.min(files.length, 5);
-            
-            for (let i = 0; i < maxFiles; i++) {
-                const file = files[i];
-                
-                // Проверяем размер файла
-                if (file.size > 5 * 1024 * 1024) {
-                    showNotification(`Фото ${i+1} слишком большое (макс. 5MB)`, 'error');
-                    continue;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = (function(file, index) {
-                    return function(e) {
-                        shelterPhotos.push(e.target.result);
-                        
-                        const imgContainer = document.createElement('div');
-                        imgContainer.style.cssText = `
-                            display: inline-block;
-                            margin: 5px;
-                            width: 80px;
-                            height: 80px;
-                            border-radius: 8px;
-                            overflow: hidden;
-                            position: relative;
-                        `;
-                        
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-                        
-                        // Номер фото
-                        const number = document.createElement('div');
-                        number.style.cssText = `
-                            position: absolute;
-                            top: 5px;
-                            right: 5px;
-                            background: rgba(0,0,0,0.7);
-                            color: white;
-                            width: 20px;
-                            height: 20px;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 12px;
-                        `;
-                        number.textContent = index + 1;
-                        
-                        imgContainer.appendChild(img);
-                        imgContainer.appendChild(number);
-                        preview.appendChild(imgContainer);
-                    };
-                })(file, i);
-                
-                reader.onerror = function() {
-                    showNotification(`Ошибка загрузки фото ${i+1}`, 'error');
-                };
-                
-                reader.readAsDataURL(file);
-            }
-            
-            preview.style.display = 'block';
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
         }
         
         function selectPetType(type) {
@@ -3030,6 +2234,29 @@
             }
             
             window.selectedPetType = type;
+        }
+        
+        function handlePhotoUpload(event, previewId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                const img = document.getElementById(previewId + 'Img');
+                
+                if (img) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                    
+                    // Сохраняем фото
+                    userPhotos = [e.target.result];
+                }
+            };
+            reader.onerror = function() {
+                showNotification('Ошибка загрузки фото', 'error');
+            };
+            reader.readAsDataURL(file);
         }
         
         // ===== ЗАГРУЗКА ДАННЫХ =====
@@ -3080,16 +2307,12 @@
             if (pet.type === 'cat') typeIcon = '🐱';
             if (pet.type === 'dog') typeIcon = '🐶';
             
-            // Проверяем, является ли питомец новым (менее 3 дней)
-            const isNew = (new Date() - new Date(pet.createdAt)) < 3 * 24 * 60 * 60 * 1000;
-            
             card.innerHTML = `
                 <div class="pet-image">
                     ${pet.photos && pet.photos.length > 0 ? 
                         `<img src="${pet.photos[0]}" alt="${pet.name}">` : 
                         `<i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}"></i>`
                     }
-                    ${isNew ? '<div class="badge badge-new" style="position: absolute; top: 5px; right: 5px;">NEW</div>' : ''}
                 </div>
                 <div class="pet-info">
                     <div class="pet-name">${pet.name || 'Без имени'}</div>
@@ -3193,7 +2416,24 @@
             `;
         }
         
-        // ===== СТРАНИЦА ПРИЮТОВ/ПАРТНЁРОВ =====
+        // ===== ОСТАЛЬНЫЕ ФУНКЦИИ =====
+        function toggleMode() {
+            if (currentMode === 'user') {
+                currentMode = 'partner';
+                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
+                showNotification('Переключено в режим партнёра', 'info');
+            } else {
+                currentMode = 'user';
+                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
+                showNotification('Переключено в режим пользователя', 'info');
+            }
+            
+            saveUserData('mode', currentMode);
+            updateNavigation();
+            showPage(currentMode + '-home');
+        }
+        
+        // Простые функции для других страниц
         function loadSheltersPage() {
             const container = document.getElementById('sheltersList');
             if (!container) return;
@@ -3210,117 +2450,91 @@
                 `;
                 return;
             }
-            
-            // Группируем партнёров по городу
-            const partnersByCity = {};
-            partners.forEach(partner => {
-                if (!partnersByCity[partner.city]) {
-                    partnersByCity[partner.city] = [];
-                }
-                partnersByCity[partner.city].push(partner);
-            });
-            
-            // Сортируем города
-            const cities = Object.keys(partnersByCity).sort();
-            
-            cities.forEach(city => {
-                const cityPartners = partnersByCity[city];
-                
-                const citySection = document.createElement('div');
-                citySection.style.marginBottom = '25px';
-                
-                const cityTitle = document.createElement('h3');
-                cityTitle.style.color = 'var(--dark)';
-                cityTitle.style.marginBottom = '15px';
-                cityTitle.style.fontSize = '18px';
-                cityTitle.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${getCityName(city)}`;
-                
-                citySection.appendChild(cityTitle);
-                
-                cityPartners.forEach(partner => {
-                    const shelterCard = createShelterCard(partner);
-                    citySection.appendChild(shelterCard);
-                });
-                
-                container.appendChild(citySection);
-            });
         }
         
-        function getCityName(city) {
-            const cities = {
-                'kazan': 'Казань',
-                'moscow': 'Москва',
-                'spb': 'Санкт-Петербург',
-                'novosibirsk': 'Новосибирск',
-                'ekaterinburg': 'Екатеринбург',
-                'other': 'Другой город'
-            };
-            return cities[city] || city;
+        function loadPartnerHome() {
+            updatePartnerStatus();
         }
         
-        function createShelterCard(partner) {
-            const card = document.createElement('div');
-            card.className = 'shelter-card';
-            card.onclick = () => showShelterDetails(partner.id);
+        function loadPartnerLeads() {
+            // Заглушка для заявок
+            const container = document.getElementById('partnerLeadsList');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class="fas fa-inbox" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
+                        <p class="text-muted">Здесь будут отображаться заявки на усыновление ваших питомцев</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function loadPartnerRegister() {
+            const userId = getUserId();
+            const existingPartner = partners.find(p => p.userId === userId);
             
-            card.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    ${partner.logo ? 
-                        `<img src="${partner.logo}" style="width: 60px; height: 60px; border-radius: 12px; margin-right: 15px; object-fit: cover;">` :
-                        `<div class="shelter-icon">
-                            <i class="fas fa-${getPartnerTypeIcon(partner.type)}"></i>
-                        </div>`
+            if (existingPartner) {
+                // Заполняем форму существующими данными
+                document.getElementById('partnerType').value = existingPartner.type;
+                document.getElementById('partnerName').value = existingPartner.name;
+                document.getElementById('partnerDescription').value = existingPartner.description;
+                document.getElementById('partnerCity').value = existingPartner.city;
+                document.getElementById('partnerAddress').value = existingPartner.address;
+                document.getElementById('partnerPhone').value = existingPartner.phone;
+                document.getElementById('partnerEmail').value = existingPartner.email || '';
+                document.getElementById('partnerHours').value = existingPartner.hours;
+                document.getElementById('partnerServicesInfo').value = existingPartner.servicesInfo || '';
+                
+                // Заполняем услуги
+                ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'].forEach(service => {
+                    const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
+                    if (checkbox && existingPartner.services && existingPartner.services.includes(service)) {
+                        checkbox.checked = true;
                     }
-                    <div class="shelter-info">
-                        <div class="shelter-name">${partner.name}</div>
-                        <div class="shelter-type">${getPartnerTypeName(partner.type)}</div>
-                        <div class="shelter-location">
-                            <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
-                            ${partner.address}
+                });
+            }
+        }
+        
+        function updatePartnerProfileInfo() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            const profileInfo = document.getElementById('partnerProfileInfo');
+            
+            if (profileInfo && partner) {
+                profileInfo.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <h3 style="color: var(--dark); margin-bottom: 5px;">${partner.name}</h3>
+                        <p style="color: var(--gray); font-size: 14px;">${getPartnerTypeName(partner.type)}</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <div style="font-size: 14px;">
+                            <div style="color: var(--gray);">Город:</div>
+                            <div style="font-weight: 600;">${partner.city}</div>
                         </div>
-                        <div class="shelter-contact">
-                            <i class="fas fa-phone" style="color: var(--secondary);"></i>
-                            ${partner.phone}
+                        <div style="font-size: 14px;">
+                            <div style="color: var(--gray);">Телефон:</div>
+                            <div style="font-weight: 600;">${partner.phone}</div>
+                        </div>
+                        <div style="font-size: 14px; grid-column: 1 / -1;">
+                            <div style="color: var(--gray);">Адрес:</div>
+                            <div style="font-weight: 600;">${partner.address}</div>
+                        </div>
+                        <div style="font-size: 14px; grid-column: 1 / -1;">
+                            <div style="color: var(--gray);">Режим работы:</div>
+                            <div style="font-weight: 600;">${partner.hours}</div>
                         </div>
                     </div>
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 14px; color: var(--gray);">
-                        <i class="far fa-clock"></i> ${partner.hours}
-                    </span>
-                    <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); contactPartner('${partner.id}')">
-                        <i class="fas fa-comment"></i> Связаться
-                    </button>
-                </div>
-            `;
-            
-            return card;
-        }
-        
-        // ===== ОСТАЛЬНЫЕ ФУНКЦИИ =====
-        
-        function showNotification(text, type = 'info') {
-            const notification = document.getElementById('notification');
-            const textElement = document.getElementById('notificationText');
-            
-            const icon = notification.querySelector('i');
-            if (type === 'success') {
-                icon.className = 'fas fa-check-circle';
-                notification.style.background = 'var(--primary)';
-            } else if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle';
-                notification.style.background = 'var(--danger)';
-            } else {
-                icon.className = 'fas fa-info-circle';
-                notification.style.background = 'var(--secondary)';
+                `;
+            } else if (profileInfo) {
+                profileInfo.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 15px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет профиля организации</h3>
+                        <p style="color: var(--gray); font-size: 14px;">Зарегистрируйте вашу организацию, чтобы начать работу</p>
+                    </div>
+                `;
             }
-            
-            textElement.textContent = text;
-            notification.classList.remove('hidden');
-            
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
         }
         
         function updateStorageStatus() {
@@ -3354,20 +2568,17 @@
                     <div>Ваших питомцев: ${allPets.filter(p => p.ownerId === userId && p.ownerType === 'user').length}</div>
                     <div>Всего питомцев в системе: ${allPets.length}</div>
                     <div>Партнёров в системе: ${partners.length}</div>
-                    <div>Напоминаний: ${reminders.filter(r => r.userId === userId).length}</div>
-                    <div>Использовано памяти: ${calculateStorageSize()} KB</div>
                 `;
             }
         }
         
-        function calculateStorageSize() {
-            let total = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                const value = localStorage.getItem(key);
-                total += key.length + value.length;
-            }
-            return Math.round(total / 1024 * 100) / 100;
+        function loadUserSettings() {
+            updateStorageStatus();
+        }
+        
+        function loadPartnerSettings() {
+            updateStorageStatus();
+            updatePartnerStatus();
         }
         
         function forceSave() {
@@ -3376,390 +2587,68 @@
             }
         }
         
-        // Загрузка страницы настроек пользователя
-        function loadUserSettings() {
-            updateStorageStatus();
-        }
-        
-        // Загрузка страницы настроек партнёра
-        function loadPartnerSettings() {
-            updateStorageStatus();
-            updatePartnerStatus();
-        }
-        
-        // Загрузка регистрации партнёра
-        function loadPartnerRegister() {
-            const userId = getUserId();
-            const existingPartner = partners.find(p => p.userId === userId);
-            
-            if (existingPartner) {
-                // Заполняем форму существующими данными
-                setTimeout(() => {
-                    document.getElementById('partnerType').value = existingPartner.type;
-                    document.getElementById('partnerName').value = existingPartner.name;
-                    document.getElementById('partnerDescription').value = existingPartner.description;
-                    document.getElementById('partnerYear').value = existingPartner.year || '';
-                    document.getElementById('partnerCity').value = existingPartner.city;
-                    document.getElementById('partnerAddress').value = existingPartner.address;
-                    document.getElementById('partnerPhone').value = existingPartner.phone;
-                    document.getElementById('partnerEmail').value = existingPartner.email || '';
-                    document.getElementById('partnerTelegram').value = existingPartner.telegram || '';
-                    document.getElementById('partnerWebsite').value = existingPartner.website || '';
-                    document.getElementById('partnerHours').value = existingPartner.hours;
-                    document.getElementById('partnerServicesInfo').value = existingPartner.servicesInfo || '';
-                    document.getElementById('partnerLicenses').value = existingPartner.licenses || '';
-                    
-                    // Заполняем услуги
-                    ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'].forEach(service => {
-                        const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
-                        if (checkbox && existingPartner.services && existingPartner.services.includes(service)) {
-                            checkbox.checked = true;
-                        }
-                    });
-                    
-                    // Заполняем специализации
-                    selectedSpecializations = existingPartner.specializations || [];
-                    selectedSpecializations.forEach(spec => {
-                        const btn = document.getElementById(`spec${spec.charAt(0).toUpperCase() + spec.slice(1)}`);
-                        if (btn) {
-                            btn.style.background = 'var(--primary)';
-                            btn.style.color = 'white';
-                        }
-                    });
-                    
-                    // Заполняем логотип
-                    if (existingPartner.logo) {
-                        partnerLogo = existingPartner.logo;
-                        const preview = document.getElementById('partnerLogoPreview');
-                        const img = document.getElementById('partnerLogoPreviewImg');
-                        if (img && preview) {
-                            img.src = existingPartner.logo;
-                            preview.style.display = 'block';
-                        }
-                    }
-                    
-                    updatePartnerTypeIcon();
-                }, 100);
+        function goBack() {
+            if (currentMode === 'user') {
+                showPage('user-home');
+            } else {
+                showPage('partner-home');
             }
         }
         
-        function loadPartnerHome() {
-            updatePartnerStatus();
-        }
-        
-        function loadPartnerLeads() {
-            // Заглушка для заявок
-            const container = document.getElementById('partnerLeadsList');
-            if (container) {
-                container.innerHTML = `
-                    <div class="text-center" style="padding: 40px 20px;">
-                        <i class="fas fa-inbox" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
-                        <p class="text-muted">Здесь будут отображаться заявки на усыновление ваших питомцев</p>
-                    </div>
-                `;
-            }
-        }
-        
-        // Вспомогательные функции
-        function contactPartner(partnerId) {
-            const partner = partners.find(p => p.id === partnerId);
-            if (partner) {
-                showNotification(`Связаться с ${partner.name} по телефону: ${partner.phone}`, 'info');
-            }
-        }
-        
-        function showShelterDetails(partnerId) {
-            const partner = partners.find(p => p.id === partnerId);
-            if (partner) {
-                alert(`${partner.name}\n\n${partner.description}\n\nАдрес: ${partner.address}\nТелефон: ${partner.phone}\nЧасы работы: ${partner.hours}`);
-            }
-        }
-        
-        function showPetDetail(petId) {
-            const pet = allPets.find(p => p.id === petId);
-            if (pet) {
-                const container = document.getElementById('petDetailContent');
-                container.innerHTML = `
-                    <div class="text-center mb-20">
-                        ${pet.photos && pet.photos.length > 0 ? 
-                            `<img src="${pet.photos[0]}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; margin-bottom: 20px;" alt="${pet.name}">` : 
-                            `<div style="width: 100%; height: 200px; background: var(--light); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 48px; color: var(--gray);">
-                                <i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}"></i>
-                            </div>`
-                        }
-                        <h2 style="color: var(--dark); margin-bottom: 10px;">${pet.name}</h2>
-                        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                            <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
-                                ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
-                            </span>
-                            <span class="status status-${pet.status}">
-                                ${pet.status === 'available' ? 'Ищет дом' : 
-                                  pet.status === 'reserved' ? 'Забронирован' : 'Пристроен'}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div>
-                            <div style="color: var(--gray); font-size: 14px;">Тип</div>
-                            <div style="font-weight: 600;">${pet.type === 'cat' ? 'Кошка' : pet.type === 'dog' ? 'Собака' : 'Другое животное'}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--gray); font-size: 14px;">Пол</div>
-                            <div style="font-weight: 600;">${pet.sex === 'male' ? 'Мальчик' : 'Девочка'}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--gray); font-size: 14px;">Возраст</div>
-                            <div style="font-weight: 600;">${pet.age || 'Не указан'}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--gray); font-size: 14px;">Порода</div>
-                            <div style.fontWeight: 600;">${pet.breed || 'Не указана'}</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <div style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">Описание</div>
-                        <div style="background: var(--light); padding: 15px; border-radius: 12px;">${pet.description}</div>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <div style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">Местоположение</div>
-                        <div style="font-weight: 600;">
-                            <i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 8px;"></i>
-                            ${pet.location}
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <div style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">Контакты для связи</div>
-                        <div style="font-weight: 600;">
-                            <i class="fas fa-phone" style="color: var(--secondary); margin-right: 8px;"></i>
-                            ${pet.contact}
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="showNotification('Функция связи скоро будет доступна!', 'info')">
-                        <i class="fas fa-comment"></i> Связаться с владельцем
-                    </button>
-                `;
-                showPage('pet-detail');
-            }
-        }
-        
-        // Экспорт/импорт данных
+        // Простые функции для остальной функциональности
         function exportUserData() {
-            const userId = getUserId();
-            const data = {
-                user: currentUser,
-                pets: allPets.filter(pet => pet.ownerId === userId),
-                reminders: reminders.filter(r => r.userId === userId),
-                partners: partners.filter(p => p.userId === userId),
-                exportDate: new Date().toISOString(),
-                version: '1.2.0'
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `futurepet_export_${userId}_${new Date().toISOString().slice(0,10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('Данные экспортированы', 'success');
+            showNotification('Экспорт данных будет реализован позже', 'info');
         }
         
         function importUserData() {
-            document.getElementById('importModal').classList.remove('hidden');
-        }
-        
-        function closeImportModal() {
-            document.getElementById('importModal').classList.add('hidden');
-        }
-        
-        function processImport() {
-            const fileInput = document.getElementById('importFileInput');
-            const importType = document.getElementById('importType').value;
-            
-            if (!fileInput.files.length) {
-                showNotification('Выберите файл для импорта', 'error');
-                return;
-            }
-            
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    const userId = getUserId();
-                    
-                    if (importType === 'replace') {
-                        // Заменяем данные
-                        if (importedData.pets) {
-                            // Удаляем старые питомцы пользователя
-                            allPets = allPets.filter(pet => pet.ownerId !== userId);
-                            // Добавляем импортированных питомцев
-                            importedData.pets.forEach(pet => {
-                                pet.id = pet.id || 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                allPets.push(pet);
-                            });
-                        }
-                        
-                        if (importedData.reminders) {
-                            reminders = reminders.filter(r => r.userId !== userId);
-                            importedData.reminders.forEach(reminder => {
-                                reminder.id = reminder.id || 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                reminders.push(reminder);
-                            });
-                        }
-                        
-                        if (importedData.partners) {
-                            partners = partners.filter(p => p.userId !== userId);
-                            importedData.partners.forEach(partner => {
-                                partner.id = partner.id || 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                partners.push(partner);
-                            });
-                        }
-                    } else {
-                        // Объединяем данные
-                        if (importedData.pets) {
-                            importedData.pets.forEach(pet => {
-                                const existingIndex = allPets.findIndex(p => p.id === pet.id);
-                                if (existingIndex === -1) {
-                                    pet.id = pet.id || 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                    allPets.push(pet);
-                                }
-                            });
-                        }
-                        
-                        if (importedData.reminders) {
-                            importedData.reminders.forEach(reminder => {
-                                const existingIndex = reminders.findIndex(r => r.id === reminder.id);
-                                if (existingIndex === -1) {
-                                    reminder.id = reminder.id || 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                    reminders.push(reminder);
-                                }
-                            });
-                        }
-                        
-                        if (importedData.partners) {
-                            importedData.partners.forEach(partner => {
-                                const existingIndex = partners.findIndex(p => p.id === partner.id);
-                                if (existingIndex === -1) {
-                                    partner.id = partner.id || 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                    partners.push(partner);
-                                }
-                            });
-                        }
-                    }
-                    
-                    saveAllData();
-                    closeImportModal();
-                    showNotification('Данные успешно импортированы', 'success');
-                    loadUserPets();
-                    loadShelterPets();
-                    updatePartnerStatus();
-                    
-                } catch (e) {
-                    console.error('Ошибка импорта:', e);
-                    showNotification('Ошибка импорта данных', 'error');
-                }
-            };
-            
-            reader.onerror = function() {
-                showNotification('Ошибка чтения файла', 'error');
-            };
-            
-            reader.readAsText(file);
+            showNotification('Импорт данных будет реализован позже', 'info');
         }
         
         function clearUserData() {
-            if (confirm('Вы уверены, что хотите удалить ВСЕ ваши данные? Это действие нельзя отменить.')) {
-                const userId = getUserId();
-                
-                // Удаляем питомцев пользователя
-                allPets = allPets.filter(pet => pet.ownerId !== userId);
-                
-                // Удаляем напоминания пользователя
-                reminders = reminders.filter(r => r.userId !== userId);
-                
-                // Удаляем партнёра пользователя
-                partners = partners.filter(p => p.userId !== userId);
-                
-                // Сохраняем изменения
-                saveAllData();
-                
-                // Обновляем интерфейс
-                loadUserPets();
-                loadShelterPets();
-                updatePartnerStatus();
-                updateReminderFab();
-                
-                showNotification('Все ваши данные удалены', 'success');
+            if (confirm('Вы уверены, что хотите удалить ВСЕ ваши данные?')) {
+                showNotification('Очистка данных будет реализована позже', 'info');
             }
         }
         
         function exportShelterData() {
-            const userId = getUserId();
-            const partner = partners.find(p => p.userId === userId);
-            
-            if (!partner) {
-                showNotification('У вас нет профиля организации', 'error');
-                return;
-            }
-            
-            const data = {
-                partner: partner,
-                pets: allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter'),
-                exportDate: new Date().toISOString(),
-                version: '1.2.0'
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `futurepet_shelter_${partner.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('Данные организации экспортированы', 'success');
+            showNotification('Экспорт данных организации будет реализован позже', 'info');
         }
         
         function clearShelterData() {
-            if (confirm('Вы уверены, что хотите удалить профиль организации? Все питомцы организации также будут удалены.')) {
-                const userId = getUserId();
-                
-                // Удаляем партнёра
-                partners = partners.filter(p => p.userId !== userId);
-                
-                // Удаляем питомцев организации
-                allPets = allPets.filter(pet => !(pet.ownerId === userId && pet.ownerType === 'shelter'));
-                
-                // Сохраняем изменения
-                saveAllData();
-                
-                // Обновляем интерфейс
-                updatePartnerStatus();
-                loadShelterPets();
-                
-                showNotification('Профиль организации удалён', 'success');
+            if (confirm('Вы уверены, что хотите удалить профиль организации?')) {
+                showNotification('Удаление профиля будет реализовано позже', 'info');
             }
         }
         
-        // Инициализация
+        // Система напоминаний (упрощенная)
+        function initReminderSystem() {
+            // Простая заглушка
+        }
+        
+        function loadRemindersPage() {
+            const container = document.getElementById('remindersContainer');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="text-center" style="padding: 40px 20px;">
+                    <i class="fas fa-bell-slash" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--dark); margin-bottom: 10px;">Система напоминаний</h3>
+                    <p class="text-muted">Функция будет доступна в следующем обновлении</p>
+                </div>
+            `;
+        }
+        
+        function showAddReminderModal() {
+            showNotification('Добавление напоминаний будет доступно в следующем обновлении', 'info');
+        }
+        
+        function closeAddReminderModal() {}
+        
+        function updateReminderFab() {
+            // Простая заглушка
+        }
+        
         console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
-        console.log('ID пользователя:', getUserId());
-        console.log('Telegram WebApp версия:', tg.version);
-        console.log('Система глобального хранения данных активирована');
-        console.log('Система напоминаний активирована');
         console.log('Режим:', currentMode);
     </script>
 </body>
