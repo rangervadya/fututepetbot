@@ -1647,6 +1647,22 @@
             }
         }
         
+        // Улучшенное сохранение с проверкой доступности localStorage
+        function safeSaveData() {
+            try {
+                // Проверяем доступность localStorage
+                const testKey = 'futurepet_test_' + Date.now();
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                
+                return saveAllData();
+            } catch (e) {
+                console.error('❌ localStorage недоступен:', e);
+                showNotification('Ошибка доступа к хранилищу. Данные не сохранены.', 'error');
+                return false;
+            }
+        }
+        
         // ИНИЦИАЛИЗАЦИЯ ХРАНИЛИЩА
         function initStorage() {
             try {
@@ -1690,10 +1706,33 @@
             }
         }
         
-        // Сохранить ВСЕ данные (личные + глобальные)
+        // Сохранить ВСЕ данные (личные + глобальные) с улучшенной обработкой
         function saveAllData() {
             try {
                 const userId = getUserId();
+                
+                // Объединяем данные перед сохранением для избежания потерь
+                const existingPets = loadGlobalData('all_pets', []);
+                const petsMap = new Map();
+                
+                // Добавляем существующих питомцев
+                existingPets.forEach(pet => petsMap.set(pet.id, pet));
+                // Добавляем/обновляем текущих питомцев
+                allPets.forEach(pet => petsMap.set(pet.id, pet));
+                
+                // Преобразуем обратно в массив
+                const mergedPets = Array.from(petsMap.values());
+                allPets = mergedPets;
+                
+                // Аналогично для партнеров
+                const existingPartners = loadGlobalData('partners', []);
+                const partnersMap = new Map();
+                
+                existingPartners.forEach(partner => partnersMap.set(partner.id, partner));
+                partners.forEach(partner => partnersMap.set(partner.id, partner));
+                
+                const mergedPartners = Array.from(partnersMap.values());
+                partners = mergedPartners;
                 
                 // Сохраняем личные данные пользователя
                 const userSuccess = [
@@ -1701,10 +1740,10 @@
                     saveUserData('reminders', reminders)
                 ].every(result => result === true);
                 
-                // Сохраняем ГЛОБАЛЬНЫЕ данные (все питомцы и партнёры)
+                // Сохраняем ГЛОБАЛЬНЫЕ данные
                 const globalSuccess = [
-                    saveGlobalData('all_pets', allPets),
-                    saveGlobalData('partners', partners)
+                    saveGlobalData('all_pets', mergedPets),
+                    saveGlobalData('partners', mergedPartners)
                 ].every(result => result === true);
                 
                 if (userSuccess && globalSuccess) {
@@ -1755,7 +1794,7 @@
             // 6. Загрузка начальных данных
             loadInitialData();
             
-            // 7. Настройка автосохранения
+            // 7. Настройка автосохранения с улучшенной обработкой
             setupAutoSave();
             
             // 8. Инициализация системы напоминаний
@@ -1795,21 +1834,38 @@
         function setupAutoSave() {
             // Сохраняем каждые 30 секунд
             saveInterval = setInterval(() => {
-                saveAllData();
+                safeSaveData();
             }, 30000);
+            
+            // Улучшенная обработка событий страницы
+            let isSaving = false;
             
             // Сохраняем при скрытии страницы
             document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
+                if (document.hidden && !isSaving) {
+                    isSaving = true;
                     console.log('🔄 Страница скрыта, сохраняем данные...');
-                    saveAllData();
+                    safeSaveData();
+                    setTimeout(() => { isSaving = false; }, 1000);
                 }
             });
             
             // Сохраняем при закрытии вкладки
-            window.addEventListener('beforeunload', function() {
-                console.log('🔒 Закрытие вкладки, финальное сохранение...');
-                saveAllData();
+            window.addEventListener('beforeunload', function(e) {
+                if (!isSaving) {
+                    console.log('🔒 Закрытие вкладки, финальное сохранение...');
+                    safeSaveData();
+                }
+            });
+            
+            // Сохраняем при переключении между приложениями (для мобильных)
+            window.addEventListener('pagehide', function() {
+                if (!isSaving) {
+                    isSaving = true;
+                    console.log('📱 Переключение приложений, сохраняем...');
+                    safeSaveData();
+                    setTimeout(() => { isSaving = false; }, 1000);
+                }
             });
         }
         
@@ -1872,6 +1928,9 @@
                 userForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
+                    // Принудительно сохраняем перед добавлением
+                    safeSaveData();
+                    
                     const userId = getUserId();
                     const newPet = {
                         id: 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -1900,26 +1959,28 @@
                     userPets = allPets.filter(pet => pet.ownerId === userId);
                     
                     // Сохраняем ВСЕ данные (включая глобальные)
-                    saveAllData();
-                    
-                    // Очищаем форму
-                    this.reset();
-                    userPhotos = [];
-                    document.getElementById('petPhotoPreview').style.display = 'none';
-                    
-                    // Сбрасываем кнопки типа
-                    ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
-                        const btn = document.getElementById(id);
-                        if (btn) {
-                            btn.style.background = 'transparent';
-                            btn.style.color = 'var(--primary)';
-                        }
-                    });
-                    window.selectedPetType = null;
-                    
-                    // Показываем успех
-                    showPage('success');
-                    showNotification('Питомец успешно опубликован! Теперь его видят все пользователи.', 'success');
+                    if (safeSaveData()) {
+                        // Очищаем форму
+                        this.reset();
+                        userPhotos = [];
+                        document.getElementById('petPhotoPreview').style.display = 'none';
+                        
+                        // Сбрасываем кнопки типа
+                        ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
+                            const btn = document.getElementById(id);
+                            if (btn) {
+                                btn.style.background = 'transparent';
+                                btn.style.color = 'var(--primary)';
+                            }
+                        });
+                        window.selectedPetType = null;
+                        
+                        // Показываем успех
+                        showPage('success');
+                        showNotification('Питомец успешно опубликован! Теперь его видят все пользователи.', 'success');
+                    } else {
+                        showNotification('Ошибка сохранения питомца. Попробуйте еще раз.', 'error');
+                    }
                 });
             }
             
@@ -1937,6 +1998,9 @@
             if (partnerPetForm) {
                 partnerPetForm.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    
+                    // Принудительно сохраняем перед добавлением
+                    safeSaveData();
                     
                     const userId = getUserId();
                     const newPet = {
@@ -1966,20 +2030,22 @@
                     allPets.unshift(newPet);
                     
                     // Сохраняем ВСЕ данные
-                    saveAllData();
-                    
-                    // Очищаем форму
-                    this.reset();
-                    shelterPhotos = [];
-                    const preview = document.getElementById('shelterPhotosPreview');
-                    if (preview) {
-                        preview.style.display = 'none';
-                        preview.innerHTML = '';
+                    if (safeSaveData()) {
+                        // Очищаем форму
+                        this.reset();
+                        shelterPhotos = [];
+                        const preview = document.getElementById('shelterPhotosPreview');
+                        if (preview) {
+                            preview.style.display = 'none';
+                            preview.innerHTML = '';
+                        }
+                        
+                        // Показываем успех
+                        showPage('partner-pets');
+                        showNotification('Питомец добавлен! Теперь его видят все пользователи.', 'success');
+                    } else {
+                        showNotification('Ошибка сохранения питомца. Попробуйте еще раз.', 'error');
                     }
-                    
-                    // Показываем успех
-                    showPage('partner-pets');
-                    showNotification('Питомец добавлен! Теперь его видят все пользователи.', 'success');
                 });
             }
             
@@ -2070,15 +2136,18 @@
             }
             
             // Сохраняем ВСЕ данные
-            saveAllData();
-            
-            // Обновляем статус партнёра
-            updatePartnerStatus();
-            
-            // Переходим на главную партнёра
-            showPage('partner-home');
-            
-            return true;
+            if (safeSaveData()) {
+                // Обновляем статус партнёра
+                updatePartnerStatus();
+                
+                // Переходим на главную партнёра
+                showPage('partner-home');
+                
+                return true;
+            } else {
+                showNotification('Ошибка сохранения данных организации', 'error');
+                return false;
+            }
         }
         
         // Обновить статус партнёра
@@ -2158,7 +2227,7 @@
         // Показать страницу
         function showPage(pageId) {
             // Сохраняем перед переходом
-            saveAllData();
+            safeSaveData();
             
             // Скрываем все страницы
             document.querySelectorAll('.page').forEach(page => {
@@ -2683,7 +2752,7 @@
         }
         
         function forceSave() {
-            if (saveAllData()) {
+            if (safeSaveData()) {
                 showNotification('Данные успешно сохранены', 'success');
             }
         }
@@ -2953,7 +3022,7 @@
             };
             
             reminders.push(newReminder);
-            saveAllData();
+            safeSaveData();
             
             closeAddReminderModal();
             loadRemindersPage();
@@ -2966,7 +3035,7 @@
             const reminderIndex = reminders.findIndex(r => r.id === reminderId);
             if (reminderIndex !== -1) {
                 reminders[reminderIndex].completed = true;
-                saveAllData();
+                safeSaveData();
                 loadRemindersPage();
                 updateReminderFab();
                 showNotification('Напоминание отмечено как выполненное', 'success');
@@ -2976,7 +3045,7 @@
         function deleteReminder(reminderId) {
             if (confirm('Удалить это напоминание?')) {
                 reminders = reminders.filter(r => r.id !== reminderId);
-                saveAllData();
+                safeSaveData();
                 loadRemindersPage();
                 updateReminderFab();
                 showNotification('Напоминание удалено', 'success');
