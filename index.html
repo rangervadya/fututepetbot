@@ -1661,6 +1661,9 @@
                 allPets = loadGlobalData('all_pets', []);
                 partners = loadGlobalData('partners', []);
                 
+                // ОЧИСТКА: Удаляем питомцев с именами "Барсик" и "Шарик"
+                removeProblematicPets();
+                
                 // Обновляем userPets из глобальных данных (для отображения)
                 userPets = allPets.filter(pet => pet.ownerId === userId);
                 
@@ -1688,6 +1691,31 @@
                 console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при инициализации хранилища:', e);
                 showNotification('Ошибка загрузки данных', 'error');
                 return false;
+            }
+        }
+        
+        // Удалить проблемных питомцев (Барсик и Шарик)
+        function removeProblematicPets() {
+            if (!Array.isArray(allPets)) {
+                allPets = [];
+                return;
+            }
+            
+            const initialLength = allPets.length;
+            
+            // Фильтруем питомцев с именами "Барсик" и "Шарик"
+            allPets = allPets.filter(pet => {
+                if (!pet || !pet.name) return true;
+                const nameLower = pet.name.toLowerCase().trim();
+                return nameLower !== 'барсик' && nameLower !== 'шарик';
+            });
+            
+            const removedCount = initialLength - allPets.length;
+            if (removedCount > 0) {
+                console.log(`🗑️ Удалено ${removedCount} питомцев с именами Барсик и Шарик`);
+                
+                // Немедленно сохраняем изменения
+                saveGlobalData('all_pets', allPets);
             }
         }
         
@@ -1880,12 +1908,13 @@
                         location: document.getElementById('petLocation').value,
                         contact: document.getElementById('petContact').value,
                         status: document.getElementById('petStatus').value,
-                        photos: userPhotos,
+                        photos: userPhotos, // ФОТО СОХРАНЯЕТСЯ!
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
                     
                     console.log('📝 Создание нового питомца:', newPet);
+                    console.log('📸 Сохраненные фотографии:', userPhotos.length);
                     
                     // Добавляем в глобальный массив всех питомцев
                     allPets.unshift(newPet);
@@ -1947,7 +1976,7 @@
                         description: document.getElementById('shelterPetDescription').value,
                         specialNeeds: document.getElementById('shelterPetSpecialNeeds').value || null,
                         status: document.getElementById('shelterPetStatus').value,
-                        photos: shelterPhotos,
+                        photos: shelterPhotos, // ФОТО СОХРАНЯЕТСЯ!
                         location: 'Организация',
                         contact: 'Через организацию',
                         createdAt: new Date().toISOString(),
@@ -1955,6 +1984,7 @@
                     };
                     
                     console.log('📝 Создание питомца партнёра:', newPet);
+                    console.log('📸 Сохраненные фотографии:', shelterPhotos.length);
                     
                     // Добавляем в глобальный массив всех питомцев
                     allPets.unshift(newPet);
@@ -2249,14 +2279,60 @@
                     img.src = e.target.result;
                     preview.style.display = 'block';
                     
-                    // Сохраняем фото
-                    userPhotos = [e.target.result];
+                    // Сохраняем фото в глобальную переменную
+                    if (previewId === 'petPhotoPreview') {
+                        userPhotos = [e.target.result];
+                        console.log('📸 Фото пользователя сохранено в userPhotos');
+                    }
                 }
             };
             reader.onerror = function() {
                 showNotification('Ошибка загрузки фото', 'error');
             };
             reader.readAsDataURL(file);
+        }
+        
+        // НОВАЯ ФУНКЦИЯ: Загрузка нескольких фотографий для партнера
+        function handleMultiplePhotosUpload(event, previewId) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            const preview = document.getElementById(previewId);
+            if (!preview) return;
+            
+            preview.innerHTML = '';
+            shelterPhotos = [];
+            
+            // Обрабатываем каждую фотографию
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = (function(index) {
+                    return function(e) {
+                        // Сохраняем фото
+                        shelterPhotos.push(e.target.result);
+                        
+                        // Создаем превью
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '100px';
+                        img.style.maxHeight = '100px';
+                        img.style.margin = '5px';
+                        img.style.borderRadius = '8px';
+                        img.style.objectFit = 'cover';
+                        
+                        preview.appendChild(img);
+                        preview.style.display = 'block';
+                        
+                        console.log(`📸 Фото ${index + 1} сохранено в shelterPhotos`);
+                    };
+                })(i);
+                
+                reader.readAsDataURL(file);
+            }
+            
+            showNotification(`Загружено ${files.length} фотографий`, 'success');
         }
         
         // ===== ЗАГРУЗКА ДАННЫХ =====
@@ -2646,6 +2722,93 @@
         
         function updateReminderFab() {
             // Простая заглушка
+        }
+        
+        // Функция для просмотра деталей питомца
+        function showPetDetail(petId) {
+            const pet = allPets.find(p => p.id === petId);
+            if (!pet) return;
+            
+            const container = document.getElementById('petDetailContent');
+            if (!container) return;
+            
+            let typeIcon = '🐾';
+            if (pet.type === 'cat') typeIcon = '🐱';
+            if (pet.type === 'dog') typeIcon = '🐶';
+            
+            let statusText = 'Ищет дом';
+            let statusClass = 'status-available';
+            if (pet.status === 'reserved') {
+                statusText = 'Забронирован';
+                statusClass = 'status-reserved';
+            } else if (pet.status === 'adopted') {
+                statusText = 'Пристроен';
+                statusClass = 'status-adopted';
+            }
+            
+            container.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="pet-image" style="margin-bottom: 15px;">
+                        ${pet.photos && pet.photos.length > 0 ? 
+                            `<img src="${pet.photos[0]}" alt="${pet.name}" style="border-radius: 12px;">` : 
+                            `<i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}" style="font-size: 64px;"></i>`
+                        }
+                    </div>
+                    <h2 style="color: var(--dark); margin-bottom: 5px;">${pet.name || 'Без имени'}</h2>
+                    <div class="status ${statusClass}" style="display: inline-block; margin-bottom: 10px;">
+                        ${statusText}
+                    </div>
+                </div>
+                
+                <div style="background: var(--light); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Основная информация</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Тип:</div>
+                            <div style="font-weight: 600;">${typeIcon} ${pet.type === 'cat' ? 'Кошка' : pet.type === 'dog' ? 'Собака' : 'Другое животное'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Пол:</div>
+                            <div style="font-weight: 600;">${pet.sex === 'male' ? 'Мальчик' : pet.sex === 'female' ? 'Девочка' : 'Неизвестно'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Возраст:</div>
+                            <div style="font-weight: 600;">${pet.age || 'Неизвестно'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Порода:</div>
+                            <div style="font-weight: 600;">${pet.breed || 'Не указана'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-file-alt"></i> Описание</h4>
+                    <div style="background: var(--light); padding: 15px; border-radius: 12px;">
+                        ${pet.description || 'Описание отсутствует'}
+                    </div>
+                </div>
+                
+                <div style="background: var(--light); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> Контактная информация</h4>
+                    <div>
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: var(--gray); font-size: 14px;">Местоположение:</div>
+                            <div style="font-weight: 600;">${pet.location || 'Не указано'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--gray); font-size: 14px;">Контакты:</div>
+                            <div style="font-weight: 600;">${pet.contact || 'Не указаны'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 12px; color: var(--gray); text-align: center; margin-top: 20px;">
+                    Опубликовано: ${new Date(pet.createdAt).toLocaleDateString('ru-RU')}
+                </div>
+            `;
+            
+            showPage('pet-detail');
         }
         
         console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
