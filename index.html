@@ -2141,6 +2141,20 @@
             return types[type] || 'Организация';
         }
         
+        // Получить иконку для типа партнёра
+        function getPartnerIcon(type) {
+            const icons = {
+                'shelter': 'home',
+                'clinic': 'clinic-medical',
+                'hotel': 'hotel',
+                'grooming': 'cut',
+                'store': 'store',
+                'volunteer': 'hands-helping',
+                'other': 'building'
+            };
+            return icons[type] || 'building';
+        }
+        
         // Показать страницу
         function showPage(pageId) {
             // Сохраняем перед переходом
@@ -2494,7 +2508,7 @@
             showPage(currentMode + '-home');
         }
         
-        // Простые функции для других страниц
+        // Загрузка страницы приютов
         function loadSheltersPage() {
             const container = document.getElementById('sheltersList');
             if (!container) return;
@@ -2511,6 +2525,32 @@
                 `;
                 return;
             }
+            
+            // Отображаем список партнеров
+            partners.forEach(partner => {
+                const shelterCard = document.createElement('div');
+                shelterCard.className = 'shelter-card';
+                shelterCard.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <div class="shelter-icon">
+                            <i class="fas fa-${getPartnerIcon(partner.type)}"></i>
+                        </div>
+                        <div class="shelter-info">
+                            <div class="shelter-name">${partner.name}</div>
+                            <div class="shelter-type">${getPartnerTypeName(partner.type)}</div>
+                            <div class="shelter-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${partner.city}, ${partner.address}</span>
+                            </div>
+                            <div class="shelter-contact">
+                                <i class="fas fa-phone"></i>
+                                <span>${partner.phone}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(shelterCard);
+            });
         }
         
         function loadPartnerHome() {
