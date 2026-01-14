@@ -752,6 +752,26 @@
             font-size: 12px;
             font-weight: bold;
         }
+        
+        /* ===== ИСПРАВЛЕНИЯ ДЛЯ ФОРМЫ ПАРТНЁРА ===== */
+        .form-tab-content {
+            display: none;
+        }
+        
+        .form-tab-content.active {
+            display: block;
+        }
+        
+        #partnerSubmitBtn {
+            position: relative;
+            z-index: 10;
+            cursor: pointer !important;
+        }
+        
+        #partnerSubmitBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
 <body>
@@ -980,7 +1000,7 @@
                     
                     <form id="partnerRegisterForm">
                         <!-- Вкладка 1: Информация об организации -->
-                        <div id="organization-tab" class="form-tab-content">
+                        <div id="organization-tab" class="form-tab-content active">
                             <div class="form-group">
                                 <label>Тип организации *</label>
                                 <select class="form-select" id="partnerType" required onchange="updatePartnerTypeIcon()">
@@ -1033,7 +1053,7 @@
                         </div>
                         
                         <!-- Вкладка 2: Контактная информация -->
-                        <div id="contacts-tab" class="form-tab-content" style="display: none;">
+                        <div id="contacts-tab" class="form-tab-content">
                             <div class="form-group">
                                 <label>Город *</label>
                                 <select class="form-select" id="partnerCity" required>
@@ -1096,7 +1116,7 @@
                         </div>
                         
                         <!-- Вкладка 3: Услуги -->
-                        <div id="services-tab" class="form-tab-content" style="display: none;">
+                        <div id="services-tab" class="form-tab-content">
                             <div class="form-group">
                                 <label>Основные услуги *</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
@@ -2568,12 +2588,13 @@
                 });
             }
             
-            // Форма регистрации партнёра (ИСПРАВЛЕННАЯ)
+            // Форма регистрации партнёра (ИСПРАВЛЕННАЯ ВЕРСИЯ)
             const partnerRegisterForm = document.getElementById('partnerRegisterForm');
             if (partnerRegisterForm) {
                 partnerRegisterForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     savePartnerForm();
+                    return false;
                 });
             }
             
@@ -2629,19 +2650,57 @@
             }
         }
         
-        // Функция сохранения формы партнёра (ИСПРАВЛЕННАЯ)
+        // Функция сохранения формы партнёра (ИСПРАВЛЕННАЯ ВЕРСИЯ)
         function savePartnerForm() {
             const userId = getUserId();
             
-            // Собираем выбранные услуги
+            // Проверяем обязательные поля
+            const requiredFields = [
+                {id: 'partnerType', name: 'Тип организации'},
+                {id: 'partnerName', name: 'Название организации'},
+                {id: 'partnerDescription', name: 'Описание организации'},
+                {id: 'partnerCity', name: 'Город'},
+                {id: 'partnerAddress', name: 'Адрес'},
+                {id: 'partnerPhone', name: 'Телефон'},
+                {id: 'partnerHours', name: 'Режим работы'}
+            ];
+            
+            for (const field of requiredFields) {
+                const element = document.getElementById(field.id);
+                if (!element || !element.value.trim()) {
+                    showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                    element?.focus();
+                    
+                    // Переключаемся на нужную вкладку
+                    if (field.id === 'partnerType' || field.id === 'partnerName' || field.id === 'partnerDescription') {
+                        showPartnerFormTab('organization');
+                    } else if (field.id === 'partnerCity' || field.id === 'partnerAddress' || field.id === 'partnerPhone' || field.id === 'partnerHours') {
+                        showPartnerFormTab('contacts');
+                    }
+                    return false;
+                }
+            }
+            
+            // Проверяем, что выбрана хотя бы одна услуга
             const services = [];
-            ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'].forEach(service => {
+            const serviceCheckboxes = ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'];
+            let hasServices = false;
+            
+            serviceCheckboxes.forEach(service => {
                 const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
                 if (checkbox && checkbox.checked) {
                     services.push(service);
+                    hasServices = true;
                 }
             });
             
+            if (!hasServices) {
+                showNotification('Выберите хотя бы одну услугу', 'error');
+                showPartnerFormTab('services');
+                return false;
+            }
+            
+            // Собираем данные партнёра
             const partnerData = {
                 id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 userId: userId,
@@ -2688,6 +2747,8 @@
             
             // Переходим на главную партнёра
             showPage('partner-home');
+            
+            return true;
         }
         
         // Показать страницу
@@ -2772,6 +2833,7 @@
             });
             
             document.querySelectorAll('.form-tab-content').forEach(content => {
+                content.classList.remove('active');
                 content.style.display = 'none';
             });
             
@@ -2784,6 +2846,7 @@
             // Показываем выбранный контент
             const activeContent = document.getElementById(`${tabName}-tab`);
             if (activeContent) {
+                activeContent.classList.add('active');
                 activeContent.style.display = 'block';
             }
         }
@@ -3452,7 +3515,7 @@
                         </div>
                         <div>
                             <div style="color: var(--gray); font-size: 14px;">Порода</div>
-                            <div style="font-weight: 600;">${pet.breed || 'Не указана'}</div>
+                            <div style.fontWeight: 600;">${pet.breed || 'Не указана'}</div>
                         </div>
                     </div>
                     
