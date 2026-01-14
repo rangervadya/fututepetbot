@@ -735,6 +735,23 @@
             gap: 5px;
             margin-top: 8px;
         }
+        
+        /* ===== ИКОНКА С КОЛИЧЕСТВОМ УВЕДОМЛЕНИЙ ===== */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -784,6 +801,10 @@
                     
                     <button class="btn btn-secondary mt-20" onclick="showPage('user-add-pet')">
                         <i class="fas fa-plus"></i> Выложить питомца
+                    </button>
+                    
+                    <button class="btn btn-accent mt-20" onclick="showPage('user-reminders')">
+                        <i class="fas fa-bell"></i> Мои напоминания
                     </button>
                 </div>
                 
@@ -1509,6 +1530,7 @@
     <!-- Кнопка напоминаний (FAB) -->
     <div class="reminder-fab" onclick="showPage('user-reminders')" id="reminderFab">
         <i class="fas fa-bell"></i>
+        <span id="reminderBadge" class="notification-badge hidden"></span>
     </div>
 
     <!-- Уведомления -->
@@ -1810,6 +1832,7 @@
                 updateStorageStatus();
                 updatePartnerStatus();
                 updateReminderFab();
+                updateNavigation();
                 return true;
             } catch (e) {
                 console.error('❌ Ошибка при загрузке всех данных:', e);
@@ -1829,7 +1852,7 @@
             notificationCheckInterval = setInterval(checkReminders, 60000);
             
             // Проверяем сразу при загрузке
-            checkReminders();
+            setTimeout(checkReminders, 1000);
             
             // Обновляем FAB кнопку
             updateReminderFab();
@@ -1841,6 +1864,8 @@
             const userId = getUserId();
             const activeReminders = reminders.filter(r => !r.completed && r.userId === userId);
             
+            let hasNotifications = false;
+            
             activeReminders.forEach(reminder => {
                 const reminderTime = new Date(reminder.dateTime);
                 const timeDiff = reminderTime - now;
@@ -1850,16 +1875,19 @@
                     if (!reminder.notified) {
                         showReminderNotification(reminder);
                         reminder.notified = true;
-                        saveUserData('reminders', reminders);
+                        hasNotifications = true;
                     }
                 }
                 
                 // Если напоминание просрочено более чем на 1 день, помечаем как просроченное
                 if (timeDiff < -24 * 60 * 60 * 1000 && !reminder.overdue) {
                     reminder.overdue = true;
-                    saveUserData('reminders', reminders);
                 }
             });
+            
+            if (hasNotifications) {
+                saveUserData('reminders', reminders);
+            }
             
             updateReminderFab();
         }
@@ -1869,54 +1897,67 @@
             const pet = allPets.find(p => p.id === reminder.petId);
             const petName = pet ? pet.name : 'питомца';
             
-            let message = `🔔 Напоминание: ${reminder.title}`;
+            let message = `🔔 ${reminder.title}`;
             if (pet) {
-                message += `\nдля ${petName}`;
+                message += ` для ${petName}`;
             }
             
-            if (reminder.description) {
-                message += `\n${reminder.description}`;
-            }
-            
+            // Отображаем уведомление в приложении
             showNotification(message, 'info');
             
             // В реальном приложении можно использовать Web Notifications API
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification(`Напоминание: ${reminder.title}`, {
-                    body: pet ? `для ${petName}` : '',
-                    icon: 'https://cdn-icons-png.flaticon.com/512/1076/1076986.png'
-                });
+            if ("Notification" in window) {
+                if (Notification.permission === "granted") {
+                    new Notification(`Напоминание: ${reminder.title}`, {
+                        body: pet ? `для ${petName}` : reminder.description || '',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1076/1076986.png'
+                    });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            new Notification(`Напоминание: ${reminder.title}`, {
+                                body: pet ? `для ${petName}` : reminder.description || '',
+                                icon: 'https://cdn-icons-png.flaticon.com/512/1076/1076986.png'
+                            });
+                        }
+                    });
+                }
             }
         }
         
         // Обновить кнопку напоминаний
         function updateReminderFab() {
             const fab = document.getElementById('reminderFab');
+            const badge = document.getElementById('reminderBadge');
             if (!fab) return;
             
             const userId = getUserId();
             const now = new Date();
-            const upcomingReminders = reminders.filter(r => 
+            
+            // Активные напоминания (не выполненные)
+            const activeReminders = reminders.filter(r => 
                 !r.completed && 
-                r.userId === userId && 
-                new Date(r.dateTime) > now
+                r.userId === userId
             );
             
-            const overdueReminders = reminders.filter(r => 
-                !r.completed && 
-                r.userId === userId && 
-                r.overdue
-            );
+            // Срочные напоминания (просроченные или на сегодня)
+            const urgentReminders = activeReminders.filter(r => {
+                const reminderTime = new Date(r.dateTime);
+                const timeDiff = reminderTime - now;
+                return r.overdue || timeDiff < 24 * 60 * 60 * 1000;
+            });
             
-            if (overdueReminders.length > 0) {
+            if (activeReminders.length > 0) {
                 fab.classList.add('has-notifications');
-                fab.innerHTML = `<i class="fas fa-exclamation-circle"></i>`;
-            } else if (upcomingReminders.length > 0) {
-                fab.classList.add('has-notifications');
-                fab.innerHTML = `<i class="fas fa-bell"></i>`;
+                if (badge) {
+                    badge.classList.remove('hidden');
+                    badge.textContent = urgentReminders.length > 9 ? '9+' : urgentReminders.length;
+                }
             } else {
                 fab.classList.remove('has-notifications');
-                fab.innerHTML = `<i class="fas fa-bell"></i>`;
+                if (badge) {
+                    badge.classList.add('hidden');
+                }
             }
         }
         
@@ -1959,7 +2000,7 @@
             // Просроченные напоминания
             if (overdueReminders.length > 0) {
                 const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--danger); margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i> Просроченные</h3>`;
+                section.innerHTML = `<h3 style="color: var(--danger); margin-bottom: 15px;"><i class="fas fa-exclamation-circle"></i> Просроченные (${overdueReminders.length})</h3>`;
                 overdueReminders.forEach(reminder => {
                     section.appendChild(createReminderElement(reminder));
                 });
@@ -1969,7 +2010,7 @@
             // Предстоящие напоминания
             if (upcomingReminders.length > 0) {
                 const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--dark); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-clock"></i> Предстоящие</h3>`;
+                section.innerHTML = `<h3 style="color: var(--dark); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-clock"></i> Предстоящие (${upcomingReminders.length})</h3>`;
                 upcomingReminders.forEach(reminder => {
                     section.appendChild(createReminderElement(reminder));
                 });
@@ -1979,7 +2020,7 @@
             // Прошедшие напоминания (не выполненные)
             if (pastReminders.length > 0) {
                 const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--gray); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-history"></i> Прошедшие</h3>`;
+                section.innerHTML = `<h3 style="color: var(--gray); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-history"></i> Прошедшие (${pastReminders.length})</h3>`;
                 pastReminders.forEach(reminder => {
                     section.appendChild(createReminderElement(reminder));
                 });
@@ -1989,7 +2030,7 @@
             // Выполненные напоминания
             if (completedReminders.length > 0) {
                 const section = document.createElement('div');
-                section.innerHTML = `<h3 style="color: var(--primary); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-check-circle"></i> Выполненные</h3>`;
+                section.innerHTML = `<h3 style="color: var(--primary); margin-bottom: 15px; margin-top: 20px;"><i class="fas fa-check-circle"></i> Выполненные (${completedReminders.length})</h3>`;
                 completedReminders.forEach(reminder => {
                     section.appendChild(createReminderElement(reminder));
                 });
@@ -2152,9 +2193,11 @@
                     
                     // Изменяем обработчик формы
                     const form = document.getElementById('addReminderForm');
+                    const originalSubmit = form.onsubmit;
                     form.onsubmit = function(e) {
                         e.preventDefault();
                         updateReminder(reminderId);
+                        form.onsubmit = originalSubmit;
                     };
                     
                     const submitBtn = form.querySelector('button[type="submit"]');
@@ -2201,6 +2244,23 @@
                 loadRemindersPage();
                 updateReminderFab();
             }
+        }
+        
+        // ===== УПРАВЛЕНИЕ РЕЖИМАМИ =====
+        function toggleMode() {
+            if (currentMode === 'user') {
+                currentMode = 'partner';
+                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
+                showNotification('Переключено в режим партнёра', 'info');
+            } else {
+                currentMode = 'user';
+                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
+                showNotification('Переключено в режим пользователя', 'info');
+            }
+            
+            saveUserData('mode', currentMode);
+            updateNavigation();
+            showPage(currentMode + '-home');
         }
         
         // ===== ИСПРАВЛЕНИЕ СОХРАНЕНИЯ ОРГАНИЗАЦИИ =====
@@ -2251,9 +2311,88 @@
             updatePartnerProfileInfo();
         }
         
-        // ===== ОСТАЛЬНЫЙ КОД (без изменений) =====
+        // Получить название типа партнёра
+        function getPartnerTypeName(type) {
+            const types = {
+                'shelter': 'Приют для животных',
+                'clinic': 'Ветеринарная клиника',
+                'hotel': 'Гостиница для животных',
+                'grooming': 'Груминг-салон',
+                'store': 'Зоомагазин',
+                'volunteer': 'Волонтёрская организация',
+                'other': 'Другая организация'
+            };
+            return types[type] || 'Организация';
+        }
         
-        // Инициализация
+        // Получить иконку для типа партнёра
+        function getPartnerTypeIcon(type) {
+            const icons = {
+                'shelter': 'home',
+                'clinic': 'heartbeat',
+                'hotel': 'bed',
+                'grooming': 'cut',
+                'store': 'shopping-bag',
+                'volunteer': 'hands-helping',
+                'other': 'building'
+            };
+            return icons[type] || 'building';
+        }
+        
+        // Обновить информацию о профиле партнёра
+        function updatePartnerProfileInfo() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            const profileInfo = document.getElementById('partnerProfileInfo');
+            
+            if (profileInfo && partner) {
+                profileInfo.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        ${partner.logo ? 
+                            `<img src="${partner.logo}" style="width: 60px; height: 60px; border-radius: 12px; margin-right: 15px; object-fit: cover;">` :
+                            `<div class="shelter-icon" style="margin-right: 15px;">
+                                <i class="fas fa-${getPartnerTypeIcon(partner.type)}"></i>
+                            </div>`
+                        }
+                        <div>
+                            <h3 style="color: var(--dark); margin-bottom: 5px;">${partner.name}</h3>
+                            <p style="color: var(--gray); font-size: 14px;">${getPartnerTypeName(partner.type)}</p>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <div style="font-size: 14px;">
+                            <div style="color: var(--gray);">Город:</div>
+                            <div style="font-weight: 600;">${getCityName(partner.city)}</div>
+                        </div>
+                        <div style="font-size: 14px;">
+                            <div style="color: var(--gray);">Телефон:</div>
+                            <div style="font-weight: 600;">${partner.phone}</div>
+                        </div>
+                        <div style="font-size: 14px; grid-column: 1 / -1;">
+                            <div style="color: var(--gray);">Адрес:</div>
+                            <div style="font-weight: 600;">${partner.address}</div>
+                        </div>
+                        <div style="font-size: 14px; grid-column: 1 / -1;">
+                            <div style="color: var(--gray);">Режим работы:</div>
+                            <div style="font-weight: 600;">${partner.hours}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (profileInfo) {
+                profileInfo.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 15px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет профиля организации</h3>
+                        <p style="color: var(--gray); font-size: 14px;">Зарегистрируйте вашу организацию, чтобы начать работу</p>
+                        <button class="btn btn-primary mt-20" onclick="showPage('partner-register')">
+                            <i class="fas fa-user-plus"></i> Зарегистрировать организацию
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
         document.addEventListener('DOMContentLoaded', function() {
             // 1. Инициализация Telegram
             tg.ready();
@@ -2286,7 +2425,100 @@
             showNotification(`Добро пожаловать, ${currentUser.name || 'Пользователь'}!`, 'info');
         });
         
-        // Инициализация форм
+        function initializeUser() {
+            if (tg.initDataUnsafe?.user) {
+                const user = tg.initDataUnsafe.user;
+                currentUser = {
+                    id: user.id,
+                    name: `${user.first_name} ${user.last_name || ''}`.trim(),
+                    username: user.username,
+                    isTgUser: true
+                };
+            } else {
+                currentUser = {
+                    id: getUserId(),
+                    name: 'Гость',
+                    isTgUser: false
+                };
+            }
+            
+            // Обновляем информацию в настройках
+            const userName = document.getElementById('userName');
+            const userId = document.getElementById('userId');
+            
+            if (userName) userName.textContent = currentUser.name;
+            if (userId) userId.textContent = `ID: ${currentUser.id}`;
+            
+            // Сохраняем профиль
+            saveUserData('profile', currentUser);
+        }
+        
+        function setupAutoSave() {
+            // Сохраняем каждые 30 секунд
+            saveInterval = setInterval(() => {
+                saveAllData();
+            }, 30000);
+            
+            // Сохраняем при скрытии страницы
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    saveAllData();
+                }
+            });
+        }
+        
+        // Обновить навигацию
+        function updateNavigation() {
+            const nav = document.getElementById('mainNav');
+            
+            if (currentMode === 'user') {
+                nav.innerHTML = `
+                    <button class="nav-tab active" data-page="user-home">
+                        <i class="fas fa-home"></i> Главная
+                    </button>
+                    <button class="nav-tab" data-page="user-pets">
+                        <i class="fas fa-paw"></i> Мои питомцы
+                    </button>
+                    <button class="nav-tab" data-page="user-shelters">
+                        <i class="fas fa-hands-helping"></i> Приюты
+                    </button>
+                    <button class="nav-tab" data-page="user-add-pet">
+                        <i class="fas fa-plus"></i> Выложить питомца
+                    </button>
+                    <button class="nav-tab" data-page="user-settings">
+                        <i class="fas fa-cog"></i> Настройки
+                    </button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button class="nav-tab active" data-page="partner-home">
+                        <i class="fas fa-store"></i> Кабинет
+                    </button>
+                    <button class="nav-tab" data-page="partner-pets">
+                        <i class="fas fa-list"></i> Питомцы
+                    </button>
+                    <button class="nav-tab" data-page="partner-add-pet">
+                        <i class="fas fa-plus"></i> Добавить
+                    </button>
+                    <button class="nav-tab" data-page="partner-leads">
+                        <i class="fas fa-inbox"></i> Заявки
+                    </button>
+                    <button class="nav-tab" data-page="partner-settings">
+                        <i class="fas fa-cog"></i> Настройки
+                    </button>
+                `;
+            }
+            
+            // Добавляем обработчики для новых кнопок
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const pageId = this.dataset.page;
+                    showPage(pageId);
+                });
+            });
+        }
+        
+        // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
         function initForms() {
             // Форма пользователя
             const userForm = document.getElementById('userAddPetForm');
@@ -2460,70 +2692,13 @@
             
             // Сохраняем данные (ВСЕ ГЛОБАЛЬНЫЕ ДАННЫЕ)
             saveGlobalData('partners', partners);
+            saveAllData();
             
             // Обновляем статус партнёра
             updatePartnerStatus();
             
             // Переходим на главную партнёра
             showPage('partner-home');
-        }
-        
-        // Остальные функции остаются без изменений...
-        
-        // Обновить навигацию
-        function updateNavigation() {
-            const nav = document.getElementById('mainNav');
-            
-            if (currentMode === 'user') {
-                nav.innerHTML = `
-                    <button class="nav-tab active" data-page="user-home">
-                        <i class="fas fa-home"></i> Главная
-                    </button>
-                    <button class="nav-tab" data-page="user-pets">
-                        <i class="fas fa-paw"></i> Мои питомцы
-                    </button>
-                    <button class="nav-tab" data-page="user-shelters">
-                        <i class="fas fa-hands-helping"></i> Приюты
-                    </button>
-                    <button class="nav-tab" data-page="user-add-pet">
-                        <i class="fas fa-plus"></i> Выложить питомца
-                    </button>
-                    <button class="nav-tab" data-page="user-settings">
-                        <i class="fas fa-cog"></i> Настройки
-                    </button>
-                `;
-            } else {
-                nav.innerHTML = `
-                    <button class="nav-tab active" data-page="partner-home">
-                        <i class="fas fa-store"></i> Кабинет
-                    </button>
-                    <button class="nav-tab" data-page="partner-pets">
-                        <i class="fas fa-list"></i> Питомцы
-                    </button>
-                    <button class="nav-tab" data-page="partner-add-pet">
-                        <i class="fas fa-plus"></i> Добавить
-                    </button>
-                    <button class="nav-tab" data-page="partner-leads">
-                        <i class="fas fa-inbox"></i> Заявки
-                    </button>
-                    <button class="nav-tab" data-page="partner-settings">
-                        <i class="fas fa-cog"></i> Настройки
-                    </button>
-                `;
-            }
-            
-            // Добавляем обработчики для новых кнопок
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const pageId = this.dataset.page;
-                    showPage(pageId);
-                    
-                    // Для страницы напоминаний загружаем данные
-                    if (pageId === 'user-reminders') {
-                        loadRemindersPage();
-                    }
-                });
-            });
         }
         
         // Показать страницу
@@ -2590,9 +2765,433 @@
             window.scrollTo(0, 0);
         }
         
-        // Остальные функции (loadUserHome, createPetCard, etc.) остаются без изменений...
+        function goBack() {
+            if (currentMode === 'user') {
+                showPage('user-home');
+            } else {
+                showPage('partner-home');
+            }
+        }
         
-        // Уведомления
+        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+        function showPartnerFormTab(tabName) {
+            currentPartnerFormTab = tabName;
+            
+            // Обновляем активные табы
+            document.querySelectorAll('.form-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.form-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Активируем выбранный таб
+            const activeTab = document.querySelector(`.form-tab[onclick*="${tabName}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            
+            // Показываем выбранный контент
+            const activeContent = document.getElementById(`${tabName}-tab`);
+            if (activeContent) {
+                activeContent.style.display = 'block';
+            }
+        }
+        
+        function updatePartnerTypeIcon() {
+            const type = document.getElementById('partnerType').value;
+            const icon = document.getElementById('partnerLogoIcon');
+            
+            if (icon && type) {
+                icon.className = `fas fa-${getPartnerTypeIcon(type)}`;
+            }
+        }
+        
+        function handlePartnerLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Проверяем размер файла (максимум 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showNotification('Файл слишком большой (макс. 2MB)', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                partnerLogo = e.target.result;
+                
+                const preview = document.getElementById('partnerLogoPreview');
+                const img = document.getElementById('partnerLogoPreviewImg');
+                
+                if (img && preview) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+            };
+            reader.onerror = function() {
+                showNotification('Ошибка загрузки логотипа', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function toggleSpecialization(spec) {
+            const btn = document.getElementById(`spec${spec.charAt(0).toUpperCase() + spec.slice(1)}`);
+            
+            if (selectedSpecializations.includes(spec)) {
+                // Убираем специализацию
+                selectedSpecializations = selectedSpecializations.filter(s => s !== spec);
+                if (btn) {
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--primary)';
+                }
+            } else {
+                // Добавляем специализацию
+                selectedSpecializations.push(spec);
+                if (btn) {
+                    btn.style.background = 'var(--primary)';
+                    btn.style.color = 'white';
+                }
+            }
+        }
+        
+        function handlePhotoUpload(event, previewId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Проверяем размер файла (максимум 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Файл слишком большой (макс. 5MB)', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                const img = document.getElementById(previewId + 'Img');
+                
+                if (img) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                    
+                    // Сохраняем фото
+                    userPhotos = [e.target.result];
+                }
+            };
+            reader.onerror = function() {
+                showNotification('Ошибка загрузки фото', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function handleMultiplePhotosUpload(event, previewId) {
+            const files = event.target.files;
+            if (!files.length) return;
+            
+            const preview = document.getElementById(previewId);
+            preview.innerHTML = '';
+            shelterPhotos = [];
+            
+            // Ограничиваем количество файлов
+            const maxFiles = Math.min(files.length, 5);
+            
+            for (let i = 0; i < maxFiles; i++) {
+                const file = files[i];
+                
+                // Проверяем размер файла
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification(`Фото ${i+1} слишком большое (макс. 5MB)`, 'error');
+                    continue;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (function(file, index) {
+                    return function(e) {
+                        shelterPhotos.push(e.target.result);
+                        
+                        const imgContainer = document.createElement('div');
+                        imgContainer.style.cssText = `
+                            display: inline-block;
+                            margin: 5px;
+                            width: 80px;
+                            height: 80px;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            position: relative;
+                        `;
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                        
+                        // Номер фото
+                        const number = document.createElement('div');
+                        number.style.cssText = `
+                            position: absolute;
+                            top: 5px;
+                            right: 5px;
+                            background: rgba(0,0,0,0.7);
+                            color: white;
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                        `;
+                        number.textContent = index + 1;
+                        
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(number);
+                        preview.appendChild(imgContainer);
+                    };
+                })(file, i);
+                
+                reader.onerror = function() {
+                    showNotification(`Ошибка загрузки фото ${i+1}`, 'error');
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            preview.style.display = 'block';
+        }
+        
+        function selectPetType(type) {
+            // Обновляем кнопки
+            ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--primary)';
+                    btn.style.border = '2px solid var(--primary)';
+                }
+            });
+            
+            const selectedBtn = document.getElementById('btn' + type.charAt(0).toUpperCase() + type.slice(1));
+            if (selectedBtn) {
+                selectedBtn.style.background = 'var(--primary)';
+                selectedBtn.style.color = 'white';
+                selectedBtn.style.border = '2px solid var(--primary)';
+            }
+            
+            window.selectedPetType = type;
+        }
+        
+        // ===== ЗАГРУЗКА ДАННЫХ =====
+        function loadInitialData() {
+            // Загружаем данные из localStorage
+            loadAllData();
+            
+            // Загружаем главную страницу
+            loadUserHome();
+        }
+        
+        // ===== ГЛАВНАЯ ПОЛЬЗОВАТЕЛЯ =====
+        function loadUserHome() {
+            // Отображаем избранных питомцев
+            const container = document.getElementById('featuredPets');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Берём последних 6 питомцев, которые ищут дом
+            const featured = allPets
+                .filter(pet => pet.status === 'available')
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 6);
+            
+            if (featured.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет доступных питомцев</h3>
+                        <p class="text-muted">Будьте первым, кто выложит питомца!</p>
+                    </div>
+                `;
+            } else {
+                featured.forEach(pet => {
+                    const petCard = createPetCard(pet);
+                    container.appendChild(petCard);
+                });
+            }
+            
+            // Загружаем активность
+            loadUserActivity();
+        }
+        
+        function createPetCard(pet) {
+            const card = document.createElement('div');
+            card.className = 'pet-card';
+            card.onclick = () => showPetDetail(pet.id);
+            
+            let typeIcon = '🐾';
+            if (pet.type === 'cat') typeIcon = '🐱';
+            if (pet.type === 'dog') typeIcon = '🐶';
+            
+            // Проверяем, является ли питомец новым (менее 3 дней)
+            const isNew = (new Date() - new Date(pet.createdAt)) < 3 * 24 * 60 * 60 * 1000;
+            
+            card.innerHTML = `
+                <div class="pet-image">
+                    ${pet.photos && pet.photos.length > 0 ? 
+                        `<img src="${pet.photos[0]}" alt="${pet.name}">` : 
+                        `<i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}"></i>`
+                    }
+                    ${isNew ? '<div class="badge badge-new" style="position: absolute; top: 5px; right: 5px;">NEW</div>' : ''}
+                </div>
+                <div class="pet-info">
+                    <div class="pet-name">${pet.name || 'Без имени'}</div>
+                    <div class="pet-details">
+                        ${typeIcon} ${pet.age || ''}
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
+                            ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
+                        </span>
+                        <span class="status status-${pet.status}" style="float: right;">
+                            ${pet.status === 'available' ? 'Ищет дом' : 
+                              pet.status === 'reserved' ? 'Забронирован' : 'Пристроен'}
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function loadUserActivity() {
+            const container = document.getElementById('userRecentActivity');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const userPetCount = userPets.filter(pet => pet.ownerId === userId).length;
+            const availablePets = allPets.filter(p => p.status === 'available').length;
+            
+            container.innerHTML = `
+                <div class="list-item">
+                    <i class="fas fa-paw" style="color: var(--primary);"></i>
+                    <span>Ваших питомцев: ${userPetCount}</span>
+                </div>
+                <div class="list-item">
+                    <i class="fas fa-heart" style="color: var(--danger);"></i>
+                    <span>Ищут дом: ${availablePets}</span>
+                </div>
+                <div class="list-item">
+                    <i class="fas fa-users" style="color: var(--secondary);"></i>
+                    <span>Всего в системе: ${allPets.length}</span>
+                </div>
+            `;
+        }
+        
+        // ===== СТРАНИЦА ПРИЮТОВ/ПАРТНЁРОВ =====
+        function loadSheltersPage() {
+            const container = document.getElementById('sheltersList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (partners.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет зарегистрированных организаций</h3>
+                        <p class="text-muted">Станьте первым партнёром!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Группируем партнёров по городу
+            const partnersByCity = {};
+            partners.forEach(partner => {
+                if (!partnersByCity[partner.city]) {
+                    partnersByCity[partner.city] = [];
+                }
+                partnersByCity[partner.city].push(partner);
+            });
+            
+            // Сортируем города
+            const cities = Object.keys(partnersByCity).sort();
+            
+            cities.forEach(city => {
+                const cityPartners = partnersByCity[city];
+                
+                const citySection = document.createElement('div');
+                citySection.style.marginBottom = '25px';
+                
+                const cityTitle = document.createElement('h3');
+                cityTitle.style.color = 'var(--dark)';
+                cityTitle.style.marginBottom = '15px';
+                cityTitle.style.fontSize = '18px';
+                cityTitle.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${getCityName(city)}`;
+                
+                citySection.appendChild(cityTitle);
+                
+                cityPartners.forEach(partner => {
+                    const shelterCard = createShelterCard(partner);
+                    citySection.appendChild(shelterCard);
+                });
+                
+                container.appendChild(citySection);
+            });
+        }
+        
+        function getCityName(city) {
+            const cities = {
+                'kazan': 'Казань',
+                'moscow': 'Москва',
+                'spb': 'Санкт-Петербург',
+                'novosibirsk': 'Новосибирск',
+                'ekaterinburg': 'Екатеринбург',
+                'other': 'Другой город'
+            };
+            return cities[city] || city;
+        }
+        
+        function createShelterCard(partner) {
+            const card = document.createElement('div');
+            card.className = 'shelter-card';
+            card.onclick = () => showShelterDetails(partner.id);
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    ${partner.logo ? 
+                        `<img src="${partner.logo}" style="width: 60px; height: 60px; border-radius: 12px; margin-right: 15px; object-fit: cover;">` :
+                        `<div class="shelter-icon">
+                            <i class="fas fa-${getPartnerTypeIcon(partner.type)}"></i>
+                        </div>`
+                    }
+                    <div class="shelter-info">
+                        <div class="shelter-name">${partner.name}</div>
+                        <div class="shelter-type">${getPartnerTypeName(partner.type)}</div>
+                        <div class="shelter-location">
+                            <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                            ${partner.address}
+                        </div>
+                        <div class="shelter-contact">
+                            <i class="fas fa-phone" style="color: var(--secondary);"></i>
+                            ${partner.phone}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; color: var(--gray);">
+                        <i class="far fa-clock"></i> ${partner.hours}
+                    </span>
+                    <button class="btn btn-outline btn-small" onclick="event.stopPropagation(); contactPartner('${partner.id}')">
+                        <i class="fas fa-comment"></i> Связаться
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // ===== ОСТАЛЬНЫЕ ФУНКЦИИ =====
+        
         function showNotification(text, type = 'info') {
             const notification = document.getElementById('notification');
             const textElement = document.getElementById('notificationText');
@@ -2617,12 +3216,66 @@
             }, 3000);
         }
         
+        function updateStorageStatus() {
+            const storageStatus = document.getElementById('storageStatus');
+            const storageStats = document.getElementById('storageStats');
+            
+            if (storageStatus) {
+                if (lastSaveTime) {
+                    const timeDiff = Math.floor((new Date() - lastSaveTime) / 1000);
+                    let timeText = '';
+                    
+                    if (timeDiff < 60) {
+                        timeText = `${timeDiff} секунд назад`;
+                    } else if (timeDiff < 3600) {
+                        timeText = `${Math.floor(timeDiff / 60)} минут назад`;
+                    } else {
+                        timeText = `${Math.floor(timeDiff / 3600)} часов назад`;
+                    }
+                    
+                    storageStatus.innerHTML = `✓ Сохранено ${timeText}`;
+                    storageStatus.style.color = 'var(--primary)';
+                } else {
+                    storageStatus.textContent = '✗ Не сохранено';
+                    storageStatus.style.color = 'var(--danger)';
+                }
+            }
+            
+            if (storageStats) {
+                const userId = getUserId();
+                storageStats.innerHTML = `
+                    <div>Ваших питомцев: ${userPets.filter(p => p.ownerId === userId).length}</div>
+                    <div>Всего питомцев в системе: ${allPets.length}</div>
+                    <div>Партнёров в системе: ${partners.length}</div>
+                    <div>Напоминаний: ${reminders.filter(r => r.userId === userId).length}</div>
+                    <div>Использовано памяти: ${calculateStorageSize()} KB</div>
+                `;
+            }
+        }
+        
+        function calculateStorageSize() {
+            let total = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                total += key.length + value.length;
+            }
+            return Math.round(total / 1024 * 100) / 100;
+        }
+        
+        function forceSave() {
+            if (saveAllData()) {
+                showNotification('Данные успешно сохранены', 'success');
+            }
+        }
+        
         // Инициализация
         console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
         console.log('ID пользователя:', getUserId());
         console.log('Telegram WebApp версия:', tg.version);
         console.log('Система глобального хранения данных активирована');
         console.log('Система напоминаний активирована');
+        console.log('Режим:', currentMode);
     </script>
 </body>
 </html>
