@@ -8,6 +8,10 @@
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
+    <!-- Firebase (для глобального хранения данных) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -563,198 +567,79 @@
             margin-top: 5px;
         }
         
-        /* ===== ПРОГРЕСС БАР ===== */
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--light);
-            border-radius: 4px;
-            margin: 10px 0;
-            overflow: hidden;
+        /* ===== ИНДИКАТОР ЗАГРУЗКИ ===== */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--light);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
         }
         
-        .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            border-radius: 4px;
-            transition: width 0.3s;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
-        /* ===== СТАТУСНАЯ ПАНЕЛЬ ===== */
-        .status-panel {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        .status-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--primary-light);
-            border-radius: 12px;
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--primary);
-            font-size: 24px;
-            margin-right: 15px;
+            z-index: 3000;
+            flex-direction: column;
+            gap: 20px;
         }
         
-        .status-info {
-            flex: 1;
-        }
-        
-        .status-title {
-            font-weight: 600;
-            font-size: 16px;
+        .loading-text {
+            font-size: 18px;
             color: var(--dark);
-        }
-        
-        .status-description {
-            font-size: 14px;
-            color: var(--gray);
-        }
-        
-        /* ===== ТАБЫ ФОРМЫ ===== */
-        .form-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-        }
-        
-        .form-tab {
-            flex: none;
-            padding: 12px 16px;
-            background: var(--light);
-            border: none;
-            border-radius: 12px;
-            font-size: 14px;
             font-weight: 600;
-            color: var(--gray);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
         }
         
-        .form-tab.active {
-            background: var(--primary);
-            color: white;
-        }
-        
-        /* ===== ФИКСИРОВАННАЯ КНОПКА НАПОМИНАНИЙ ===== */
-        .reminder-fab {
+        /* ===== КНОПКА ОБНОВЛЕНИЯ ===== */
+        .refresh-btn {
             position: fixed;
-            bottom: 20px;
+            bottom: 90px;
             right: 20px;
-            width: 60px;
-            height: 60px;
-            background: var(--accent);
+            width: 50px;
+            height: 50px;
+            background: var(--secondary);
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
             z-index: 100;
             transition: all 0.3s;
         }
         
-        .reminder-fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(255, 152, 0, 0.4);
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+            background: var(--secondary-light);
         }
         
-        .reminder-fab.has-notifications {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
-        }
-        
-        /* ===== СТИЛИ ДЛЯ НАПОМИНАНИЙ ===== */
-        .reminder-item {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        .reminder-item.urgent {
-            border-left-color: var(--danger);
-            background: #FFEBEE;
-        }
-        
-        .reminder-item.warning {
-            border-left-color: var(--accent);
-            background: #FFF3E0;
-        }
-        
-        .reminder-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .reminder-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--dark);
-        }
-        
-        .reminder-date {
-            font-size: 12px;
-            color: var(--gray);
-        }
-        
-        .reminder-description {
-            font-size: 14px;
-            color: var(--gray);
-            margin-bottom: 10px;
-        }
-        
-        .reminder-pet {
-            font-size: 12px;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 8px;
-        }
-        
-        /* ===== ИКОНКА С КОЛИЧЕСТВОМ УВЕДОМЛЕНИЙ ===== */
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
         }
     </style>
 </head>
 <body>
+    <!-- Индикатор загрузки -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loader"></div>
+        <div class="loading-text" id="loadingText">Загрузка данных...</div>
+    </div>
+    
     <div class="app-container">
         <!-- Шапка с переключением режима -->
         <header class="app-header">
@@ -764,6 +649,7 @@
                 </div>
                 <div class="logo-text">
                     <h1>Твой Будущий Питомец</h1>
+                    <small style="opacity: 0.8;">Все питомцы видны всем пользователям</small>
                 </div>
             </div>
             
@@ -793,6 +679,10 @@
                     
                     <div class="pets-grid" id="featuredPets">
                         <!-- Избранные питомцы -->
+                        <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
+                            <div class="loader" style="margin: 0 auto 15px;"></div>
+                            <p class="text-muted">Загрузка питомцев...</p>
+                        </div>
                     </div>
                     
                     <button class="btn btn-primary mt-20" onclick="showPage('user-shelters')">
@@ -802,18 +692,14 @@
                     <button class="btn btn-secondary mt-20" onclick="showPage('user-add-pet')">
                         <i class="fas fa-plus"></i> Выложить питомца
                     </button>
-                    
-                    <button class="btn btn-accent mt-20" onclick="showPage('user-reminders')">
-                        <i class="fas fa-bell"></i> Мои напоминания
-                    </button>
                 </div>
                 
                 <div class="card">
                     <h3 class="card-title">
-                        <i class="fas fa-history"></i> Недавние действия
+                        <i class="fas fa-chart-line"></i> Статистика
                     </h3>
-                    <div id="userRecentActivity">
-                        <!-- Активность пользователя -->
+                    <div id="userStats">
+                        <!-- Статистика будет здесь -->
                     </div>
                 </div>
             </div>
@@ -831,7 +717,10 @@
                     </div>
                     
                     <div id="userPetsList" class="pets-grid">
-                        <!-- Питомцы пользователя -->
+                        <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
+                            <div class="loader" style="margin: 0 auto 15px;"></div>
+                            <p class="text-muted">Загрузка ваших питомцев...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -843,10 +732,16 @@
                         <div class="card-title">
                             <i class="fas fa-hands-helping"></i> Приюты и партнёры
                         </div>
+                        <button class="btn btn-primary btn-small" onclick="refreshAllData()">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
                     </div>
                     
                     <div id="sheltersList" class="list">
-                        <!-- Список приютов -->
+                        <div class="text-center" style="padding: 20px;">
+                            <div class="loader" style="margin: 0 auto 15px;"></div>
+                            <p class="text-muted">Загрузка приютов...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -947,14 +842,14 @@
                             </select>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitPetBtn">
                             <i class="fas fa-paper-plane"></i> Опубликовать питомца
                         </button>
                     </form>
                 </div>
             </div>
             
-            <!-- Регистрация партнёра (УПРОЩЕННАЯ ВЕРСИЯ) -->
+            <!-- Регистрация партнёра -->
             <div id="partner-register" class="page">
                 <div class="card">
                     <div class="card-header">
@@ -1076,6 +971,7 @@
                         
                         <div class="text-center mt-10">
                             <p class="text-muted">* - обязательные поля</p>
+                            <p class="text-muted" style="font-size: 12px;">После регистрации ваша организация будет видна всем пользователям</p>
                         </div>
                     </form>
                 </div>
@@ -1113,6 +1009,15 @@
                     <button class="btn btn-outline" onclick="showPage('partner-settings')">
                         <i class="fas fa-cog"></i> Настройки профиля
                     </button>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i> Статистика платформы
+                    </h3>
+                    <div id="platformStats">
+                        <!-- Статистика будет здесь -->
+                    </div>
                 </div>
             </div>
             
@@ -1229,7 +1134,7 @@
                             </select>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitShelterPetBtn">
                             <i class="fas fa-save"></i> Добавить питомца
                         </button>
                     </form>
@@ -1246,10 +1151,16 @@
                         <button class="btn btn-primary btn-small" onclick="showPage('partner-add-pet')">
                             <i class="fas fa-plus"></i> Добавить
                         </button>
+                        <button class="btn btn-outline btn-small" onclick="refreshShelterPets()">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
                     </div>
                     
                     <div id="shelterPetsList" class="pets-grid">
-                        <!-- Питомцы партнёра -->
+                        <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
+                            <div class="loader" style="margin: 0 auto 15px;"></div>
+                            <p class="text-muted">Загрузка питомцев организации...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1264,7 +1175,11 @@
                     </div>
                     
                     <div id="partnerLeadsList" class="list">
-                        <!-- Заявки партнёра -->
+                        <div class="text-center" style="padding: 40px 20px;">
+                            <i class="fas fa-inbox" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
+                            <p class="text-muted">Здесь будут отображаться заявки на усыновление ваших питомцев</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1293,7 +1208,7 @@
                     <i class="fas fa-check"></i>
                 </div>
                 <h2>Питомец опубликован!</h2>
-                <p class="text-muted">Информация будет видна другим пользователям</p>
+                <p class="text-muted">Теперь питомца видят ВСЕ пользователи платформы</p>
                 <button class="btn btn-primary mt-20" onclick="showPage('user-home')">
                     <i class="fas fa-home"></i> На главную
                 </button>
@@ -1316,41 +1231,30 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <h3 id="userName">Пользователь</h3>
-                        <p class="text-muted" id="userId">ID: </p>
+                        <p class="text-muted" id="userId">ID: загрузка...</p>
                     </div>
                     
                     <div class="storage-info" style="margin-bottom: 30px; padding: 20px; background: var(--light); border-radius: 12px;">
-                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-database"></i> Хранение данных</h4>
+                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-database"></i> База данных</h4>
                         <p style="font-size: 14px; color: var(--gray); margin-bottom: 10px;">
-                            Статус: <span id="storageStatus" style="color: var(--primary); font-weight: bold;">✓ Активно</span>
+                            Статус: <span id="storageStatus" style="color: var(--primary); font-weight: bold;">✓ Firebase подключен</span>
                         </p>
                         <div id="storageStats" style="font-size: 12px; color: var(--gray);">
                             <!-- Статистика загрузки -->
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary mb-20" onclick="forceSave()">
-                        <i class="fas fa-save"></i> Сохранить сейчас
-                    </button>
-                    
-                    <button class="btn btn-outline mb-20" onclick="exportUserData()">
-                        <i class="fas fa-download"></i> Экспорт моих данных
-                    </button>
-                    
-                    <button class="btn btn-outline mb-20" onclick="importUserData()">
-                        <i class="fas fa-upload"></i> Импорт данных
-                    </button>
-                    
-                    <button class="btn btn-outline mb-20" onclick="clearUserData()" style="background: #FFEBEE; color: #C62828; border-color: #C62828;">
-                        <i class="fas fa-trash"></i> Очистить все мои данные
+                    <button class="btn btn-primary mb-20" onclick="refreshAllData()">
+                        <i class="fas fa-sync-alt"></i> Обновить все данные
                     </button>
                     
                     <div style="margin-top: 30px; padding: 20px; background: var(--light); border-radius: 12px;">
                         <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-info-circle"></i> О приложении</h4>
                         <p style="font-size: 14px; color: var(--gray);">
                             "Твой Будущий Питомец" - сервис для помощи животным.<br>
-                            Версия 1.2.0<br>
-                            Все питомцы сохраняются глобально и видны всем пользователям.
+                            Версия 2.0.0<br>
+                            Все питомцы сохраняются в облаке и видны всем пользователям.<br>
+                            Используется Firebase Realtime Database.
                         </p>
                     </div>
                 </div>
@@ -1394,48 +1298,17 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary mb-20" onclick="forceSave()">
-                        <i class="fas fa-save"></i> Сохранить сейчас
-                    </button>
-                    
-                    <button class="btn btn-outline mb-20" onclick="exportShelterData()">
-                        <i class="fas fa-download"></i> Экспорт данных организации
-                    </button>
-                    
-                    <button class="btn btn-outline mb-20" onclick="clearShelterData()" style="background: #FFEBEE; color: #C62828; border-color: #C62828;">
-                        <i class="fas fa-trash"></i> Удалить профиль организации
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Страница напоминаний -->
-            <div id="user-reminders" class="page">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-bell"></i> Мои напоминания
-                        </div>
-                        <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
-                            <i class="fas fa-arrow-left"></i> Назад
-                        </button>
-                    </div>
-                    
-                    <div id="remindersContainer">
-                        <!-- Напоминания будут загружаться здесь -->
-                    </div>
-                    
-                    <button class="btn btn-primary mt-20" onclick="showAddReminderModal()">
-                        <i class="fas fa-plus"></i> Добавить напоминание
+                    <button class="btn btn-primary mb-20" onclick="refreshAllData()">
+                        <i class="fas fa-sync-alt"></i> Обновить данные
                     </button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Кнопка напоминаний (FAB) -->
-    <div class="reminder-fab" onclick="showPage('user-reminders')" id="reminderFab">
-        <i class="fas fa-bell"></i>
-        <span id="reminderBadge" class="notification-badge hidden"></span>
+    <!-- Кнопка обновления -->
+    <div class="refresh-btn" onclick="refreshAllData()" title="Обновить данные">
+        <i class="fas fa-sync-alt"></i>
     </div>
 
     <!-- Уведомления -->
@@ -1444,132 +1317,34 @@
         <div id="notificationText"></div>
     </div>
 
-    <!-- Модальное окно для импорта -->
-    <div id="importModal" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-upload"></i> Импорт данных
-                </div>
-                <button class="modal-close" onclick="closeImportModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="form-group">
-                <label>Выберите файл для импорта (.json)</label>
-                <input type="file" id="importFileInput" accept=".json" class="form-input">
-            </div>
-            
-            <div class="form-group">
-                <label>Тип импорта</label>
-                <select id="importType" class="form-select">
-                    <option value="merge">Объединить с текущими данными</option>
-                    <option value="replace">Заменить текущие данные</option>
-                </select>
-            </div>
-            
-            <button class="btn btn-primary" onclick="processImport()">
-                <i class="fas fa-file-import"></i> Импортировать
-            </button>
-        </div>
-    </div>
-
-    <!-- Модальное окно добавления напоминания -->
-    <div id="addReminderModal" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-bell"></i> Добавить напоминание
-                </div>
-                <button class="modal-close" onclick="closeAddReminderModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="addReminderForm">
-                <div class="form-group">
-                    <label>Тип напоминания *</label>
-                    <select class="form-select" id="reminderType" required>
-                        <option value="">Выберите тип</option>
-                        <option value="vaccination">Прививка</option>
-                        <option value="vet">Визит к ветеринару</option>
-                        <option value="grooming">Стрижка/груминг</option>
-                        <option value="food">Кормление</option>
-                        <option value="medication">Приём лекарств</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Питомец *</label>
-                    <select class="form-select" id="reminderPet" required>
-                        <option value="">Выберите питомца</option>
-                        <!-- Питомцы будут загружены динамически -->
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Название напоминания *</label>
-                    <input type="text" class="form-input" id="reminderTitle" required 
-                           placeholder="Например: Ежегодная прививка">
-                </div>
-                
-                <div class="form-group">
-                    <label>Описание</label>
-                    <textarea class="form-textarea" id="reminderDescription" 
-                              placeholder="Подробности..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Дата и время *</label>
-                    <input type="datetime-local" class="form-input" id="reminderDateTime" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Повторение</label>
-                    <select class="form-select" id="reminderRepeat">
-                        <option value="none">Не повторять</option>
-                        <option value="daily">Ежедневно</option>
-                        <option value="weekly">Еженедельно</option>
-                        <option value="monthly">Ежемесячно</option>
-                        <option value="yearly">Ежегодно</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Важность</label>
-                    <select class="form-select" id="reminderPriority">
-                        <option value="normal">Обычная</option>
-                        <option value="high">Высокая</option>
-                        <option value="urgent">Срочная</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Сохранить напоминание
-                </button>
-            </form>
-        </div>
-    </div>
-
     <script>
+        // ===== КОНФИГУРАЦИЯ FIREBASE =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2KjSqT5mJk-Xt5Qq9W6q3p7vY6Zz1abc",
+            authDomain: "future-pet-db.firebaseapp.com",
+            databaseURL: "https://future-pet-db-default-rtdb.firebaseio.com",
+            projectId: "future-pet-db",
+            storageBucket: "future-pet-db.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let tg = window.Telegram.WebApp;
         let currentMode = 'user'; // 'user' или 'partner'
         let currentUser = {};
         let userPets = []; // Питомцы текущего пользователя
-        let allPets = []; // ВСЕ питомцы в системе (глобальные)
-        let partners = []; // Все зарегистрированные партнёры
+        let allPets = []; // ВСЕ питомцы в системе (глобальные из Firebase)
+        let partners = []; // Все зарегистрированные партнёры из Firebase
         let userPhotos = [];
         let shelterPhotos = [];
-        let partnerLogo = null;
-        let lastSaveTime = null;
-        let saveInterval = null;
-        let reminders = []; // Напоминания пользователя
-        let notificationCheckInterval = null;
+        let isLoading = false;
         
-        // ===== СИСТЕМА СОХРАНЕНИЯ ДАННЫХ =====
+        // ===== FIREBASE ФУНКЦИИ =====
         
         // Получить уникальный ID пользователя
         function getUserId() {
@@ -1585,196 +1360,211 @@
             return userId;
         }
         
-        // Получить ключ для хранения данных пользователя
-        function getUserStorageKey(key) {
-            return `futurepet_user_${getUserId()}_${key}`;
+        // Показать/скрыть индикатор загрузки
+        function showLoading(text = 'Загрузка данных...') {
+            isLoading = true;
+            const overlay = document.getElementById('loadingOverlay');
+            const textEl = document.getElementById('loadingText');
+            if (overlay && textEl) {
+                textEl.textContent = text;
+                overlay.classList.remove('hidden');
+            }
         }
         
-        // Получить ключ для глобальных данных (доступных всем)
-        function getGlobalStorageKey(key) {
-            return `futurepet_global_${key}`;
+        function hideLoading() {
+            isLoading = false;
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
         }
         
-        // Сохранить данные пользователя (только его личные данные)
-        function saveUserData(key, data) {
-            const storageKey = getUserStorageKey(key);
+        // Сохранить питомца в Firebase
+        async function savePetToFirebase(petData) {
             try {
-                localStorage.setItem(storageKey, JSON.stringify(data));
-                console.log(`✅ Сохранено пользовательское: ${storageKey}`);
+                showLoading('Сохранение питомца...');
+                const petRef = database.ref('pets/' + petData.id);
+                await petRef.set(petData);
+                console.log('✅ Питомец сохранен в Firebase:', petData.id);
                 return true;
-            } catch (e) {
-                console.error('❌ Ошибка сохранения:', e);
-                showNotification('Ошибка сохранения данных', 'error');
+            } catch (error) {
+                console.error('❌ Ошибка сохранения питомца:', error);
+                showNotification('Ошибка сохранения питомца', 'error');
                 return false;
+            } finally {
+                hideLoading();
             }
         }
         
-        // Загрузить данные пользователя
-        function loadUserData(key, defaultValue = null) {
-            const storageKey = getUserStorageKey(key);
+        // Сохранить партнёра в Firebase
+        async function savePartnerToFirebase(partnerData) {
             try {
-                const data = localStorage.getItem(storageKey);
-                return data ? JSON.parse(data) : defaultValue;
-            } catch (e) {
-                console.error('❌ Ошибка загрузки:', e);
-                return defaultValue;
-            }
-        }
-        
-        // Сохранить глобальные данные (видны всем пользователям)
-        function saveGlobalData(key, data) {
-            const storageKey = getGlobalStorageKey(key);
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(data));
-                console.log(`🌍 Сохранено глобально: ${storageKey}`, data.length || data);
+                showLoading('Сохранение организации...');
+                const partnerRef = database.ref('partners/' + partnerData.id);
+                await partnerRef.set(partnerData);
+                console.log('✅ Партнёр сохранен в Firebase:', partnerData.id);
                 return true;
-            } catch (e) {
-                console.error('❌ Ошибка сохранения глобальных данных:', e);
-                showNotification('Ошибка сохранения общих данных', 'error');
+            } catch (error) {
+                console.error('❌ Ошибка сохранения партнёра:', error);
+                showNotification('Ошибка сохранения организации', 'error');
                 return false;
+            } finally {
+                hideLoading();
             }
         }
         
-        // Загрузить глобальные данные
-        function loadGlobalData(key, defaultValue = null) {
-            const storageKey = getGlobalStorageKey(key);
+        // Загрузить всех питомцев из Firebase
+        async function loadAllPetsFromFirebase() {
             try {
-                const data = localStorage.getItem(storageKey);
-                return data ? JSON.parse(data) : defaultValue;
-            } catch (e) {
-                console.error('❌ Ошибка загрузки глобальных данных:', e);
-                return defaultValue;
-            }
-        }
-        
-        // Улучшенное сохранение с проверкой доступности localStorage
-        function safeSaveData() {
-            try {
-                // Проверяем доступность localStorage
-                const testKey = 'futurepet_test_' + Date.now();
-                localStorage.setItem(testKey, 'test');
-                localStorage.removeItem(testKey);
+                showLoading('Загрузка питомцев...');
+                const snapshot = await database.ref('pets').once('value');
+                const petsData = snapshot.val();
                 
-                return saveAllData();
-            } catch (e) {
-                console.error('❌ localStorage недоступен:', e);
-                showNotification('Ошибка доступа к хранилищу. Данные не сохранены.', 'error');
-                return false;
-            }
-        }
-        
-        // ИНИЦИАЛИЗАЦИЯ ХРАНИЛИЩА
-        function initStorage() {
-            try {
-                const userId = getUserId();
-                
-                // Загружаем личные данные пользователя
-                currentMode = loadUserData('mode', 'user');
-                reminders = loadUserData('reminders', []);
-                
-                // Загружаем ГЛОБАЛЬНЫЕ данные (все питомцы и партнеры)
-                allPets = loadGlobalData('all_pets', []);
-                partners = loadGlobalData('partners', []);
-                
-                // Обновляем userPets из глобальных данных
-                userPets = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'user');
-                
-                // Восстанавливаем время последнего сохранения
-                const lastSave = localStorage.getItem(getUserStorageKey('last_save'));
-                if (lastSave) {
-                    lastSaveTime = new Date(lastSave);
+                if (petsData) {
+                    allPets = Object.values(petsData);
+                    console.log('✅ Загружено питомцев из Firebase:', allPets.length);
+                } else {
+                    allPets = [];
+                    console.log('ℹ️ В Firebase нет питомцев');
                 }
                 
-                console.log('📂 ИНИЦИАЛИЗИРОВАНЫ ДАННЫЕ:', {
-                    userPets: userPets.length,
-                    allPets: allPets.length,
-                    partners: partners.length,
-                    reminders: reminders.length,
-                    mode: currentMode,
-                    userId: userId,
-                    lastSave: lastSaveTime ? lastSaveTime.toLocaleTimeString() : 'никогда'
-                });
+                // Обновить отображение если мы на главной странице
+                if (document.getElementById('user-home').classList.contains('active')) {
+                    loadUserHome();
+                }
                 
-                updateStorageStatus();
+                return allPets;
+            } catch (error) {
+                console.error('❌ Ошибка загрузки питомцев:', error);
+                showNotification('Ошибка загрузки питомцев', 'error');
+                return [];
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Загрузить всех партнёров из Firebase
+        async function loadAllPartnersFromFirebase() {
+            try {
+                showLoading('Загрузка организаций...');
+                const snapshot = await database.ref('partners').once('value');
+                const partnersData = snapshot.val();
+                
+                if (partnersData) {
+                    partners = Object.values(partnersData);
+                    console.log('✅ Загружено партнёров из Firebase:', partners.length);
+                } else {
+                    partners = [];
+                    console.log('ℹ️ В Firebase нет партнёров');
+                }
+                
+                // Обновить статус партнёра
                 updatePartnerStatus();
-                updateReminderFab();
+                
+                return partners;
+            } catch (error) {
+                console.error('❌ Ошибка загрузки партнёров:', error);
+                showNotification('Ошибка загрузки организаций', 'error');
+                return [];
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Загрузить ВСЕ данные из Firebase
+        async function loadAllDataFromFirebase() {
+            try {
+                showLoading('Загрузка всех данных...');
+                await Promise.all([
+                    loadAllPetsFromFirebase(),
+                    loadAllPartnersFromFirebase()
+                ]);
+                
+                // Обновить статистику
+                updateStats();
+                
+                showNotification('Данные успешно загружены', 'success');
                 return true;
-            } catch (e) {
-                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при инициализации хранилища:', e);
+            } catch (error) {
+                console.error('❌ Ошибка загрузки всех данных:', error);
                 showNotification('Ошибка загрузки данных', 'error');
                 return false;
+            } finally {
+                hideLoading();
             }
         }
         
-        // Сохранить ВСЕ данные (личные + глобальные) с улучшенной обработкой
-        function saveAllData() {
-            try {
-                const userId = getUserId();
+        // Обновить статистику
+        function updateStats() {
+            const userId = getUserId();
+            
+            // Статистика пользователя
+            const userStats = document.getElementById('userStats');
+            if (userStats) {
+                const userPetCount = allPets.filter(p => p.ownerId === userId && p.ownerType === 'user').length;
+                const availablePets = allPets.filter(p => p.status === 'available').length;
+                const totalPets = allPets.length;
                 
-                // Объединяем данные перед сохранением для избежания потерь
-                const existingPets = loadGlobalData('all_pets', []);
-                const petsMap = new Map();
+                userStats.innerHTML = `
+                    <div class="list-item">
+                        <i class="fas fa-paw" style="color: var(--primary);"></i>
+                        <span>Ваших питомцев: <strong>${userPetCount}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-heart" style="color: var(--danger);"></i>
+                        <span>Ищут дом: <strong>${availablePets}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-users" style="color: var(--secondary);"></i>
+                        <span>Всего на платформе: <strong>${totalPets}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-building" style="color: var(--accent);"></i>
+                        <span>Организаций: <strong>${partners.length}</strong></span>
+                    </div>
+                `;
+            }
+            
+            // Статистика платформы
+            const platformStats = document.getElementById('platformStats');
+            if (platformStats) {
+                const userPetsCount = allPets.filter(p => p.ownerType === 'user').length;
+                const shelterPetsCount = allPets.filter(p => p.ownerType === 'shelter').length;
+                const adoptedPets = allPets.filter(p => p.status === 'adopted').length;
                 
-                // Добавляем существующих питомцев
-                existingPets.forEach(pet => petsMap.set(pet.id, pet));
-                // Добавляем/обновляем текущих питомцев
-                allPets.forEach(pet => petsMap.set(pet.id, pet));
-                
-                // Преобразуем обратно в массив
-                const mergedPets = Array.from(petsMap.values());
-                allPets = mergedPets;
-                
-                // Аналогично для партнеров
-                const existingPartners = loadGlobalData('partners', []);
-                const partnersMap = new Map();
-                
-                existingPartners.forEach(partner => partnersMap.set(partner.id, partner));
-                partners.forEach(partner => partnersMap.set(partner.id, partner));
-                
-                const mergedPartners = Array.from(partnersMap.values());
-                partners = mergedPartners;
-                
-                // Сохраняем личные данные пользователя
-                const userSuccess = [
-                    saveUserData('mode', currentMode),
-                    saveUserData('reminders', reminders)
-                ].every(result => result === true);
-                
-                // Сохраняем ГЛОБАЛЬНЫЕ данные
-                const globalSuccess = [
-                    saveGlobalData('all_pets', mergedPets),
-                    saveGlobalData('partners', mergedPartners)
-                ].every(result => result === true);
-                
-                if (userSuccess && globalSuccess) {
-                    lastSaveTime = new Date();
-                    localStorage.setItem(getUserStorageKey('last_save'), lastSaveTime.toISOString());
-                    
-                    console.log('💾 ВСЕ ДАННЫЕ УСПЕШНО СОХРАНЕНЫ в', lastSaveTime.toLocaleTimeString());
-                    console.log('📊 СТАТИСТИКА:', {
-                        userPets: userPets.length,
-                        allPets: allPets.length,
-                        partners: partners.length,
-                        reminders: reminders.length
-                    });
-                    
-                    // Обновляем статус в настройках
-                    updateStorageStatus();
-                    updatePartnerStatus();
-                    updateReminderFab();
-                    
-                    return true;
-                }
-                return false;
-            } catch (e) {
-                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА при сохранении всех данных:', e);
-                showNotification('Критическая ошибка сохранения', 'error');
-                return false;
+                platformStats.innerHTML = `
+                    <div class="list-item">
+                        <i class="fas fa-user" style="color: var(--primary);"></i>
+                        <span>Питомцев от пользователей: <strong>${userPetsCount}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-building" style="color: var(--secondary);"></i>
+                        <span>Питомцев от организаций: <strong>${shelterPetsCount}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-home" style="color: var(--success);"></i>
+                        <span>Нашли дом: <strong>${adoptedPets}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-database" style="color: var(--accent);"></i>
+                        <span>Всего в базе: <strong>${allPets.length}</strong></span>
+                    </div>
+                `;
+            }
+            
+            // Обновить статус хранилища
+            const storageStats = document.getElementById('storageStats');
+            if (storageStats) {
+                storageStats.innerHTML = `
+                    <div>Питомцев в базе: ${allPets.length}</div>
+                    <div>Организаций: ${partners.length}</div>
+                    <div>Ваш ID: ${userId.substring(0, 10)}...</div>
+                `;
             }
         }
         
         // ===== ИНИЦИАЛИЗАЦИЯ =====
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // 1. Инициализация Telegram
             tg.ready();
             tg.expand();
@@ -1782,25 +1572,19 @@
             // 2. Инициализация пользователя
             initializeUser();
             
-            // 3. Инициализация хранилища
-            initStorage();
+            // 3. Загружаем все данные из Firebase
+            await loadAllDataFromFirebase();
             
             // 4. Инициализация навигации
             updateNavigation();
             
-            // 5. Инициализация форм (включая форму партнёра)
+            // 5. Инициализация форм
             initForms();
             
-            // 6. Загрузка начальных данных
-            loadInitialData();
+            // 6. Настройка реального времени (опционально)
+            setupRealtimeUpdates();
             
-            // 7. Настройка автосохранения с улучшенной обработкой
-            setupAutoSave();
-            
-            // 8. Инициализация системы напоминаний
-            initReminderSystem();
-            
-            showNotification(`Добро пожаловать, ${currentUser.name || 'Пользователь'}!`, 'info');
+            showNotification(`Добро пожаловать, ${currentUser.name || 'Пользователь'}! Данные загружены из облака.`, 'info');
         });
         
         function initializeUser() {
@@ -1825,51 +1609,535 @@
             const userId = document.getElementById('userId');
             
             if (userName) userName.textContent = currentUser.name;
-            if (userId) userId.textContent = `ID: ${currentUser.id}`;
-            
-            // Сохраняем профиль
-            saveUserData('profile', currentUser);
+            if (userId) userId.textContent = `ID: ${currentUser.id.substring(0, 15)}...`;
         }
         
-        function setupAutoSave() {
-            // Сохраняем каждые 30 секунд
-            saveInterval = setInterval(() => {
-                safeSaveData();
-            }, 30000);
-            
-            // Улучшенная обработка событий страницы
-            let isSaving = false;
-            
-            // Сохраняем при скрытии страницы
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden && !isSaving) {
-                    isSaving = true;
-                    console.log('🔄 Страница скрыта, сохраняем данные...');
-                    safeSaveData();
-                    setTimeout(() => { isSaving = false; }, 1000);
+        function setupRealtimeUpdates() {
+            // Слушаем изменения в питомцах в реальном времени
+            database.ref('pets').on('value', (snapshot) => {
+                const petsData = snapshot.val();
+                if (petsData) {
+                    allPets = Object.values(petsData);
+                    console.log('🔄 Обновлены питомцы в реальном времени:', allPets.length);
+                    
+                    // Обновляем текущую страницу если нужно
+                    updateCurrentPage();
                 }
             });
             
-            // Сохраняем при закрытии вкладки
-            window.addEventListener('beforeunload', function(e) {
-                if (!isSaving) {
-                    console.log('🔒 Закрытие вкладки, финальное сохранение...');
-                    safeSaveData();
-                }
-            });
-            
-            // Сохраняем при переключении между приложениями (для мобильных)
-            window.addEventListener('pagehide', function() {
-                if (!isSaving) {
-                    isSaving = true;
-                    console.log('📱 Переключение приложений, сохраняем...');
-                    safeSaveData();
-                    setTimeout(() => { isSaving = false; }, 1000);
+            // Слушаем изменения в партнерах в реальном времени
+            database.ref('partners').on('value', (snapshot) => {
+                const partnersData = snapshot.val();
+                if (partnersData) {
+                    partners = Object.values(partnersData);
+                    console.log('🔄 Обновлены партнеры в реальном времени:', partners.length);
+                    
+                    // Обновляем статус партнёра
+                    updatePartnerStatus();
                 }
             });
         }
         
-        // Обновить навигацию
+        // Обновить текущую страницу
+        function updateCurrentPage() {
+            if (currentMode === 'user') {
+                if (document.getElementById('user-home').classList.contains('active')) {
+                    loadUserHome();
+                } else if (document.getElementById('user-pets').classList.contains('active')) {
+                    loadUserPets();
+                } else if (document.getElementById('user-shelters').classList.contains('active')) {
+                    loadSheltersPage();
+                }
+            } else {
+                if (document.getElementById('partner-home').classList.contains('active')) {
+                    loadPartnerHome();
+                } else if (document.getElementById('partner-pets').classList.contains('active')) {
+                    loadShelterPets();
+                }
+            }
+            updateStats();
+        }
+        
+        // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
+        function initForms() {
+            // Форма пользователя
+            const userForm = document.getElementById('userAddPetForm');
+            if (userForm) {
+                userForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Проверка обязательных полей
+                    if (!window.selectedPetType) {
+                        showNotification('Выберите тип животного', 'error');
+                        return;
+                    }
+                    
+                    if (userPhotos.length === 0) {
+                        showNotification('Загрузите фотографию питомца', 'error');
+                        return;
+                    }
+                    
+                    const requiredFields = [
+                        {id: 'petName', name: 'Имя питомца'},
+                        {id: 'petSex', name: 'Пол'},
+                        {id: 'petAge', name: 'Возраст'},
+                        {id: 'petDescription', name: 'Описание'},
+                        {id: 'petLocation', name: 'Местоположение'},
+                        {id: 'petContact', name: 'Контакты для связи'},
+                        {id: 'petStatus', name: 'Статус'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const submitBtn = document.getElementById('submitPetBtn');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
+                    submitBtn.disabled = true;
+                    
+                    const userId = getUserId();
+                    const newPet = {
+                        id: 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        ownerId: userId,
+                        ownerType: 'user',
+                        ownerName: currentUser.name,
+                        type: window.selectedPetType || 'other',
+                        name: document.getElementById('petName').value.trim(),
+                        sex: document.getElementById('petSex').value,
+                        age: document.getElementById('petAge').value.trim(),
+                        breed: document.getElementById('petBreed').value.trim() || null,
+                        description: document.getElementById('petDescription').value.trim(),
+                        location: document.getElementById('petLocation').value.trim(),
+                        contact: document.getElementById('petContact').value.trim(),
+                        status: document.getElementById('petStatus').value,
+                        photos: userPhotos,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        views: 0
+                    };
+                    
+                    console.log('📝 Создание нового питомца:', newPet);
+                    
+                    // Сохраняем в Firebase
+                    const success = await savePetToFirebase(newPet);
+                    
+                    if (success) {
+                        // Добавляем в локальный массив
+                        allPets.unshift(newPet);
+                        
+                        // Очищаем форму
+                        this.reset();
+                        userPhotos = [];
+                        document.getElementById('petPhotoPreview').style.display = 'none';
+                        
+                        // Сбрасываем кнопки типа
+                        ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
+                            const btn = document.getElementById(id);
+                            if (btn) {
+                                btn.style.background = 'transparent';
+                                btn.style.color = 'var(--primary)';
+                                btn.style.border = '2px solid var(--primary)';
+                            }
+                        });
+                        window.selectedPetType = null;
+                        
+                        // Показываем успех
+                        showPage('success');
+                        showNotification('Питомец успешно опубликован! Теперь его видят ВСЕ пользователи.', 'success');
+                    }
+                    
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            }
+            
+            // Форма регистрации партнёра
+            const partnerRegisterForm = document.getElementById('partnerRegisterForm');
+            if (partnerRegisterForm) {
+                partnerRegisterForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const submitBtn = document.getElementById('partnerSubmitBtn');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
+                    submitBtn.disabled = true;
+                    
+                    const success = await savePartnerForm();
+                    
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    if (success) {
+                        showPage('partner-home');
+                    }
+                });
+            }
+            
+            // Форма добавления питомца партнёром
+            const partnerPetForm = document.getElementById('partnerAddPetForm');
+            if (partnerPetForm) {
+                partnerPetForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Проверка обязательных полей для партнера
+                    if (shelterPhotos.length === 0) {
+                        showNotification('Загрузите хотя бы одну фотографию питомца', 'error');
+                        return;
+                    }
+                    
+                    const requiredFields = [
+                        {id: 'shelterPetType', name: 'Тип животного'},
+                        {id: 'shelterPetName', name: 'Имя питомца'},
+                        {id: 'shelterPetSex', name: 'Пол'},
+                        {id: 'shelterPetAge', name: 'Возраст'},
+                        {id: 'shelterPetDescription', name: 'Описание'},
+                        {id: 'shelterPetStatus', name: 'Статус'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const submitBtn = document.getElementById('submitShelterPetBtn');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
+                    submitBtn.disabled = true;
+                    
+                    const userId = getUserId();
+                    const partner = partners.find(p => p.userId === userId);
+                    
+                    if (!partner) {
+                        showNotification('Сначала зарегистрируйте организацию', 'error');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    
+                    const newPet = {
+                        id: 'shelter_pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        ownerId: userId,
+                        ownerType: 'shelter',
+                        ownerName: partner.name,
+                        type: document.getElementById('shelterPetType').value,
+                        name: document.getElementById('shelterPetName').value.trim(),
+                        sex: document.getElementById('shelterPetSex').value,
+                        age: document.getElementById('shelterPetAge').value.trim(),
+                        breed: document.getElementById('shelterPetBreed').value.trim() || null,
+                        vaccinated: document.getElementById('shelterPetVaccinated').value,
+                        sterilized: document.getElementById('shelterPetSterilized').value,
+                        description: document.getElementById('shelterPetDescription').value.trim(),
+                        specialNeeds: document.getElementById('shelterPetSpecialNeeds').value.trim() || null,
+                        status: document.getElementById('shelterPetStatus').value,
+                        photos: shelterPhotos,
+                        location: partner.city + ', ' + partner.address,
+                        contact: partner.phone,
+                        shelterName: partner.name,
+                        shelterType: partner.type,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        views: 0
+                    };
+                    
+                    console.log('📝 Создание питомца партнёра:', newPet);
+                    
+                    // Сохраняем в Firebase
+                    const success = await savePetToFirebase(newPet);
+                    
+                    if (success) {
+                        // Очищаем форму
+                        this.reset();
+                        shelterPhotos = [];
+                        const preview = document.getElementById('shelterPhotosPreview');
+                        if (preview) {
+                            preview.style.display = 'none';
+                            preview.innerHTML = '';
+                        }
+                        
+                        // Показываем успех
+                        showPage('partner-pets');
+                        showNotification('Питомец добавлен! Теперь его видят все пользователи.', 'success');
+                    }
+                    
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            }
+        }
+        
+        // Функция сохранения формы партнёра
+        async function savePartnerForm() {
+            const userId = getUserId();
+            
+            // Проверяем обязательные поля
+            const requiredFields = [
+                {id: 'partnerType', name: 'Тип организации'},
+                {id: 'partnerName', name: 'Название организации'},
+                {id: 'partnerDescription', name: 'Описание организации'},
+                {id: 'partnerCity', name: 'Город'},
+                {id: 'partnerAddress', name: 'Адрес'},
+                {id: 'partnerPhone', name: 'Телефон'},
+                {id: 'partnerHours', name: 'Режим работы'}
+            ];
+            
+            for (const field of requiredFields) {
+                const element = document.getElementById(field.id);
+                if (!element || !element.value.trim()) {
+                    showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                    element?.focus();
+                    return false;
+                }
+            }
+            
+            // Проверяем, что выбрана хотя бы одна услуга
+            const services = [];
+            const serviceCheckboxes = ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'];
+            let hasServices = false;
+            
+            serviceCheckboxes.forEach(service => {
+                const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
+                if (checkbox && checkbox.checked) {
+                    services.push(service);
+                    hasServices = true;
+                }
+            });
+            
+            if (!hasServices) {
+                showNotification('Выберите хотя бы одну услугу', 'error');
+                return false;
+            }
+            
+            // Собираем данные партнёра
+            const partnerData = {
+                id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                userId: userId,
+                type: document.getElementById('partnerType').value,
+                name: document.getElementById('partnerName').value.trim(),
+                description: document.getElementById('partnerDescription').value.trim(),
+                city: document.getElementById('partnerCity').value,
+                address: document.getElementById('partnerAddress').value.trim(),
+                phone: document.getElementById('partnerPhone').value.trim(),
+                email: document.getElementById('partnerEmail').value.trim() || null,
+                hours: document.getElementById('partnerHours').value.trim(),
+                services: services,
+                servicesInfo: document.getElementById('partnerServicesInfo').value.trim() || null,
+                registeredAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                verified: false
+            };
+            
+            // Сохраняем в Firebase
+            const success = await savePartnerToFirebase(partnerData);
+            
+            if (success) {
+                // Обновляем локальный массив
+                const existingIndex = partners.findIndex(p => p.userId === userId);
+                if (existingIndex >= 0) {
+                    partners[existingIndex] = partnerData;
+                } else {
+                    partners.push(partnerData);
+                }
+                
+                // Обновляем статус партнёра
+                updatePartnerStatus();
+                
+                showNotification('Организация успешно зарегистрирована! Теперь её видят все пользователи.', 'success');
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Обновить статус партнёра
+        function updatePartnerStatus() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            
+            const statusPanel = document.getElementById('partnerStatusPanel');
+            const statusIcon = document.getElementById('partnerStatusIcon');
+            const statusTitle = document.getElementById('partnerStatusTitle');
+            const statusDescription = document.getElementById('partnerStatusDescription');
+            const addPetBtn = document.getElementById('partnerAddPetBtn');
+            const petsBtn = document.getElementById('partnerPetsBtn');
+            
+            if (statusPanel && partner) {
+                statusIcon.innerHTML = `<i class="fas fa-${getPartnerIcon(partner.type)}"></i>`;
+                statusTitle.textContent = partner.name;
+                statusDescription.textContent = `${getPartnerTypeName(partner.type)} • ${partner.city}`;
+                statusPanel.style.background = 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)';
+                
+                // Активируем кнопки
+                if (addPetBtn) addPetBtn.disabled = false;
+                if (petsBtn) petsBtn.disabled = false;
+            } else if (statusPanel) {
+                statusIcon.innerHTML = `<i class="fas fa-user-clock"></i>`;
+                statusTitle.textContent = 'Требуется регистрация';
+                statusDescription.textContent = 'Заполните информацию о вашей организации';
+                statusPanel.style.background = 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)';
+                
+                // Деактивируем кнопки
+                if (addPetBtn) addPetBtn.disabled = true;
+                if (petsBtn) petsBtn.disabled = true;
+            }
+            
+            // Обновляем статистику партнёра
+            const shelterPetCount = document.getElementById('shelterPetCount');
+            const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
+            
+            if (shelterPetCount && partner) {
+                const userShelterPets = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
+                shelterPetCount.textContent = userShelterPets.length;
+                shelterAdoptedCount.textContent = userShelterPets.filter(p => p.status === 'adopted').length;
+            } else if (shelterPetCount) {
+                shelterPetCount.textContent = '0';
+                shelterAdoptedCount.textContent = '0';
+            }
+            
+            // Обновляем информацию о профиле партнёра
+            updatePartnerProfileInfo();
+        }
+        
+        // Получить название типа партнёра
+        function getPartnerTypeName(type) {
+            const types = {
+                'shelter': 'Приют для животных',
+                'clinic': 'Ветеринарная клиника',
+                'hotel': 'Гостиница для животных',
+                'grooming': 'Груминг-салон',
+                'store': 'Зоомагазин',
+                'volunteer': 'Волонтёрская организация',
+                'other': 'Другая организация'
+            };
+            return types[type] || 'Организация';
+        }
+        
+        // Получить иконку для типа партнёра
+        function getPartnerIcon(type) {
+            const icons = {
+                'shelter': 'home',
+                'clinic': 'clinic-medical',
+                'hotel': 'hotel',
+                'grooming': 'cut',
+                'store': 'store',
+                'volunteer': 'hands-helping',
+                'other': 'building'
+            };
+            return icons[type] || 'building';
+        }
+        
+        // Обновить профиль партнёра в настройках
+        function updatePartnerProfileInfo() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            const profileInfo = document.getElementById('partnerProfileInfo');
+            
+            if (profileInfo && partner) {
+                profileInfo.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <h3 style="color: var(--dark); margin-bottom: 5px;">${partner.name}</h3>
+                        <p style="color: var(--gray); font-size: 14px;">${getPartnerTypeName(partner.type)}</p>
+                        <span class="badge ${partner.verified ? 'badge-new' : 'badge-user'}" style="margin-top: 5px;">
+                            ${partner.verified ? '✓ Проверена' : 'На проверке'}
+                        </span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <div style="font-size: 14px;">
+                            <div style="color: var(--gray);">Город:</div>
+                            <div style="font-weight: 600;">${partner.city}</div>
+                        </div>
+                        <div style="font-size: 14px;">
+                            <div style="color: var(--gray);">Телефон:</div>
+                            <div style="font-weight: 600;">${partner.phone}</div>
+                        </div>
+                        <div style="font-size: 14px; grid-column: 1 / -1;">
+                            <div style="color: var(--gray);">Адрес:</div>
+                            <div style="font-weight: 600;">${partner.address}</div>
+                        </div>
+                        <div style="font-size: 14px; grid-column: 1 / -1;">
+                            <div style="color: var(--gray);">Режим работы:</div>
+                            <div style="font-weight: 600;">${partner.hours}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (profileInfo) {
+                profileInfo.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 15px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет профиля организации</h3>
+                        <p style="color: var(--gray); font-size: 14px;">Зарегистрируйте вашу организацию, чтобы начать работу</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // ===== ОСНОВНЫЕ ФУНКЦИИ =====
+        function showPage(pageId) {
+            // Скрываем все страницы
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Сбрасываем активные вкладки
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показываем нужную страницу
+            const page = document.getElementById(pageId);
+            if (page) {
+                page.classList.add('active');
+            }
+            
+            // Активируем вкладку
+            const tab = document.querySelector(`[data-page="${pageId}"]`);
+            if (tab) {
+                tab.classList.add('active');
+            }
+            
+            // Загружаем данные для страницы
+            switch(pageId) {
+                case 'user-home':
+                    loadUserHome();
+                    break;
+                case 'user-pets':
+                    loadUserPets();
+                    break;
+                case 'user-shelters':
+                    loadSheltersPage();
+                    break;
+                case 'user-settings':
+                    loadUserSettings();
+                    break;
+                case 'partner-home':
+                    loadPartnerHome();
+                    break;
+                case 'partner-pets':
+                    loadShelterPets();
+                    break;
+                case 'partner-leads':
+                    loadPartnerLeads();
+                    break;
+                case 'partner-settings':
+                    loadPartnerSettings();
+                    break;
+                case 'partner-register':
+                    loadPartnerRegister();
+                    break;
+            }
+            
+            window.scrollTo(0, 0);
+        }
+        
         function updateNavigation() {
             const nav = document.getElementById('mainNav');
             
@@ -1920,433 +2188,22 @@
             });
         }
         
-        // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
-        function initForms() {
-            // Форма пользователя
-            const userForm = document.getElementById('userAddPetForm');
-            if (userForm) {
-                userForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // ВАЖНОЕ ИСПРАВЛЕНИЕ: Проверка обязательных полей перед сохранением
-                    // Проверяем, выбран ли тип питомца
-                    if (!window.selectedPetType) {
-                        showNotification('Выберите тип животного', 'error');
-                        return;
-                    }
-                    
-                    // Проверяем, загружено ли фото
-                    if (userPhotos.length === 0) {
-                        showNotification('Загрузите фотографию питомца', 'error');
-                        return;
-                    }
-                    
-                    // Проверяем обязательные поля формы
-                    const requiredFields = [
-                        {id: 'petName', name: 'Имя питомца'},
-                        {id: 'petSex', name: 'Пол'},
-                        {id: 'petAge', name: 'Возраст'},
-                        {id: 'petDescription', name: 'Описание'},
-                        {id: 'petLocation', name: 'Местоположение'},
-                        {id: 'petContact', name: 'Контакты для связи'},
-                        {id: 'petStatus', name: 'Статус'}
-                    ];
-                    
-                    for (const field of requiredFields) {
-                        const element = document.getElementById(field.id);
-                        if (!element || !element.value.trim()) {
-                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
-                            element?.focus();
-                            return;
-                        }
-                    }
-                    
-                    // Принудительно сохраняем перед добавлением
-                    safeSaveData();
-                    
-                    const userId = getUserId();
-                    const newPet = {
-                        id: 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                        ownerId: userId,
-                        ownerType: 'user',
-                        type: window.selectedPetType || 'other',
-                        name: document.getElementById('petName').value.trim(),
-                        sex: document.getElementById('petSex').value,
-                        age: document.getElementById('petAge').value.trim(),
-                        breed: document.getElementById('petBreed').value.trim() || null,
-                        description: document.getElementById('petDescription').value.trim(),
-                        location: document.getElementById('petLocation').value.trim(),
-                        contact: document.getElementById('petContact').value.trim(),
-                        status: document.getElementById('petStatus').value,
-                        photos: userPhotos,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-                    
-                    console.log('📝 Создание нового питомца:', newPet);
-                    
-                    // Добавляем в глобальный массив всех питомцев
-                    allPets.unshift(newPet);
-                    
-                    // Обновляем массив userPets для отображения
-                    userPets = allPets.filter(pet => pet.ownerId === userId);
-                    
-                    // Сохраняем ВСЕ данные (включая глобальные)
-                    if (safeSaveData()) {
-                        // Очищаем форму
-                        this.reset();
-                        userPhotos = [];
-                        document.getElementById('petPhotoPreview').style.display = 'none';
-                        
-                        // Сбрасываем кнопки типа
-                        ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
-                            const btn = document.getElementById(id);
-                            if (btn) {
-                                btn.style.background = 'transparent';
-                                btn.style.color = 'var(--primary)';
-                                btn.style.border = '2px solid var(--primary)';
-                            }
-                        });
-                        window.selectedPetType = null;
-                        
-                        // Показываем успех
-                        showPage('success');
-                        showNotification('Питомец успешно опубликован! Теперь его видят все пользователи.', 'success');
-                    } else {
-                        showNotification('Ошибка сохранения питомца. Попробуйте еще раз.', 'error');
-                    }
-                });
-            }
-            
-            // Форма регистрации партнёра (ПРОСТАЯ ВЕРСИЯ)
-            const partnerRegisterForm = document.getElementById('partnerRegisterForm');
-            if (partnerRegisterForm) {
-                partnerRegisterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    savePartnerForm();
-                });
-            }
-            
-            // Форма добавления питомца партнёром
-            const partnerPetForm = document.getElementById('partnerAddPetForm');
-            if (partnerPetForm) {
-                partnerPetForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Проверка обязательных полей для партнера
-                    if (shelterPhotos.length === 0) {
-                        showNotification('Загрузите хотя бы одну фотографию питомца', 'error');
-                        return;
-                    }
-                    
-                    const requiredFields = [
-                        {id: 'shelterPetType', name: 'Тип животного'},
-                        {id: 'shelterPetName', name: 'Имя питомца'},
-                        {id: 'shelterPetSex', name: 'Пол'},
-                        {id: 'shelterPetAge', name: 'Возраст'},
-                        {id: 'shelterPetDescription', name: 'Описание'},
-                        {id: 'shelterPetStatus', name: 'Статус'}
-                    ];
-                    
-                    for (const field of requiredFields) {
-                        const element = document.getElementById(field.id);
-                        if (!element || !element.value.trim()) {
-                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
-                            element?.focus();
-                            return;
-                        }
-                    }
-                    
-                    // Принудительно сохраняем перед добавлением
-                    safeSaveData();
-                    
-                    const userId = getUserId();
-                    const newPet = {
-                        id: 'shelter_pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                        ownerId: userId,
-                        ownerType: 'shelter',
-                        type: document.getElementById('shelterPetType').value,
-                        name: document.getElementById('shelterPetName').value.trim(),
-                        sex: document.getElementById('shelterPetSex').value,
-                        age: document.getElementById('shelterPetAge').value.trim(),
-                        breed: document.getElementById('shelterPetBreed').value.trim() || null,
-                        vaccinated: document.getElementById('shelterPetVaccinated').value,
-                        sterilized: document.getElementById('shelterPetSterilized').value,
-                        description: document.getElementById('shelterPetDescription').value.trim(),
-                        specialNeeds: document.getElementById('shelterPetSpecialNeeds').value.trim() || null,
-                        status: document.getElementById('shelterPetStatus').value,
-                        photos: shelterPhotos,
-                        location: 'Организация',
-                        contact: 'Через организацию',
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-                    
-                    console.log('📝 Создание питомца партнёра:', newPet);
-                    
-                    // Добавляем в глобальный массив всех питомцев
-                    allPets.unshift(newPet);
-                    
-                    // Сохраняем ВСЕ данные
-                    if (safeSaveData()) {
-                        // Очищаем форму
-                        this.reset();
-                        shelterPhotos = [];
-                        const preview = document.getElementById('shelterPhotosPreview');
-                        if (preview) {
-                            preview.style.display = 'none';
-                            preview.innerHTML = '';
-                        }
-                        
-                        // Показываем успех
-                        showPage('partner-pets');
-                        showNotification('Питомец добавлен! Теперь его видят все пользователи.', 'success');
-                    } else {
-                        showNotification('Ошибка сохранения питомца. Попробуйте еще раз.', 'error');
-                    }
-                });
-            }
-            
-            // Форма добавления напоминания
-            const reminderForm = document.getElementById('addReminderForm');
-            if (reminderForm) {
-                reminderForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    addReminder();
-                });
-            }
-        }
-        
-        // Функция сохранения формы партнёра (ПРОСТАЯ ВЕРСИЯ)
-        function savePartnerForm() {
-            const userId = getUserId();
-            
-            // Проверяем обязательные поля
-            const requiredFields = [
-                {id: 'partnerType', name: 'Тип организации'},
-                {id: 'partnerName', name: 'Название организации'},
-                {id: 'partnerDescription', name: 'Описание организации'},
-                {id: 'partnerCity', name: 'Город'},
-                {id: 'partnerAddress', name: 'Адрес'},
-                {id: 'partnerPhone', name: 'Телефон'},
-                {id: 'partnerHours', name: 'Режим работы'}
-            ];
-            
-            for (const field of requiredFields) {
-                const element = document.getElementById(field.id);
-                if (!element || !element.value.trim()) {
-                    showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
-                    element?.focus();
-                    return false;
-                }
-            }
-            
-            // Проверяем, что выбрана хотя бы одна услуга
-            const services = [];
-            const serviceCheckboxes = ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'];
-            let hasServices = false;
-            
-            serviceCheckboxes.forEach(service => {
-                const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
-                if (checkbox && checkbox.checked) {
-                    services.push(service);
-                    hasServices = true;
-                }
-            });
-            
-            if (!hasServices) {
-                showNotification('Выберите хотя бы одну услугу', 'error');
-                return false;
-            }
-            
-            // Собираем данные партнёра
-            const partnerData = {
-                id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                userId: userId,
-                type: document.getElementById('partnerType').value,
-                name: document.getElementById('partnerName').value.trim(),
-                logo: partnerLogo,
-                description: document.getElementById('partnerDescription').value.trim(),
-                city: document.getElementById('partnerCity').value,
-                address: document.getElementById('partnerAddress').value.trim(),
-                phone: document.getElementById('partnerPhone').value.trim(),
-                email: document.getElementById('partnerEmail').value.trim() || null,
-                hours: document.getElementById('partnerHours').value.trim(),
-                services: services,
-                servicesInfo: document.getElementById('partnerServicesInfo').value.trim() || null,
-                registeredAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            // Проверяем, есть ли уже профиль
-            const existingIndex = partners.findIndex(p => p.userId === userId);
-            
-            if (existingIndex >= 0) {
-                // Обновляем существующий профиль
-                partnerData.id = partners[existingIndex].id;
-                partnerData.registeredAt = partners[existingIndex].registeredAt;
-                partners[existingIndex] = partnerData;
-                showNotification('Профиль организации обновлён!', 'success');
+        function toggleMode() {
+            if (currentMode === 'user') {
+                currentMode = 'partner';
+                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
+                showNotification('Переключено в режим партнёра', 'info');
             } else {
-                // Добавляем новый профиль
-                partners.push(partnerData);
-                showNotification('Организация успешно зарегистрирована!', 'success');
+                currentMode = 'user';
+                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
+                showNotification('Переключено в режим пользователя', 'info');
             }
             
-            // Сохраняем ВСЕ данные
-            if (safeSaveData()) {
-                // Обновляем статус партнёра
-                updatePartnerStatus();
-                
-                // Переходим на главную партнёра
-                showPage('partner-home');
-                
-                return true;
-            } else {
-                showNotification('Ошибка сохранения данных организации', 'error');
-                return false;
-            }
+            localStorage.setItem('futurepet_mode', currentMode);
+            updateNavigation();
+            showPage(currentMode + '-home');
         }
         
-        // Обновить статус партнёра
-        function updatePartnerStatus() {
-            const userId = getUserId();
-            const partner = partners.find(p => p.userId === userId);
-            
-            const statusPanel = document.getElementById('partnerStatusPanel');
-            const statusIcon = document.getElementById('partnerStatusIcon');
-            const statusTitle = document.getElementById('partnerStatusTitle');
-            const statusDescription = document.getElementById('partnerStatusDescription');
-            const addPetBtn = document.getElementById('partnerAddPetBtn');
-            const petsBtn = document.getElementById('partnerPetsBtn');
-            
-            if (statusPanel && partner) {
-                statusIcon.innerHTML = `<i class="fas fa-building"></i>`;
-                statusTitle.textContent = partner.name;
-                statusDescription.textContent = `${getPartnerTypeName(partner.type)} • ${partner.city}`;
-                statusPanel.style.background = 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)';
-                
-                // Активируем кнопки
-                if (addPetBtn) addPetBtn.disabled = false;
-                if (petsBtn) petsBtn.disabled = false;
-            } else if (statusPanel) {
-                statusIcon.innerHTML = `<i class="fas fa-user-clock"></i>`;
-                statusTitle.textContent = 'Требуется регистрация';
-                statusDescription.textContent = 'Заполните информацию о вашей организации';
-                statusPanel.style.background = 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)';
-                
-                // Деактивируем кнопки
-                if (addPetBtn) addPetBtn.disabled = true;
-                if (petsBtn) petsBtn.disabled = true;
-            }
-            
-            // Обновляем статистику партнёра
-            const shelterPetCount = document.getElementById('shelterPetCount');
-            const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
-            
-            if (shelterPetCount) {
-                const userShelterPets = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
-                shelterPetCount.textContent = userShelterPets.length;
-                shelterAdoptedCount.textContent = userShelterPets.filter(p => p.status === 'adopted').length;
-            }
-            
-            // Обновляем информацию о профиле партнёра
-            updatePartnerProfileInfo();
-        }
-        
-        // Получить название типа партнёра
-        function getPartnerTypeName(type) {
-            const types = {
-                'shelter': 'Приют для животных',
-                'clinic': 'Ветеринарная клиника',
-                'hotel': 'Гостиница для животных',
-                'grooming': 'Груминг-салон',
-                'store': 'Зоомагазин',
-                'volunteer': 'Волонтёрская организация',
-                'other': 'Другая организация'
-            };
-            return types[type] || 'Организация';
-        }
-        
-        // Получить иконку для типа партнёра
-        function getPartnerIcon(type) {
-            const icons = {
-                'shelter': 'home',
-                'clinic': 'clinic-medical',
-                'hotel': 'hotel',
-                'grooming': 'cut',
-                'store': 'store',
-                'volunteer': 'hands-helping',
-                'other': 'building'
-            };
-            return icons[type] || 'building';
-        }
-        
-        // Показать страницу
-        function showPage(pageId) {
-            // Сохраняем перед переходом
-            safeSaveData();
-            
-            // Скрываем все страницы
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            // Сбрасываем активные вкладки
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Показываем нужную страницу
-            const page = document.getElementById(pageId);
-            if (page) {
-                page.classList.add('active');
-            }
-            
-            // Активируем вкладку
-            const tab = document.querySelector(`[data-page="${pageId}"]`);
-            if (tab) {
-                tab.classList.add('active');
-            }
-            
-            // Загружаем данные для страницы
-            switch(pageId) {
-                case 'user-home':
-                    loadUserHome();
-                    break;
-                case 'user-pets':
-                    loadUserPets();
-                    break;
-                case 'user-shelters':
-                    loadSheltersPage();
-                    break;
-                case 'user-reminders':
-                    loadRemindersPage();
-                    break;
-                case 'user-settings':
-                    loadUserSettings();
-                    break;
-                case 'partner-home':
-                    loadPartnerHome();
-                    break;
-                case 'partner-pets':
-                    loadShelterPets();
-                    break;
-                case 'partner-leads':
-                    loadPartnerLeads();
-                    break;
-                case 'partner-settings':
-                    loadPartnerSettings();
-                    break;
-                case 'partner-register':
-                    loadPartnerRegister();
-                    break;
-            }
-            
-            window.scrollTo(0, 0);
-        }
-        
-        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
         function showNotification(text, type = 'info') {
             const notification = document.getElementById('notification');
             const textElement = document.getElementById('notificationText');
@@ -2371,6 +2228,7 @@
             }, 3000);
         }
         
+        // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
         function selectPetType(type) {
             // Обновляем кнопки
             ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
@@ -2424,7 +2282,6 @@
             reader.readAsDataURL(file);
         }
         
-        // Функция загрузки нескольких фото для партнера
         function handleMultiplePhotosUpload(event, previewId) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
@@ -2476,13 +2333,7 @@
             }
         }
         
-        // ===== ЗАГРУЗКА ДАННЫХ =====
-        function loadInitialData() {
-            // Загружаем главную страницу
-            loadUserHome();
-        }
-        
-        // ===== ГЛАВНАЯ ПОЛЬЗОВАТЕЛЯ =====
+        // ===== ФУНКЦИИ ЗАГРУЗКИ СТРАНИЦ =====
         function loadUserHome() {
             // Отображаем избранных питомцев
             const container = document.getElementById('featuredPets');
@@ -2502,6 +2353,9 @@
                         <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
                         <h3 style="color: var(--dark); margin-bottom: 10px;">Нет доступных питомцев</h3>
                         <p class="text-muted">Будьте первым, кто выложит питомца!</p>
+                        <button class="btn btn-primary mt-20" onclick="showPage('user-add-pet')">
+                            <i class="fas fa-plus"></i> Добавить первого питомца
+                        </button>
                     </div>
                 `;
             } else {
@@ -2511,8 +2365,8 @@
                 });
             }
             
-            // Загружаем активность
-            loadUserActivity();
+            // Обновляем статистику
+            updateStats();
         }
         
         function createPetCard(pet) {
@@ -2551,7 +2405,6 @@
             return card;
         }
         
-        // Загрузка питомцев пользователя
         function loadUserPets() {
             const container = document.getElementById('userPetsList');
             if (!container) return;
@@ -2580,7 +2433,6 @@
             }
         }
         
-        // Загрузка питомцев приюта
         function loadShelterPets() {
             const container = document.getElementById('shelterPetsList');
             if (!container) return;
@@ -2609,48 +2461,22 @@
             }
         }
         
-        function loadUserActivity() {
-            const container = document.getElementById('userRecentActivity');
-            if (!container) return;
-            
+        function refreshShelterPets() {
             const userId = getUserId();
-            const userPetCount = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'user').length;
-            const availablePets = allPets.filter(p => p.status === 'available').length;
+            const shelterPetList = allPets.filter(pet => pet.ownerId === userId && pet.ownerType === 'shelter');
             
-            container.innerHTML = `
-                <div class="list-item">
-                    <i class="fas fa-paw" style="color: var(--primary);"></i>
-                    <span>Ваших питомцев: ${userPetCount}</span>
-                </div>
-                <div class="list-item">
-                    <i class="fas fa-heart" style="color: var(--danger);"></i>
-                    <span>Ищут дом: ${availablePets}</span>
-                </div>
-                <div class="list-item">
-                    <i class="fas fa-users" style="color: var(--secondary);"></i>
-                    <span>Всего в системе: ${allPets.length}</span>
-                </div>
-            `;
-        }
-        
-        // ===== ОСТАЛЬНЫЕ ФУНКЦИИ =====
-        function toggleMode() {
-            if (currentMode === 'user') {
-                currentMode = 'partner';
-                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
-                showNotification('Переключено в режим партнёра', 'info');
-            } else {
-                currentMode = 'user';
-                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
-                showNotification('Переключено в режим пользователя', 'info');
+            const shelterPetCount = document.getElementById('shelterPetCount');
+            const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
+            
+            if (shelterPetCount) {
+                shelterPetCount.textContent = shelterPetList.length;
+                shelterAdoptedCount.textContent = shelterPetList.filter(p => p.status === 'adopted').length;
             }
             
-            saveUserData('mode', currentMode);
-            updateNavigation();
-            showPage(currentMode + '-home');
+            loadShelterPets();
+            showNotification('Данные обновлены', 'success');
         }
         
-        // Загрузка страницы приютов
         function loadSheltersPage() {
             const container = document.getElementById('sheltersList');
             if (!container) return;
@@ -2663,6 +2489,9 @@
                         <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
                         <h3 style="color: var(--dark); margin-bottom: 10px;">Нет зарегистрированных организаций</h3>
                         <p class="text-muted">Станьте первым партнёром!</p>
+                        <button class="btn btn-primary mt-20" onclick="toggleMode(); showPage('partner-register')">
+                            <i class="fas fa-user-plus"></i> Зарегистрировать организацию
+                        </button>
                     </div>
                 `;
                 return;
@@ -2697,6 +2526,7 @@
         
         function loadPartnerHome() {
             updatePartnerStatus();
+            updateStats();
         }
         
         function loadPartnerLeads() {
@@ -2739,95 +2569,13 @@
             }
         }
         
-        function updatePartnerProfileInfo() {
-            const userId = getUserId();
-            const partner = partners.find(p => p.userId === userId);
-            const profileInfo = document.getElementById('partnerProfileInfo');
-            
-            if (profileInfo && partner) {
-                profileInfo.innerHTML = `
-                    <div style="text-align: center; margin-bottom: 15px;">
-                        <h3 style="color: var(--dark); margin-bottom: 5px;">${partner.name}</h3>
-                        <p style="color: var(--gray); font-size: 14px;">${getPartnerTypeName(partner.type)}</p>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                        <div style="font-size: 14px;">
-                            <div style="color: var(--gray);">Город:</div>
-                            <div style="font-weight: 600;">${partner.city}</div>
-                        </div>
-                        <div style="font-size: 14px;">
-                            <div style="color: var(--gray);">Телефон:</div>
-                            <div style="font-weight: 600;">${partner.phone}</div>
-                        </div>
-                        <div style="font-size: 14px; grid-column: 1 / -1;">
-                            <div style="color: var(--gray);">Адрес:</div>
-                            <div style="font-weight: 600;">${partner.address}</div>
-                        </div>
-                        <div style="font-size: 14px; grid-column: 1 / -1;">
-                            <div style="color: var(--gray);">Режим работы:</div>
-                            <div style="font-weight: 600;">${partner.hours}</div>
-                        </div>
-                    </div>
-                `;
-            } else if (profileInfo) {
-                profileInfo.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <i class="fas fa-building" style="font-size: 48px; color: var(--primary-light); margin-bottom: 15px;"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет профиля организации</h3>
-                        <p style="color: var(--gray); font-size: 14px;">Зарегистрируйте вашу организацию, чтобы начать работу</p>
-                    </div>
-                `;
-            }
-        }
-        
-        function updateStorageStatus() {
-            const storageStatus = document.getElementById('storageStatus');
-            const storageStats = document.getElementById('storageStats');
-            
-            if (storageStatus) {
-                if (lastSaveTime) {
-                    const timeDiff = Math.floor((new Date() - lastSaveTime) / 1000);
-                    let timeText = '';
-                    
-                    if (timeDiff < 60) {
-                        timeText = `${timeDiff} секунд назад`;
-                    } else if (timeDiff < 3600) {
-                        timeText = `${Math.floor(timeDiff / 60)} минут назад`;
-                    } else {
-                        timeText = `${Math.floor(timeDiff / 3600)} часов назад`;
-                    }
-                    
-                    storageStatus.innerHTML = `✓ Сохранено ${timeText}`;
-                    storageStatus.style.color = 'var(--primary)';
-                } else {
-                    storageStatus.textContent = '✗ Не сохранено';
-                    storageStatus.style.color = 'var(--danger)';
-                }
-            }
-            
-            if (storageStats) {
-                const userId = getUserId();
-                storageStats.innerHTML = `
-                    <div>Ваших питомцев: ${allPets.filter(p => p.ownerId === userId && p.ownerType === 'user').length}</div>
-                    <div>Всего питомцев в системе: ${allPets.length}</div>
-                    <div>Партнёров в системе: ${partners.length}</div>
-                `;
-            }
-        }
-        
         function loadUserSettings() {
-            updateStorageStatus();
+            updateStats();
         }
         
         function loadPartnerSettings() {
-            updateStorageStatus();
             updatePartnerStatus();
-        }
-        
-        function forceSave() {
-            if (safeSaveData()) {
-                showNotification('Данные успешно сохранены', 'success');
-            }
+            updateStats();
         }
         
         function goBack() {
@@ -2838,10 +2586,30 @@
             }
         }
         
+        async function refreshAllData() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.classList.add('loading');
+            
+            await loadAllDataFromFirebase();
+            
+            refreshBtn.classList.remove('loading');
+        }
+        
         // Функция для просмотра деталей питомца
-        function showPetDetail(petId) {
+        async function showPetDetail(petId) {
             const pet = allPets.find(p => p.id === petId);
             if (!pet) return;
+            
+            // Увеличиваем счетчик просмотров
+            try {
+                const petRef = database.ref('pets/' + pet.id + '/views');
+                const snapshot = await petRef.once('value');
+                const currentViews = snapshot.val() || 0;
+                await petRef.set(currentViews + 1);
+                pet.views = currentViews + 1;
+            } catch (error) {
+                console.error('Ошибка обновления счетчика просмотров:', error);
+            }
             
             const container = document.getElementById('petDetailContent');
             if (!container) return;
@@ -2860,6 +2628,43 @@
                 statusClass = 'status-adopted';
             }
             
+            // Определяем информацию о владельце
+            let ownerInfo = '';
+            if (pet.ownerType === 'shelter') {
+                const partner = partners.find(p => p.userId === pet.ownerId);
+                ownerInfo = `
+                    <div style="background: var(--light); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-building"></i> Организация</h4>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 5px;">${pet.shelterName || 'Организация'}</div>
+                            <div style="font-size: 14px; color: var(--gray);">
+                                ${partner ? partner.description : 'Приют для животных'}
+                            </div>
+                            <div style="margin-top: 10px; font-size: 14px;">
+                                <div><i class="fas fa-phone"></i> ${pet.contact}</div>
+                                <div><i class="fas fa-map-marker-alt"></i> ${pet.location}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                ownerInfo = `
+                    <div style="background: var(--light); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-user"></i> Контактная информация</h4>
+                        <div>
+                            <div style="margin-bottom: 8px;">
+                                <div style="color: var(--gray); font-size: 14px;">Местоположение:</div>
+                                <div style="font-weight: 600;">${pet.location || 'Не указано'}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--gray); font-size: 14px;">Контакты:</div>
+                                <div style.fontWeight: 600;">${pet.contact || 'Не указаны'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             container.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div class="pet-image" style="margin-bottom: 15px;">
@@ -2871,6 +2676,9 @@
                     <h2 style="color: var(--dark); margin-bottom: 5px;">${pet.name || 'Без имени'}</h2>
                     <div class="status ${statusClass}" style="display: inline-block; margin-bottom: 10px;">
                         ${statusText}
+                    </div>
+                    <div style="font-size: 12px; color: var(--gray); margin-top: 5px;">
+                        <i class="fas fa-eye"></i> ${pet.views || 0} просмотров
                     </div>
                 </div>
                 
@@ -2893,6 +2701,22 @@
                             <div style="color: var(--gray); font-size: 14px;">Порода:</div>
                             <div style="font-weight: 600;">${pet.breed || 'Не указана'}</div>
                         </div>
+                        ${pet.vaccinated && pet.vaccinated !== 'unknown' ? `
+                            <div>
+                                <div style="color: var(--gray); font-size: 14px;">Вакцинация:</div>
+                                <div style="font-weight: 600; color: ${pet.vaccinated === 'yes' ? 'var(--primary)' : 'var(--danger)'}">
+                                    ${pet.vaccinated === 'yes' ? '✓ Проведена' : '✗ Не проведена'}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${pet.sterilized && pet.sterilized !== 'unknown' ? `
+                            <div>
+                                <div style="color: var(--gray); font-size: 14px;">Стерилизация:</div>
+                                <div style="font-weight: 600; color: ${pet.sterilized === 'yes' ? 'var(--primary)' : 'var(--danger)'}">
+                                    ${pet.sterilized === 'yes' ? '✓ Проведена' : '✗ Не проведена'}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
                 
@@ -2903,282 +2727,29 @@
                     </div>
                 </div>
                 
-                <div style="background: var(--light); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> Контактная информация</h4>
-                    <div>
-                        <div style="margin-bottom: 8px;">
-                            <div style="color: var(--gray); font-size: 14px;">Местоположение:</div>
-                            <div style="font-weight: 600;">${pet.location || 'Не указано'}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--gray); font-size: 14px;">Контакты:</div>
-                            <div style.fontWeight: 600;">${pet.contact || 'Не указаны'}</div>
+                ${pet.specialNeeds ? `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-heartbeat"></i> Особые потребности</h4>
+                        <div style="background: #FFF3E0; padding: 15px; border-radius: 12px; border-left: 4px solid var(--accent);">
+                            ${pet.specialNeeds}
                         </div>
                     </div>
-                </div>
+                ` : ''}
+                
+                ${ownerInfo}
                 
                 <div style="font-size: 12px; color: var(--gray); text-align: center; margin-top: 20px;">
                     Опубликовано: ${new Date(pet.createdAt).toLocaleDateString('ru-RU')}
+                    ${pet.updatedAt !== pet.createdAt ? ` • Обновлено: ${new Date(pet.updatedAt).toLocaleDateString('ru-RU')}` : ''}
                 </div>
             `;
             
             showPage('pet-detail');
         }
         
-        // Простые функции для остальной функциональности
-        function exportUserData() {
-            showNotification('Экспорт данных будет реализован позже', 'info');
-        }
-        
-        function importUserData() {
-            showNotification('Импорт данных будет реализован позже', 'info');
-        }
-        
-        function clearUserData() {
-            if (confirm('Вы уверены, что хотите удалить ВСЕ ваши данные?')) {
-                showNotification('Очистка данных будет реализована позже', 'info');
-            }
-        }
-        
-        function exportShelterData() {
-            showNotification('Экспорт данных организации будет реализован позже', 'info');
-        }
-        
-        function clearShelterData() {
-            if (confirm('Вы уверены, что хотите удалить профиль организации?')) {
-                showNotification('Удаление профиля будет реализовано позже', 'info');
-            }
-        }
-        
-        // ===== СИСТЕМА НАПОМИНАНИЙ =====
-        function initReminderSystem() {
-            // Проверяем напоминания каждую минуту
-            notificationCheckInterval = setInterval(checkReminders, 60000);
-            
-            // Проверяем сразу при загрузке
-            checkReminders();
-        }
-        
-        function loadRemindersPage() {
-            const container = document.getElementById('remindersContainer');
-            if (!container) return;
-            
-            const userId = getUserId();
-            container.innerHTML = '';
-            
-            if (reminders.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center" style="padding: 40px 20px;">
-                        <i class="fas fa-bell-slash" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
-                        <p class="text-muted">Добавьте напоминание для вашего питомца</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Сортируем напоминания по дате
-            const sortedReminders = [...reminders].sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
-            
-            sortedReminders.forEach(reminder => {
-                const reminderItem = document.createElement('div');
-                reminderItem.className = 'reminder-item';
-                
-                if (reminder.priority === 'urgent') {
-                    reminderItem.classList.add('urgent');
-                } else if (reminder.priority === 'high') {
-                    reminderItem.classList.add('warning');
-                }
-                
-                // Находим питомца по ID
-                const pet = allPets.find(p => p.id === reminder.petId);
-                const petName = pet ? pet.name : 'Неизвестный питомец';
-                
-                // Форматируем дату
-                const date = new Date(reminder.dateTime);
-                const formattedDate = date.toLocaleDateString('ru-RU', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                let repeatText = '';
-                if (reminder.repeat !== 'none') {
-                    const repeatMap = {
-                        'daily': 'Ежедневно',
-                        'weekly': 'Еженедельно',
-                        'monthly': 'Ежемесячно',
-                        'yearly': 'Ежегодно'
-                    };
-                    repeatText = ` • ${repeatMap[reminder.repeat]}`;
-                }
-                
-                reminderItem.innerHTML = `
-                    <div class="reminder-header">
-                        <div class="reminder-title">${reminder.title}</div>
-                        <div class="reminder-date">${formattedDate}${repeatText}</div>
-                    </div>
-                    <div class="reminder-description">${reminder.description || 'Без описания'}</div>
-                    <div class="reminder-pet">
-                        <i class="fas fa-paw"></i>
-                        <span>${petName}</span>
-                    </div>
-                    <div style="margin-top: 10px; display: flex; gap: 10px;">
-                        <button class="btn btn-outline btn-small" onclick="completeReminder('${reminder.id}')">
-                            <i class="fas fa-check"></i> Выполнено
-                        </button>
-                        <button class="btn btn-outline btn-small" onclick="deleteReminder('${reminder.id}')" style="color: var(--danger); border-color: var(--danger);">
-                            <i class="fas fa-trash"></i> Удалить
-                        </button>
-                    </div>
-                `;
-                
-                container.appendChild(reminderItem);
-            });
-        }
-        
-        function showAddReminderModal() {
-            const modal = document.getElementById('addReminderModal');
-            const petSelect = document.getElementById('reminderPet');
-            
-            if (!modal || !petSelect) return;
-            
-            // Заполняем список питомцев
-            petSelect.innerHTML = '<option value="">Выберите питомца</option>';
-            
-            const userId = getUserId();
-            const userPetList = allPets.filter(pet => pet.ownerId === userId);
-            
-            userPetList.forEach(pet => {
-                const option = document.createElement('option');
-                option.value = pet.id;
-                option.textContent = pet.name;
-                petSelect.appendChild(option);
-            });
-            
-            // Устанавливаем минимальную дату (сегодня)
-            const dateInput = document.getElementById('reminderDateTime');
-            if (dateInput) {
-                const now = new Date();
-                const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-                dateInput.value = localDateTime;
-                dateInput.min = localDateTime;
-            }
-            
-            modal.classList.remove('hidden');
-        }
-        
-        function closeAddReminderModal() {
-            document.getElementById('addReminderModal').classList.add('hidden');
-            document.getElementById('addReminderForm').reset();
-        }
-        
-        function addReminder() {
-            const form = document.getElementById('addReminderForm');
-            if (!form) return;
-            
-            const userId = getUserId();
-            const newReminder = {
-                id: 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                userId: userId,
-                petId: document.getElementById('reminderPet').value,
-                type: document.getElementById('reminderType').value,
-                title: document.getElementById('reminderTitle').value,
-                description: document.getElementById('reminderDescription').value,
-                dateTime: document.getElementById('reminderDateTime').value,
-                repeat: document.getElementById('reminderRepeat').value,
-                priority: document.getElementById('reminderPriority').value,
-                completed: false,
-                createdAt: new Date().toISOString()
-            };
-            
-            reminders.push(newReminder);
-            safeSaveData();
-            
-            closeAddReminderModal();
-            loadRemindersPage();
-            updateReminderFab();
-            
-            showNotification('Напоминание добавлено!', 'success');
-        }
-        
-        function completeReminder(reminderId) {
-            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
-            if (reminderIndex !== -1) {
-                reminders[reminderIndex].completed = true;
-                safeSaveData();
-                loadRemindersPage();
-                updateReminderFab();
-                showNotification('Напоминание отмечено как выполненное', 'success');
-            }
-        }
-        
-        function deleteReminder(reminderId) {
-            if (confirm('Удалить это напоминание?')) {
-                reminders = reminders.filter(r => r.id !== reminderId);
-                safeSaveData();
-                loadRemindersPage();
-                updateReminderFab();
-                showNotification('Напоминание удалено', 'success');
-            }
-        }
-        
-        function checkReminders() {
-            const now = new Date();
-            const userId = getUserId();
-            let hasUpcomingReminders = false;
-            
-            reminders.forEach(reminder => {
-                if (reminder.userId !== userId || reminder.completed) return;
-                
-                const reminderTime = new Date(reminder.dateTime);
-                const timeDiff = reminderTime - now;
-                
-                // Напоминания, которые наступят в течение часа
-                if (timeDiff > 0 && timeDiff <= 3600000) {
-                    hasUpcomingReminders = true;
-                    
-                    // Находим питомца
-                    const pet = allPets.find(p => p.id === reminder.petId);
-                    const petName = pet ? pet.name : 'питомца';
-                    
-                    showNotification(`Через ${Math.round(timeDiff / 60000)} минут: ${reminder.title} для ${petName}`, 'info');
-                }
-            });
-            
-            updateReminderFab();
-        }
-        
-        function updateReminderFab() {
-            const fab = document.getElementById('reminderFab');
-            const badge = document.getElementById('reminderBadge');
-            
-            if (!fab || !badge) return;
-            
-            const userId = getUserId();
-            const now = new Date();
-            
-            // Считаем активные напоминания
-            const activeReminders = reminders.filter(r => 
-                r.userId === userId && 
-                !r.completed && 
-                new Date(r.dateTime) > now
-            );
-            
-            if (activeReminders.length > 0) {
-                fab.classList.add('has-notifications');
-                badge.textContent = activeReminders.length;
-                badge.classList.remove('hidden');
-            } else {
-                fab.classList.remove('has-notifications');
-                badge.classList.add('hidden');
-            }
-        }
-        
         console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
         console.log('Режим:', currentMode);
+        console.log('Firebase инициализирован');
     </script>
 </body>
 </html>
