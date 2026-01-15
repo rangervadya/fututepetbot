@@ -1405,12 +1405,18 @@
         };
 
         // Инициализация Firebase
-        firebase.initializeApp(firebaseConfig);
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("✅ Firebase успешно инициализирован");
+        } catch (error) {
+            console.error("❌ Ошибка инициализации Firebase:", error);
+        }
+        
         const database = firebase.database();
 
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let tg = window.Telegram.WebApp;
-        let currentMode = 'user'; // 'user' или 'partner'
+        let currentMode = localStorage.getItem('futurepet_mode') || 'user'; // 'user' или 'partner'
         let currentUser = {};
         let userPets = []; // Питомцы текущего пользователя
         let allPets = []; // ВСЕ питомцы в системе (глобальные из Firebase)
@@ -1420,12 +1426,18 @@
         let isLoading = false;
         let isInitialized = false;
         
+        // Обновляем текст режима при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('currentModeText').textContent = 
+                `Режим: ${currentMode === 'user' ? 'Пользователь' : 'Партнёр'}`;
+        });
+        
         // ===== FIREBASE ФУНКЦИИ =====
         
         // Получить уникальный ID пользователя
         function getUserId() {
-            if (tg.initDataUnsafe?.user?.id) {
-                return tg.initDataUnsafe.user.id;
+            if (tg && tg.initDataUnsafe?.user?.id) {
+                return tg.initDataUnsafe.user.id.toString();
             }
             // Если пользователь не авторизован, создаем уникальный ID
             let userId = localStorage.getItem('futurepet_user_id');
@@ -1496,7 +1508,11 @@
                 const petsData = snapshot.val();
                 
                 if (petsData) {
-                    allPets = Object.values(petsData);
+                    // Преобразуем объект в массив
+                    allPets = Object.keys(petsData).map(key => ({
+                        id: key,
+                        ...petsData[key]
+                    }));
                     console.log('✅ Загружено питомцев из Firebase:', allPets.length);
                 } else {
                     allPets = [];
@@ -1519,7 +1535,11 @@
                 const partnersData = snapshot.val();
                 
                 if (partnersData) {
-                    partners = Object.values(partnersData);
+                    // Преобразуем объект в массив
+                    partners = Object.keys(partnersData).map(key => ({
+                        id: key,
+                        ...partnersData[key]
+                    }));
                     console.log('✅ Загружено партнёров из Firebase:', partners.length);
                 } else {
                     partners = [];
@@ -1559,15 +1579,15 @@
             updateStats();
             
             // Обновляем текущую страницу
-            if (document.getElementById('user-home').classList.contains('active')) {
+            if (document.getElementById('user-home') && document.getElementById('user-home').classList.contains('active')) {
                 loadUserHome();
-            } else if (document.getElementById('user-pets').classList.contains('active')) {
+            } else if (document.getElementById('user-pets') && document.getElementById('user-pets').classList.contains('active')) {
                 loadUserPets();
-            } else if (document.getElementById('all-pets').classList.contains('active')) {
+            } else if (document.getElementById('all-pets') && document.getElementById('all-pets').classList.contains('active')) {
                 loadAllPetsPage();
-            } else if (document.getElementById('user-shelters').classList.contains('active')) {
+            } else if (document.getElementById('user-shelters') && document.getElementById('user-shelters').classList.contains('active')) {
                 loadSheltersPage();
-            } else if (document.getElementById('partner-pets').classList.contains('active')) {
+            } else if (document.getElementById('partner-pets') && document.getElementById('partner-pets').classList.contains('active')) {
                 loadShelterPets();
             }
         }
@@ -1847,7 +1867,7 @@
             } else {
                 // Сортируем по дате создания (новые первыми)
                 const sortedPets = [...otherPets].sort((a, b) => 
-                    new Date(b.createdAt) - new Date(a.createdAt)
+                    new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
                 );
                 
                 sortedPets.forEach(pet => {
@@ -2075,6 +2095,9 @@
                     const success = await savePetToFirebase(newPet);
                     
                     if (success) {
+                        // Добавляем в локальный массив
+                        allPets.unshift(newPet);
+                        
                         // Очищаем форму
                         this.reset();
                         shelterPhotos = [];
@@ -2083,6 +2106,9 @@
                             preview.style.display = 'none';
                             preview.innerHTML = '';
                         }
+                        
+                        // Обновляем данные
+                        updateAllPages();
                         
                         // Показываем успех
                         showPage('partner-pets');
@@ -2944,8 +2970,8 @@
                 ${ownerInfo}
                 
                 <div style="font-size: 12px; color: var(--gray); text-align: center; margin-top: 20px;">
-                    Опубликовано: ${new Date(pet.createdAt).toLocaleDateString('ru-RU')}
-                    ${pet.updatedAt !== pet.createdAt ? ` • Обновлено: ${new Date(pet.updatedAt).toLocaleDateString('ru-RU')}` : ''}
+                    Опубликовано: ${new Date(pet.createdAt || Date.now()).toLocaleDateString('ru-RU')}
+                    ${pet.updatedAt !== pet.createdAt ? ` • Обновлено: ${new Date(pet.updatedAt || Date.now()).toLocaleDateString('ru-RU')}` : ''}
                 </div>
             `;
             
