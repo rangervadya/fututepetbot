@@ -255,6 +255,16 @@
             border-radius: 8px;
         }
         
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
         /* ===== ФОРМЫ ===== */
         .form-group {
             margin-bottom: 20px;
@@ -1002,7 +1012,7 @@
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="submitOrganizationBtn">
                     <i class="fas fa-check"></i> Создать организацию
                 </button>
             </form>
@@ -1383,27 +1393,27 @@
                             <label>Основные услуги *</label>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                                 <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="serviceAdoption" value="adoption">
+                                    <input type="checkbox" class="service-checkbox" id="serviceAdoption" value="adoption">
                                     <span>Усыновление животных</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="serviceTreatment" value="treatment">
+                                    <input type="checkbox" class="service-checkbox" id="serviceTreatment" value="treatment">
                                     <span>Ветеринарная помощь</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="serviceHotel" value="hotel">
+                                    <input type="checkbox" class="service-checkbox" id="serviceHotel" value="hotel">
                                     <span>Передержка животных</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="serviceGrooming" value="grooming">
+                                    <input type="checkbox" class="service-checkbox" id="serviceGrooming" value="grooming">
                                     <span>Груминг</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="serviceTraining" value="training">
+                                    <input type="checkbox" class="service-checkbox" id="serviceTraining" value="training">
                                     <span>Дрессировка</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" id="serviceConsultation" value="consultation">
+                                    <input type="checkbox" class="service-checkbox" id="serviceConsultation" value="consultation">
                                     <span>Консультации</span>
                                 </label>
                             </div>
@@ -1846,9 +1856,7 @@
         let shelterPhotos = [];
         let isLoading = false;
         let isInitialized = false;
-        
-        // Флаг для отслеживания первого переключения режима
-        let isFirstModeSwitch = true;
+        let selectedPetType = null; // ДОБАВЛЕНО: для отслеживания выбранного типа питомца
         
         // Обновляем текст режима при загрузке
         document.addEventListener('DOMContentLoaded', function() {
@@ -2406,7 +2414,7 @@
                     e.preventDefault();
                     
                     // Проверка обязательных полей
-                    if (!window.selectedPetType) {
+                    if (!selectedPetType) {
                         showNotification('Выберите тип животного', 'error');
                         return;
                     }
@@ -2452,7 +2460,7 @@
                         ownerId: userId,
                         ownerType: 'user',
                         ownerName: currentUser.name,
-                        type: window.selectedPetType || 'other',
+                        type: selectedPetType || 'other',
                         name: document.getElementById('petName').value.trim(),
                         sex: document.getElementById('petSex').value,
                         age: document.getElementById('petAge').value.trim(),
@@ -2478,21 +2486,14 @@
                         allPets.unshift(newPet);
                         
                         // Очищаем форму
-                        this.reset();
+                        userForm.reset();
                         userPhotos = [];
                         document.getElementById('petPhotoPreview').classList.add('hidden');
                         document.getElementById('petPhotoInput').value = '';
                         
                         // Сбрасываем кнопки типа
-                        ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
-                            const btn = document.getElementById(id);
-                            if (btn) {
-                                btn.style.background = 'transparent';
-                                btn.style.color = 'var(--primary)';
-                                btn.style.border = '2px solid var(--primary)';
-                            }
-                        });
-                        window.selectedPetType = null;
+                        resetPetTypeButtons();
+                        selectedPetType = null;
                         
                         // Обновляем случайных питомцев
                         updateRandomPets();
@@ -2513,19 +2514,87 @@
                 partnerRegisterForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
+                    // Проверка обязательных полей
+                    const requiredFields = [
+                        {id: 'partnerType', name: 'Тип организации'},
+                        {id: 'partnerName', name: 'Название организации'},
+                        {id: 'partnerDescription', name: 'Описание организации'},
+                        {id: 'partnerCity', name: 'Город'},
+                        {id: 'partnerAddress', name: 'Адрес'},
+                        {id: 'partnerPhone', name: 'Телефон'},
+                        {id: 'partnerHours', name: 'Режим работы'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    // Проверка выбранных услуг
+                    const serviceCheckboxes = document.querySelectorAll('.service-checkbox:checked');
+                    if (serviceCheckboxes.length === 0) {
+                        showNotification('Выберите хотя бы одну услугу', 'error');
+                        return;
+                    }
+                    
                     const submitBtn = document.getElementById('partnerSubmitBtn');
                     const originalText = submitBtn.innerHTML;
                     submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
                     submitBtn.disabled = true;
                     
-                    const success = await savePartnerForm();
+                    const userId = getUserId();
+                    
+                    // Собираем выбранные услуги
+                    const services = Array.from(serviceCheckboxes).map(cb => cb.value);
+                    
+                    // Собираем данные партнёра
+                    const partnerData = {
+                        id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: userId,
+                        type: document.getElementById('partnerType').value,
+                        name: document.getElementById('partnerName').value.trim(),
+                        description: document.getElementById('partnerDescription').value.trim(),
+                        city: document.getElementById('partnerCity').value,
+                        address: document.getElementById('partnerAddress').value.trim(),
+                        phone: document.getElementById('partnerPhone').value.trim(),
+                        email: document.getElementById('partnerEmail').value.trim() || null,
+                        hours: document.getElementById('partnerHours').value.trim(),
+                        services: services,
+                        servicesInfo: document.getElementById('partnerServicesInfo').value.trim() || null,
+                        registeredAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        verified: false
+                    };
+                    
+                    console.log('📝 Создание нового партнёра:', partnerData);
+                    
+                    // Сохраняем в Firebase
+                    const success = await savePartnerToFirebase(partnerData);
+                    
+                    if (success) {
+                        // Добавляем в локальный массив
+                        partners.push(partnerData);
+                        
+                        // Очищаем форму
+                        partnerRegisterForm.reset();
+                        
+                        // Обновляем статус партнёра
+                        updatePartnerStatus();
+                        
+                        // Обновляем данные
+                        updateAllPages();
+                        
+                        // Показываем успех
+                        showPage('partner-home');
+                        showNotification('Организация успешно зарегистрирована! Теперь её видят все пользователи.', 'success');
+                    }
                     
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
-                    
-                    if (success) {
-                        showPage('partner-home');
-                    }
                 });
             }
             
@@ -2615,7 +2684,7 @@
                         allPets.unshift(newPet);
                         
                         // Очищаем форму
-                        this.reset();
+                        partnerPetForm.reset();
                         shelterPhotos = [];
                         const preview = document.getElementById('shelterPhotosPreview');
                         if (preview) {
@@ -2703,89 +2772,6 @@
                 dateTimeInput.min = now.toISOString().slice(0, 16);
                 dateTimeInput.value = now.toISOString().slice(0, 16);
             }
-        }
-        
-        // Функция сохранения формы партнёра
-        async function savePartnerForm() {
-            const userId = getUserId();
-            
-            // Проверяем обязательные поля
-            const requiredFields = [
-                {id: 'partnerType', name: 'Тип организации'},
-                {id: 'partnerName', name: 'Название организации'},
-                {id: 'partnerDescription', name: 'Описание организации'},
-                {id: 'partnerCity', name: 'Город'},
-                {id: 'partnerAddress', name: 'Адрес'},
-                {id: 'partnerPhone', name: 'Телефон'},
-                {id: 'partnerHours', name: 'Режим работы'}
-            ];
-            
-            for (const field of requiredFields) {
-                const element = document.getElementById(field.id);
-                if (!element || !element.value.trim()) {
-                    showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
-                    element?.focus();
-                    return false;
-                }
-            }
-            
-            // Проверяем, что выбрана хотя бы одна услуга
-            const services = [];
-            const serviceCheckboxes = ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'];
-            let hasServices = false;
-            
-            serviceCheckboxes.forEach(service => {
-                const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
-                if (checkbox && checkbox.checked) {
-                    services.push(service);
-                    hasServices = true;
-                }
-            });
-            
-            if (!hasServices) {
-                showNotification('Выберите хотя бы одну услугу', 'error');
-                return false;
-            }
-            
-            // Собираем данные партнёра
-            const partnerData = {
-                id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                userId: userId,
-                type: document.getElementById('partnerType').value,
-                name: document.getElementById('partnerName').value.trim(),
-                description: document.getElementById('partnerDescription').value.trim(),
-                city: document.getElementById('partnerCity').value,
-                address: document.getElementById('partnerAddress').value.trim(),
-                phone: document.getElementById('partnerPhone').value.trim(),
-                email: document.getElementById('partnerEmail').value.trim() || null,
-                hours: document.getElementById('partnerHours').value.trim(),
-                services: services,
-                servicesInfo: document.getElementById('partnerServicesInfo').value.trim() || null,
-                registeredAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                verified: false
-            };
-            
-            // Сохраняем в Firebase
-            const success = await savePartnerToFirebase(partnerData);
-            
-            if (success) {
-                // Обновляем локальный массив
-                const existingIndex = partners.findIndex(p => p.userId === userId);
-                if (existingIndex >= 0) {
-                    partners[existingIndex] = partnerData;
-                } else {
-                    partners.push(partnerData);
-                }
-                
-                // Обновляем статус партнёра
-                updatePartnerStatus();
-                
-                showNotification('Организация успешно зарегистрирована! Теперь её видят все пользователи.', 'success');
-                return true;
-            }
-            
-            return false;
         }
         
         // Функция сохранения напоминания
@@ -3177,54 +3163,19 @@
         }
         
         function toggleMode() {
-            // Устраняем проблему с переключением режима
-            if (isFirstModeSwitch) {
-                isFirstModeSwitch = false;
-                
-                if (currentMode === 'user') {
-                    currentMode = 'partner';
-                    document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
-                    showNotification('Переключено в режим партнёра. Зарегистрируйте организацию для начала работы.', 'info');
-                    
-                    // Проверяем, есть ли у пользователя организация
-                    const userId = getUserId();
-                    const partner = partners.find(p => p.userId === userId);
-                    
-                    if (partner) {
-                        // У пользователя уже есть организация
-                        localStorage.setItem('futurepet_mode', currentMode);
-                        updateNavigation();
-                        showPage('partner-home');
-                    } else {
-                        // У пользователя нет организации, показываем регистрацию
-                        localStorage.setItem('futurepet_mode', currentMode);
-                        updateNavigation();
-                        showPage('partner-register');
-                    }
-                } else {
-                    currentMode = 'user';
-                    document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
-                    showNotification('Переключено в режим пользователя', 'info');
-                    localStorage.setItem('futurepet_mode', currentMode);
-                    updateNavigation();
-                    showPage('user-home');
-                }
+            if (currentMode === 'user') {
+                currentMode = 'partner';
+                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
             } else {
-                // Обычное переключение режима
-                if (currentMode === 'user') {
-                    currentMode = 'partner';
-                    document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
-                    showNotification('Переключено в режим партнёра', 'info');
-                } else {
-                    currentMode = 'user';
-                    document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
-                    showNotification('Переключено в режим пользователя', 'info');
-                }
-                
-                localStorage.setItem('futurepet_mode', currentMode);
-                updateNavigation();
-                showPage(currentMode + '-home');
+                currentMode = 'user';
+                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
             }
+            
+            localStorage.setItem('futurepet_mode', currentMode);
+            updateNavigation();
+            showPage(currentMode === 'user' ? 'user-home' : 'partner-home');
+            
+            showNotification(`Переключено в режим ${currentMode === 'user' ? 'пользователя' : 'партнёра'}`, 'info');
         }
         
         function showNotification(text, type = 'info') {
@@ -3258,7 +3209,21 @@
         
         // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
         function selectPetType(type) {
-            // Обновляем кнопки
+            // Сбрасываем все кнопки
+            resetPetTypeButtons();
+            
+            // Устанавливаем выбранную кнопку
+            const selectedBtn = document.getElementById('btn' + type.charAt(0).toUpperCase() + type.slice(1));
+            if (selectedBtn) {
+                selectedBtn.style.background = 'var(--primary)';
+                selectedBtn.style.color = 'white';
+                selectedBtn.style.border = '2px solid var(--primary)';
+            }
+            
+            selectedPetType = type;
+        }
+        
+        function resetPetTypeButtons() {
             ['btnCat', 'btnDog', 'btnOther'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) {
@@ -3267,15 +3232,6 @@
                     btn.style.border = '2px solid var(--primary)';
                 }
             });
-            
-            const selectedBtn = document.getElementById('btn' + type.charAt(0).toUpperCase() + type.slice(1));
-            if (selectedBtn) {
-                selectedBtn.style.background = 'var(--primary)';
-                selectedBtn.style.color = 'white';
-                selectedBtn.style.border = '2px solid var(--primary)';
-            }
-            
-            window.selectedPetType = type;
         }
         
         function handlePhotoUpload(event, previewId) {
@@ -3871,11 +3827,23 @@
                 document.getElementById('partnerServicesInfo').value = existingPartner.servicesInfo || '';
                 
                 // Заполняем услуги
-                ['adoption', 'treatment', 'hotel', 'grooming', 'training', 'consultation'].forEach(service => {
-                    const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
-                    if (checkbox && existingPartner.services && existingPartner.services.includes(service)) {
-                        checkbox.checked = true;
-                    }
+                document.querySelectorAll('.service-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                if (existingPartner.services) {
+                    existingPartner.services.forEach(service => {
+                        const checkbox = document.getElementById(`service${service.charAt(0).toUpperCase() + service.slice(1)}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    });
+                }
+            } else {
+                // Очищаем форму, если партнер не зарегистрирован
+                document.getElementById('partnerRegisterForm').reset();
+                document.querySelectorAll('.service-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
                 });
             }
         }
