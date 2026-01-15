@@ -631,6 +631,29 @@
         .refresh-btn.loading {
             animation: spin 1s linear infinite;
         }
+        
+        /* ===== СТИЛИ ДЛЯ РАНДОМНЫХ ПИТОМЦЕВ ===== */
+        .random-pets-section {
+            margin: 20px 0;
+        }
+        
+        .random-pets-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .random-pets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .view-more-btn {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -677,12 +700,28 @@
                     </h2>
                     <p class="text-muted mb-20">Найди своего будущего питомца или помоги другим</p>
                     
-                    <div class="pets-grid" id="featuredPets">
-                        <!-- Избранные питомцы -->
-                        <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
-                            <div class="loader" style="margin: 0 auto 15px;"></div>
-                            <p class="text-muted">Загрузка питомцев...</p>
+                    <!-- Секция случайных питомцев -->
+                    <div class="random-pets-section">
+                        <div class="random-pets-title">
+                            <h3 style="color: var(--dark);">
+                                <i class="fas fa-random"></i> Случайные питомцы
+                            </h3>
+                            <button class="btn btn-outline btn-small" onclick="refreshRandomPets()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </div>
+                        
+                        <div class="random-pets-grid" id="randomPetsContainer">
+                            <!-- Здесь будут отображаться 2 случайных питомца -->
+                            <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
+                                <div class="loader" style="margin: 0 auto 15px;"></div>
+                                <p class="text-muted">Загрузка случайных питомцев...</p>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-accent view-more-btn" onclick="showPage('all-pets')">
+                            <i class="fas fa-search"></i> Посмотреть других питомцев
+                        </button>
                     </div>
                     
                     <button class="btn btn-primary mt-20" onclick="showPage('user-shelters')">
@@ -700,6 +739,30 @@
                     </h3>
                     <div id="userStats">
                         <!-- Статистика будет здесь -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Страница всех питомцев -->
+            <div id="all-pets" class="page">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-paw"></i> Все питомцы
+                        </div>
+                        <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                        <button class="btn btn-primary btn-small" onclick="refreshAllPets()">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                    </div>
+                    
+                    <div class="pets-grid" id="allPetsList">
+                        <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
+                            <div class="loader" style="margin: 0 auto 15px;"></div>
+                            <p class="text-muted">Загрузка всех питомцев...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1433,6 +1496,9 @@
                     loadUserHome();
                 }
                 
+                // Обновить случайные питомцы
+                updateRandomPets();
+                
                 return allPets;
             } catch (error) {
                 console.error('❌ Ошибка загрузки питомцев:', error);
@@ -1584,6 +1650,9 @@
             // 6. Настройка реального времени (опционально)
             setupRealtimeUpdates();
             
+            // 7. Инициализация случайных питомцев
+            updateRandomPets();
+            
             showNotification(`Добро пожаловать, ${currentUser.name || 'Пользователь'}! Данные загружены из облака.`, 'info');
         });
         
@@ -1622,6 +1691,9 @@
                     
                     // Обновляем текущую страницу если нужно
                     updateCurrentPage();
+                    
+                    // Обновляем случайные питомцы
+                    updateRandomPets();
                 }
             });
             
@@ -1647,6 +1719,8 @@
                     loadUserPets();
                 } else if (document.getElementById('user-shelters').classList.contains('active')) {
                     loadSheltersPage();
+                } else if (document.getElementById('all-pets').classList.contains('active')) {
+                    loadAllPetsPage();
                 }
             } else {
                 if (document.getElementById('partner-home').classList.contains('active')) {
@@ -1656,6 +1730,133 @@
                 }
             }
             updateStats();
+        }
+        
+        // ===== ФУНКЦИИ ДЛЯ РАНДОМНЫХ ПИТОМЦЕВ =====
+        
+        // Обновить отображение случайных питомцев
+        function updateRandomPets() {
+            const container = document.getElementById('randomPetsContainer');
+            if (!container) return;
+            
+            const userId = getUserId();
+            
+            // Фильтруем питомцев: исключаем питомцев текущего пользователя и оставляем только доступных
+            const otherPets = allPets.filter(pet => 
+                pet.ownerId !== userId && pet.status === 'available'
+            );
+            
+            if (otherPets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 20px; background: var(--light); border-radius: 12px;">
+                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 10px;"></i>
+                        <p class="text-muted">Пока нет других питомцев. Будьте первым!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Выбираем 2 случайных питомца
+            let randomPets = [];
+            if (otherPets.length <= 2) {
+                randomPets = [...otherPets];
+            } else {
+                // Перемешиваем массив и берем первые 2 элемента
+                const shuffled = [...otherPets].sort(() => 0.5 - Math.random());
+                randomPets = shuffled.slice(0, 2);
+            }
+            
+            // Очищаем контейнер
+            container.innerHTML = '';
+            
+            // Добавляем карточки случайных питомцев
+            randomPets.forEach(pet => {
+                const petCard = createRandomPetCard(pet);
+                container.appendChild(petCard);
+            });
+        }
+        
+        // Создать карточку для случайного питомца
+        function createRandomPetCard(pet) {
+            const card = document.createElement('div');
+            card.className = 'pet-card';
+            card.onclick = () => showPetDetail(pet.id);
+            
+            let typeIcon = '🐾';
+            if (pet.type === 'cat') typeIcon = '🐱';
+            if (pet.type === 'dog') typeIcon = '🐶';
+            
+            card.innerHTML = `
+                <div class="pet-image">
+                    ${pet.photos && pet.photos.length > 0 ? 
+                        `<img src="${pet.photos[0]}" alt="${pet.name}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                        `<i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}" style="font-size: 48px;"></i>`
+                    }
+                </div>
+                <div class="pet-info">
+                    <div class="pet-name">${pet.name || 'Без имени'}</div>
+                    <div class="pet-details">
+                        ${typeIcon} ${pet.age || ''}
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
+                            ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Обновить случайных питомцев
+        function refreshRandomPets() {
+            updateRandomPets();
+            showNotification('Случайные питомцы обновлены', 'success');
+        }
+        
+        // ===== ФУНКЦИИ ДЛЯ СТРАНИЦЫ ВСЕХ ПИТОМЦЕВ =====
+        
+        // Загрузить страницу всех питомцев
+        function loadAllPetsPage() {
+            const container = document.getElementById('allPetsList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            
+            // Фильтруем питомцев: исключаем питомцев текущего пользователя
+            const otherPets = allPets.filter(pet => pet.ownerId !== userId);
+            
+            container.innerHTML = '';
+            
+            if (otherPets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет других питомцев</h3>
+                        <p class="text-muted">Другие пользователи еще не добавили питомцев</p>
+                        <button class="btn btn-primary mt-20" onclick="showPage('user-add-pet')">
+                            <i class="fas fa-plus"></i> Станьте первым!
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Сортируем по дате создания (новые первыми)
+                const sortedPets = [...otherPets].sort((a, b) => 
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                
+                sortedPets.forEach(pet => {
+                    const petCard = createPetCard(pet);
+                    container.appendChild(petCard);
+                });
+            }
+        }
+        
+        // Обновить всех питомцев
+        function refreshAllPets() {
+            loadAllPetsPage();
+            showNotification('Список питомцев обновлен', 'success');
         }
         
         // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
@@ -1746,6 +1947,9 @@
                             }
                         });
                         window.selectedPetType = null;
+                        
+                        // Обновляем случайные питомцы
+                        updateRandomPets();
                         
                         // Показываем успех
                         showPage('success');
@@ -2115,6 +2319,9 @@
                 case 'user-shelters':
                     loadSheltersPage();
                     break;
+                case 'all-pets':
+                    loadAllPetsPage();
+                    break;
                 case 'user-settings':
                     loadUserSettings();
                     break;
@@ -2148,6 +2355,9 @@
                     </button>
                     <button class="nav-tab" data-page="user-pets">
                         <i class="fas fa-paw"></i> Мои питомцы
+                    </button>
+                    <button class="nav-tab" data-page="all-pets">
+                        <i class="fas fa-search"></i> Все питомцы
                     </button>
                     <button class="nav-tab" data-page="user-shelters">
                         <i class="fas fa-hands-helping"></i> Приюты
@@ -2335,35 +2545,8 @@
         
         // ===== ФУНКЦИИ ЗАГРУЗКИ СТРАНИЦ =====
         function loadUserHome() {
-            // Отображаем избранных питомцев
-            const container = document.getElementById('featuredPets');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            // Берём последних 6 питомцев, которые ищут дом
-            const featured = allPets
-                .filter(pet => pet.status === 'available')
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .slice(0, 6);
-            
-            if (featured.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
-                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет доступных питомцев</h3>
-                        <p class="text-muted">Будьте первым, кто выложит питомца!</p>
-                        <button class="btn btn-primary mt-20" onclick="showPage('user-add-pet')">
-                            <i class="fas fa-plus"></i> Добавить первого питомца
-                        </button>
-                    </div>
-                `;
-            } else {
-                featured.forEach(pet => {
-                    const petCard = createPetCard(pet);
-                    container.appendChild(petCard);
-                });
-            }
+            // Обновляем случайных питомцев
+            updateRandomPets();
             
             // Обновляем статистику
             updateStats();
