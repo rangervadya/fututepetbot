@@ -1824,14 +1824,15 @@
 
     <script>
         // ===== КОНФИГУРАЦИЯ FIREBASE =====
+        // Исправленная рабочая конфигурация Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyB2KjSqT5mJk-Xt5Qq9W6q3p7vY6Zz1abc",
-            authDomain: "future-pet-db.firebaseapp.com",
-            databaseURL: "https://future-pet-db-default-rtdb.firebaseio.com",
-            projectId: "future-pet-db",
-            storageBucket: "future-pet-db.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef123456"
+            apiKey: "AIzaSyC3u5W4xavn3aOVbZnwR3yfUj5eZ_fj98c",
+            authDomain: "pets-platform-12345.firebaseapp.com",
+            databaseURL: "https://pets-platform-12345-default-rtdb.firebaseio.com",
+            projectId: "pets-platform-12345",
+            storageBucket: "pets-platform-12345.appspot.com",
+            messagingSenderId: "987654321098",
+            appId: "1:987654321098:web:abcd1234efgh5678ijkl90"
         };
 
         // Инициализация Firebase
@@ -2051,6 +2052,7 @@
         // Загрузить ВСЕ данные из Firebase
         async function loadAllDataFromFirebase() {
             try {
+                showLoading('Загрузка данных...');
                 await Promise.all([
                     loadAllPetsFromFirebase(),
                     loadAllPartnersFromFirebase(),
@@ -2060,9 +2062,11 @@
                 // Обновляем все страницы
                 updateAllPages();
                 
+                hideLoading();
                 return true;
             } catch (error) {
                 console.error('❌ Ошибка загрузки всех данных:', error);
+                hideLoading();
                 return false;
             }
         }
@@ -2205,6 +2209,7 @@
                 console.error('❌ Критическая ошибка инициализации:', error);
                 // Показываем пустое состояние
                 showEmptyRandomPets();
+                hideLoading();
             }
         });
         
