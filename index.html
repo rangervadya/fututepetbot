@@ -683,6 +683,41 @@
         .table tr:hover {
             background: rgba(0,0,0,0.02);
         }
+
+        /* ===== НАПОМИНАНИЯ ===== */
+        .reminder-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+            border: 1px solid var(--border);
+        }
+
+        .reminder-item.due {
+            border-left: 4px solid var(--warning);
+            background: #FFF3E0;
+        }
+
+        .reminder-item.overdue {
+            border-left: 4px solid var(--danger);
+            background: #FFEBEE;
+        }
+
+        .reminder-time {
+            font-size: 12px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .reminder-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -733,6 +768,52 @@
                 
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-paper-plane"></i> Отправить заявку
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления напоминания -->
+    <div id="reminderModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Добавить напоминание</h3>
+                <button class="modal-close" onclick="closeReminderModal()">&times;</button>
+            </div>
+            <form id="reminderForm">
+                <div class="form-group">
+                    <label>Текст напоминания *</label>
+                    <input type="text" class="form-input" id="reminderText" required 
+                           placeholder="Например: Позвонить по поводу прививки">
+                </div>
+                
+                <div class="form-group">
+                    <label>Дата и время *</label>
+                    <input type="datetime-local" class="form-input" id="reminderDateTime" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Тип напоминания</label>
+                    <select class="form-select" id="reminderType">
+                        <option value="general">Общее</option>
+                        <option value="medical">Медицинское</option>
+                        <option value="visit">Посещение</option>
+                        <option value="food">Кормление</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Приоритет</label>
+                    <select class="form-select" id="reminderPriority">
+                        <option value="low">Низкий</option>
+                        <option value="medium" selected>Средний</option>
+                        <option value="high">Высокий</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-bell"></i> Добавить напоминание
                 </button>
             </form>
         </div>
@@ -808,6 +889,10 @@
                     
                     <button class="btn btn-warning mt-20" onclick="showPage('user-favorites')">
                         <i class="fas fa-heart"></i> Избранные питомцы
+                    </button>
+
+                    <button class="btn btn-accent mt-20" onclick="showPage('user-reminders')">
+                        <i class="fas fa-bell"></i> Мои напоминания
                     </button>
                 </div>
                 
@@ -901,6 +986,36 @@
                         <div class="text-center" style="padding: 20px;">
                             <div class="loader" style="margin: 0 auto 15px;"></div>
                             <p class="text-muted">Загрузка приютов...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Напоминания пользователя -->
+            <div id="user-reminders" class="page">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-bell"></i> Мои напоминания
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-small" onclick="showReminderModal()">
+                                <i class="fas fa-plus"></i> Добавить
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
+                                <i class="fas fa-arrow-left"></i> Назад
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="remindersList" class="list">
+                        <div class="text-center" style="padding: 40px 20px;">
+                            <i class="fas fa-bell empty-state-icon"></i>
+                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
+                            <p class="text-muted">Добавьте ваше первое напоминание</p>
+                            <button class="btn btn-primary mt-20" onclick="showReminderModal()">
+                                <i class="fas fa-plus"></i> Добавить напоминание
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1027,7 +1142,7 @@
                         <div class="form-group">
                             <label>Название организации *</label>
                             <input type="text" class="form-input" id="partnerName" required 
-                                   placeholder="Например: Приют 'Лапа помощи'">
+                                   placeholder="Например: Городской приют для животных">
                         </div>
                         
                         <div class="form-group">
@@ -1352,6 +1467,7 @@
         let partners = JSON.parse(localStorage.getItem('futurepet_partners')) || [];
         let leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
         let favorites = JSON.parse(localStorage.getItem('futurepet_favorites')) || [];
+        let reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
         let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
         let selectedPetType = null;
 
@@ -1426,6 +1542,7 @@
             localStorage.setItem('futurepet_partners', JSON.stringify(partners));
             localStorage.setItem('futurepet_leads', JSON.stringify(leads));
             localStorage.setItem('futurepet_favorites', JSON.stringify(favorites));
+            localStorage.setItem('futurepet_reminders', JSON.stringify(reminders));
         }
         
         function clearLocalData() {
@@ -1434,6 +1551,7 @@
                 localStorage.removeItem('futurepet_partners');
                 localStorage.removeItem('futurepet_leads');
                 localStorage.removeItem('futurepet_favorites');
+                localStorage.removeItem('futurepet_reminders');
                 localStorage.removeItem('futurepet_user');
                 localStorage.removeItem('futurepet_user_id');
                 localStorage.removeItem('futurepet_mode');
@@ -1442,6 +1560,7 @@
                 partners = [];
                 leads = [];
                 favorites = [];
+                reminders = [];
                 
                 showNotification('Данные очищены', 'success');
                 setTimeout(() => {
@@ -1470,6 +1589,9 @@
                 
                 // Загружаем данные
                 loadInitialData();
+                
+                // Проверяем напоминания
+                checkReminders();
                 
                 // Показываем главную страницу
                 showPage('user-home');
@@ -1512,6 +1634,7 @@
             partners = JSON.parse(localStorage.getItem('futurepet_partners')) || [];
             leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
             favorites = JSON.parse(localStorage.getItem('futurepet_favorites')) || [];
+            reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
             
             // Если данных нет, создаем тестовые
             if (allPets.length === 0) {
@@ -1527,7 +1650,7 @@
             
             const userId = getUserId();
             
-            // Тестовые питомцы
+            // Тестовые питомцы (без приюта "Лапа помощи")
             allPets = [
                 {
                     id: 'pet_test_1',
@@ -1549,9 +1672,9 @@
                 },
                 {
                     id: 'pet_test_2',
-                    userId: 'shelter_1',
-                    ownerType: 'shelter',
-                    ownerName: 'Приют "Лапа помощи"',
+                    userId: userId,
+                    ownerType: 'user',
+                    ownerName: currentUser.name,
                     type: 'dog',
                     name: 'Барсик',
                     sex: 'male',
@@ -1567,19 +1690,43 @@
                 }
             ];
             
-            // Тестовые партнёры
+            // Тестовые партнёры (без "Лапа помощи")
             partners = [
                 {
                     id: 'partner_1',
-                    userId: 'shelter_1',
+                    userId: userId,
                     type: 'shelter',
-                    name: 'Приют "Лапа помощи"',
+                    name: 'Городской приют для животных',
                     description: 'Приют для бездомных животных. Помогаем найти дом каждому питомцу.',
                     city: 'Казань',
                     address: 'ул. Пушкина, д. 10',
                     phone: '+7 987 654-32-10',
                     status: 'approved',
                     registeredAt: new Date().toISOString()
+                }
+            ];
+            
+            // Тестовые напоминания
+            reminders = [
+                {
+                    id: 'reminder_1',
+                    userId: userId,
+                    text: 'Записаться на прививку для Мурзика',
+                    dateTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // через 2 дня
+                    type: 'medical',
+                    priority: 'high',
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 'reminder_2',
+                    userId: userId,
+                    text: 'Купить корм для питомца',
+                    dateTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // через 5 дней
+                    type: 'food',
+                    priority: 'medium',
+                    completed: false,
+                    createdAt: new Date().toISOString()
                 }
             ];
             
@@ -1596,6 +1743,7 @@
                 const availablePets = allPets.filter(p => p.status === 'available').length;
                 const totalPets = allPets.length;
                 const favoriteCount = favorites.length;
+                const reminderCount = reminders.filter(r => r.userId === userId && !r.completed).length;
                 
                 userStats.innerHTML = `
                     <div class="list-item">
@@ -1611,12 +1759,12 @@
                         <span>Избранных: <strong>${favoriteCount}</strong></span>
                     </div>
                     <div class="list-item">
-                        <i class="fas fa-users" style="color: var(--secondary);"></i>
-                        <span>Всего на платформе: <strong>${totalPets}</strong></span>
+                        <i class="fas fa-bell" style="color: var(--accent);"></i>
+                        <span>Активных напоминаний: <strong>${reminderCount}</strong></span>
                     </div>
                     <div class="list-item">
-                        <i class="fas fa-building" style="color: var(--accent);"></i>
-                        <span>Организаций: <strong>${partners.length}</strong></span>
+                        <i class="fas fa-users" style="color: var(--secondary);"></i>
+                        <span>Всего на платформе: <strong>${totalPets}</strong></span>
                     </div>
                 `;
             }
@@ -1632,6 +1780,179 @@
                 
                 if (shelterPetCount) shelterPetCount.textContent = partnerPets.length;
                 if (shelterAdoptedCount) shelterAdoptedCount.textContent = adoptedPets;
+            }
+        }
+        
+        // ===== ФУНКЦИИ ДЛЯ НАПОМИНАНИЙ =====
+        function showReminderModal() {
+            const modal = document.getElementById('reminderModal');
+            if (!modal) return;
+            
+            // Устанавливаем минимальную дату - сегодня
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 16);
+            
+            document.getElementById('reminderDateTime').value = localDateTime;
+            document.getElementById('reminderDateTime').min = localDateTime;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeReminderModal() {
+            const modal = document.getElementById('reminderModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.getElementById('reminderForm').reset();
+            }
+        }
+        
+        function loadReminders() {
+            const container = document.getElementById('remindersList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const userReminders = reminders.filter(r => r.userId === userId);
+            
+            // Сортируем по дате (сначала ближайшие)
+            userReminders.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+            
+            if (userReminders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class="fas fa-bell empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
+                        <p class="text-muted">Добавьте ваше первое напоминание</p>
+                        <button class="btn btn-primary mt-20" onclick="showReminderModal()">
+                            <i class="fas fa-plus"></i> Добавить напоминание
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const now = new Date();
+            let html = '';
+            
+            userReminders.forEach(reminder => {
+                const reminderDate = new Date(reminder.dateTime);
+                const timeDiff = reminderDate - now;
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                if (reminder.completed) {
+                    statusClass = 'completed';
+                    statusText = 'Выполнено';
+                } else if (hoursDiff < 0) {
+                    statusClass = 'overdue';
+                    statusText = 'Просрочено';
+                } else if (hoursDiff < 24) {
+                    statusClass = 'due';
+                    statusText = 'Скоро';
+                }
+                
+                const priorityColors = {
+                    'low': '#4CAF50',
+                    'medium': '#FF9800',
+                    'high': '#F44336'
+                };
+                
+                html += `
+                    <div class="reminder-item ${statusClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark);">${reminder.text}</div>
+                                <div class="reminder-time">
+                                    <i class="fas fa-clock"></i>
+                                    ${reminderDate.toLocaleDateString()} ${reminderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                    <span style="font-size: 12px; padding: 2px 8px; background: ${priorityColors[reminder.priority]}; color: white; border-radius: 10px;">
+                                        ${reminder.priority === 'high' ? 'Высокий' : reminder.priority === 'medium' ? 'Средний' : 'Низкий'}
+                                    </span>
+                                    <span style="font-size: 12px; padding: 2px 8px; background: var(--light); color: var(--gray); border-radius: 10px;">
+                                        ${reminder.type === 'medical' ? 'Медицинское' : 
+                                          reminder.type === 'food' ? 'Кормление' : 
+                                          reminder.type === 'visit' ? 'Посещение' : 'Общее'}
+                                    </span>
+                                    ${statusText ? `
+                                    <span style="font-size: 12px; padding: 2px 8px; background: ${statusClass === 'overdue' ? '#F44336' : statusClass === 'due' ? '#FF9800' : '#4CAF50'}; color: white; border-radius: 10px;">
+                                        ${statusText}
+                                    </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn btn-outline btn-small" onclick="toggleReminderCompletion('${reminder.id}')" style="flex: 1;">
+                                <i class="fas ${reminder.completed ? 'fa-undo' : 'fa-check'}"></i>
+                                ${reminder.completed ? 'Возобновить' : 'Выполнено'}
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteReminder('${reminder.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function toggleReminderCompletion(reminderId) {
+            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
+            if (reminderIndex !== -1) {
+                reminders[reminderIndex].completed = !reminders[reminderIndex].completed;
+                saveDataToLocalStorage();
+                loadReminders();
+                updateStats();
+                
+                showNotification(
+                    reminders[reminderIndex].completed 
+                        ? 'Напоминание отмечено как выполненное' 
+                        : 'Напоминание возобновлено',
+                    'success'
+                );
+            }
+        }
+        
+        function deleteReminder(reminderId) {
+            if (confirm('Удалить это напоминание?')) {
+                reminders = reminders.filter(r => r.id !== reminderId);
+                saveDataToLocalStorage();
+                loadReminders();
+                updateStats();
+                showNotification('Напоминание удалено', 'success');
+            }
+        }
+        
+        function checkReminders() {
+            const userId = getUserId();
+            const now = new Date();
+            const userReminders = reminders.filter(r => 
+                r.userId === userId && 
+                !r.completed && 
+                new Date(r.dateTime) <= now &&
+                (!r.lastNotified || new Date(r.lastNotified) < new Date(now.getTime() - 60 * 60 * 1000)) // Не уведомляли в последний час
+            );
+            
+            if (userReminders.length > 0) {
+                // Показываем уведомление о ближайшем напоминании
+                const nearestReminder = userReminders.sort((a, b) => 
+                    new Date(a.dateTime) - new Date(b.dateTime)
+                )[0];
+                
+                showNotification(`Напоминание: ${nearestReminder.text}`, 'warning');
+                
+                // Обновляем время последнего уведомления
+                const reminderIndex = reminders.findIndex(r => r.id === nearestReminder.id);
+                if (reminderIndex !== -1) {
+                    reminders[reminderIndex].lastNotified = new Date().toISOString();
+                    saveDataToLocalStorage();
+                }
             }
         }
         
@@ -1764,6 +2085,9 @@
                 case 'all-pets':
                     loadAllPetsPage();
                     break;
+                case 'user-reminders':
+                    loadReminders();
+                    break;
                 case 'partner-home':
                     updatePartnerStatus();
                     updateStats();
@@ -1799,6 +2123,9 @@
                     </button>
                     <button class="nav-tab" data-page="user-favorites">
                         <i class="fas fa-heart"></i> Избранное
+                    </button>
+                    <button class="nav-tab" data-page="user-reminders">
+                        <i class="fas fa-bell"></i> Напоминания
                     </button>
                     <button class="nav-tab" data-page="user-settings">
                         <i class="fas fa-cog"></i> Настройки
@@ -2204,6 +2531,60 @@
                     }
                 });
             }
+            
+            // Форма добавления напоминания
+            const reminderForm = document.getElementById('reminderForm');
+            if (reminderForm) {
+                reminderForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = [
+                        {id: 'reminderText', name: 'Текст напоминания'},
+                        {id: 'reminderDateTime', name: 'Дата и время'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const userId = getUserId();
+                    
+                    const newReminder = {
+                        id: 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: userId,
+                        text: document.getElementById('reminderText').value.trim(),
+                        dateTime: document.getElementById('reminderDateTime').value,
+                        type: document.getElementById('reminderType').value,
+                        priority: document.getElementById('reminderPriority').value,
+                        completed: false,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    console.log('📝 Создание нового напоминания:', newReminder);
+                    
+                    // Сохраняем
+                    reminders.push(newReminder);
+                    saveDataToLocalStorage();
+                    
+                    // Очищаем форму
+                    reminderForm.reset();
+                    closeReminderModal();
+                    
+                    // Обновляем список напоминаний
+                    loadReminders();
+                    
+                    // Обновляем статистику
+                    updateStats();
+                    
+                    // Показываем успех
+                    showNotification('Напоминание успешно добавлено!', 'success');
+                });
+            }
         }
         
         // ===== ФУНКЦИИ ЗАГРУЗКИ СТРАНИЦ =====
@@ -2319,7 +2700,7 @@
                     <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
                         <i class="fas fa-heart" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
                         <h3 style="color: var(--dark); margin-bottom: 10px;">Нет избранных питомцев</h3>
-                        <p class="text-muted">Добавляйте питомцев в избранное, нажимая на сердечко</p>
+                        <p class="text-muted">Добавляйте питомцы в избранное, нажимая на сердечко</p>
                     </div>
                 `;
             } else {
