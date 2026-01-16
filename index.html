@@ -1418,41 +1418,6 @@
             updatePartnerStatus();
         }
         
-        function createTestData() {
-            console.log('Создание тестовых данных...');
-            
-            const userId = getUserId();
-            
-            // Только тестовые напоминания, без приютов
-            shelters = []; // Пустой массив приютов
-            
-            // Тестовые напоминания
-            reminders = [
-                {
-                    id: 'reminder_1',
-                    userId: userId,
-                    text: 'Пример: Позвонить в приют',
-                    dateTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-                    type: 'visit',
-                    priority: 'high',
-                    completed: false,
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 'reminder_2',
-                    userId: userId,
-                    text: 'Пример: Отвезти корм в приют',
-                    dateTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-                    type: 'volunteer',
-                    priority: 'medium',
-                    completed: false,
-                    createdAt: new Date().toISOString()
-                }
-            ];
-            
-            saveDataToLocalStorage();
-        }
-        
         function updateStats() {
             const userId = getUserId();
             
