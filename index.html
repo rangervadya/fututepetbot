@@ -11,25 +11,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Apps Script API -->
-    <script>
-        // === КОНФИГУРАЦИЯ GOOGLE SHEETS API ===
-        // ВАЖНО: Создайте свой Google Sheet и скрипт по инструкции ниже
-        
-        // URL вашего Google Apps Script Web App
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydr5rhAdEOk5wtyB5jMzHN_jbddBMZncN8dMPpX8MAxyeP8HL6Fes9RvOWivUp1u4Xdw/exec';
-        
-        // ID вашего Google Spreadsheet
-        const SPREADSHEET_ID = '1meKJizC4f17eUDwyC_N0g_OaHH-420S_l3UULEmp8zE';
-        
-        // Имена листов в таблице
-        const SHEETS = {
-            SHELTERS: 'shelters',
-            LEADS: 'leads',
-            USERS: 'users'
-        };
-    </script>
-    
     <style>
         /* ===== ОСНОВНЫЕ СТИЛИ ===== */
         :root {
@@ -512,6 +493,15 @@
             gap: 5px;
         }
         
+        .shelter-contact {
+            font-size: 14px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
         .favorite-btn {
             background: none;
             border: none;
@@ -561,7 +551,7 @@
             font-weight: 600;
         }
         
-        /* ===== ФОРМЫ ===== */
+        /* ===== УПРОЩЕННЫЙ СТИЛЬ ДЛЯ ФОРМ ===== */
         .form-row {
             display: flex;
             gap: 15px;
@@ -729,87 +719,11 @@
             gap: 15px;
             margin-top: 20px;
         }
-        
-        /* ===== КОНФИГУРАЦИЯ GOOGLE SHEETS ===== */
-        .config-panel {
-            background: var(--light);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .config-item {
-            margin-bottom: 15px;
-        }
-        
-        .config-label {
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 5px;
-            display: block;
-        }
-        
-        .config-value {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-family: monospace;
-            font-size: 14px;
-            word-break: break-all;
-        }
-        
-        .copy-btn {
-            margin-top: 5px;
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-        
-        /* ===== СИНХРОНИЗАЦИЯ ===== */
-        .sync-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: var(--light);
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        
-        .sync-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--gray);
-        }
-        
-        .sync-indicator.synced {
-            background: var(--success);
-        }
-        
-        .sync-indicator.error {
-            background: var(--danger);
-        }
-        
-        .sync-indicator.syncing {
-            background: var(--accent);
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .last-sync {
-            font-size: 12px;
-            color: var(--gray);
-        }
     </style>
 </head>
 <body>
     <!-- Индикатор загрузки -->
-    <div id="loadingOverlay" class="loading-overlay">
+    <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="loader"></div>
         <div class="loading-text">Загрузка приложения...</div>
     </div>
@@ -864,6 +778,51 @@
             </form>
         </div>
     </div>
+
+    <!-- Модальное окно для добавления напоминания -->
+    <div id="reminderModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Добавить напоминание</h3>
+                <button class="modal-close" onclick="closeReminderModal()">&times;</button>
+            </div>
+            <form id="reminderForm">
+                <div class="form-group">
+                    <label>Текст напоминания *</label>
+                    <input type="text" class="form-input" id="reminderText" required 
+                           placeholder="Например: Позвонить в приют">
+                </div>
+                
+                <div class="form-group">
+                    <label>Дата и время *</label>
+                    <input type="datetime-local" class="form-input" id="reminderDateTime" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Тип напоминания</label>
+                    <select class="form-select" id="reminderType">
+                        <option value="general">Общее</option>
+                        <option value="visit">Посещение приюта</option>
+                        <option value="volunteer">Волонтёрство</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Приоритет</label>
+                    <select class="form-select" id="reminderPriority">
+                        <option value="low">Низкий</option>
+                        <option value="medium" selected>Средний</option>
+                        <option value="high">Высокий</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-bell"></i> Добавить напоминание
+                </button>
+            </form>
+        </div>
+    </div>
     
     <div class="app-container">
         <!-- Шапка с переключением режима -->
@@ -887,19 +846,7 @@
             </div>
         </header>
         
-        <!-- Панель синхронизации -->
-        <div id="syncPanel" class="sync-status" style="display: none;">
-            <div class="sync-indicator" id="syncIndicator"></div>
-            <div style="flex: 1;">
-                <div id="syncStatusText">Загрузка данных...</div>
-                <div class="last-sync" id="lastSyncTime"></div>
-            </div>
-            <button class="btn btn-outline btn-small" onclick="syncData()">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-        </div>
-        
-        <!-- Навигация -->
+        <!-- Навигация (меняется в зависимости от режима) -->
         <nav class="nav-tabs" id="mainNav">
             <!-- Навигация загружается динамически -->
         </nav>
@@ -943,6 +890,10 @@
                     
                     <button class="btn btn-secondary mt-20" onclick="showPage('user-favorites')">
                         <i class="fas fa-heart"></i> Избранные приюты
+                    </button>
+
+                    <button class="btn btn-accent mt-20" onclick="showPage('user-reminders')">
+                        <i class="fas fa-bell"></i> Мои напоминания
                     </button>
                 </div>
                 
@@ -999,6 +950,36 @@
                             <i class="fas fa-heart empty-state-icon"></i>
                             <h3 style="color: var(--dark); margin-bottom: 10px;">Нет избранных приютов</h3>
                             <p class="text-muted">Добавляйте приюты в избранное, нажимая на сердечко</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Напоминания пользователя -->
+            <div id="user-reminders" class="page">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-bell"></i> Мои напоминания
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-small" onclick="showReminderModal()">
+                                <i class="fas fa-plus"></i> Добавить
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
+                                <i class="fas fa-arrow-left"></i> Назад
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="remindersList" class="list">
+                        <div class="empty-state">
+                            <i class="fas fa-bell empty-state-icon"></i>
+                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
+                            <p class="text-muted">Добавьте ваше первое напоминание</p>
+                            <button class="btn btn-primary mt-20" onclick="showReminderModal()">
+                                <i class="fas fa-plus"></i> Добавить напоминание
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1189,26 +1170,16 @@
                         <p class="text-muted" id="userId">ID: загрузка...</p>
                     </div>
                     
-                    <div class="sync-status">
-                        <div class="sync-indicator" id="syncStatusIcon"></div>
-                        <div style="flex: 1;">
-                            <div id="syncMessage">Статус синхронизации</div>
-                            <div class="last-sync" id="lastSyncInfo">Не синхронизировано</div>
-                        </div>
-                        <button class="btn btn-outline btn-small" onclick="syncData()">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
+                    <div style="margin-top: 30px; padding: 20px; background: var(--light); border-radius: 12px;">
+                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-info-circle"></i> О приложении</h4>
+                        <p style="font-size: 14px; color: var(--gray);">
+                            "Твой Будущий Питомец" - сервис для помощи животным.<br>
+                            Версия 4.0.0 (работа с приютами)<br>
+                            Все данные хранятся локально в вашем браузере.
+                        </p>
                     </div>
                     
-                    <button class="btn btn-primary mt-20" onclick="exportData()">
-                        <i class="fas fa-download"></i> Экспорт данных
-                    </button>
-                    
-                    <button class="btn btn-outline mt-20" onclick="importData()">
-                        <i class="fas fa-upload"></i> Импорт данных
-                    </button>
-                    
-                    <button class="btn btn-danger mt-20" onclick="clearLocalData()">
+                    <button class="btn btn-outline mt-20" onclick="clearLocalData()">
                         <i class="fas fa-trash"></i> Очистить локальные данные
                     </button>
                 </div>
@@ -1252,7 +1223,7 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-danger" onclick="clearLocalData()">
+                    <button class="btn btn-outline" onclick="clearLocalData()">
                         <i class="fas fa-trash"></i> Очистить локальные данные
                     </button>
                 </div>
@@ -1267,534 +1238,1211 @@
     </div>
 
     <script>
-    // ===== КОНСТАНТЫ =====
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznI4LIOSMHvwYYZVgwsePqWEk0CGN1K3F9qNePi-2Ow1EDvDaSndUEfnssCWNuSqVLnQ/exec';
-    
-    // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
-    let shelters = [];
-    let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
-    
-    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-    function showNotification(text, type = 'info') {
-        const notification = document.getElementById('notification');
-        const textElement = document.getElementById('notificationText');
-        
-        const icon = notification.querySelector('i');
-        notification.className = 'notification';
-        
-        if (type === 'success') {
-            icon.className = 'fas fa-check-circle';
-            notification.style.background = 'var(--primary)';
-        } else if (type === 'error') {
-            icon.className = 'fas fa-exclamation-circle';
-            notification.classList.add('error');
-        } else if (type === 'warning') {
-            icon.className = 'fas fa-exclamation-triangle';
-            notification.classList.add('warning');
-        }
-        
-        textElement.textContent = text;
-        notification.classList.remove('hidden');
-        
-        setTimeout(() => {
-            notification.classList.add('hidden');
-        }, 3000);
-    }
-    
-    // ===== GOOGLE SHEETS ФУНКЦИИ =====
-    async function testGoogleScript() {
-        try {
-            console.log('🔍 Тестирую Google Script...');
-            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=test`);
-            const data = await response.json();
-            console.log('✅ Google Script ответил:', data);
-            return data.success === true;
-        } catch (error) {
-            console.error('❌ Google Script не доступен:', error);
-            return false;
-        }
-    }
-    
-    async function loadSheltersFromGoogle() {
-        try {
-            console.log('📥 Загружаю приюты из Google Sheets...');
-            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_shelters`);
-            const data = await response.json();
-            
-            if (data.success && Array.isArray(data.shelters)) {
-                console.log(`✅ Загружено ${data.shelters.length} приютов из Google Sheets`);
-                shelters = data.shelters;
-                localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-                return true;
-            } else {
-                console.warn('⚠️ Нет данных в Google Sheets:', data);
-                // Используем локальные данные
-                shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
-                return false;
+        // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+        let tg = window.Telegram.WebApp;
+        let currentMode = localStorage.getItem('futurepet_mode') || 'user';
+        let currentUser = {};
+        let shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
+        let leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+        let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
+        let reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
+        let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
+
+        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+        function getUserId() {
+            if (tg && tg.initDataUnsafe?.user?.id) {
+                return tg.initDataUnsafe.user.id.toString();
             }
-        } catch (error) {
-            console.error('❌ Ошибка загрузки из Google Sheets:', error);
-            // Используем локальные данные
-            shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
-            return false;
-        }
-    }
-    
-    async function saveShelterToGoogle(shelterData) {
-        try {
-            console.log('💾 Сохраняю приют в Google Sheets:', shelterData.name);
-            
-            const params = new URLSearchParams();
-            params.append('action', 'add_shelter');
-            params.append('data', JSON.stringify(shelterData));
-            
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                body: params
-            });
-            
-            const result = await response.json();
-            console.log('📤 Результат сохранения:', result);
-            
-            if (result.success) {
-                showNotification('Приют сохранен в Google Sheets! Другие пользователи увидят его.', 'success');
-                return true;
-            } else {
-                showNotification('Ошибка сохранения в Google Sheets', 'error');
-                return false;
-            }
-        } catch (error) {
-            console.error('❌ Ошибка при сохранении в Google Sheets:', error);
-            showNotification('Не удалось сохранить в Google Sheets', 'warning');
-            return false;
-        }
-    }
-    
-    // ===== ИНИЦИАЛИЗАЦИЯ =====
-    async function initializeApp() {
-        console.log('🚀 Инициализация приложения');
-        
-        try {
-            // Тестируем Google Script
-            const googleWorks = await testGoogleScript();
-            
-            if (googleWorks) {
-                console.log('✅ Google Script доступен');
-                showNotification('Подключено к Google Sheets', 'success');
+            let userId = localStorage.getItem('futurepet_user_id');
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('futurepet_user_id', userId);
                 
-                // Загружаем данные из Google Sheets
-                await loadSheltersFromGoogle();
-            } else {
-                console.log('⚠️ Google Script не доступен, работаем локально');
-                showNotification('Работаем в офлайн-режиме', 'warning');
-                
-                // Загружаем локальные данные
-                shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
-                
-                // Если нет данных, добавляем демо
-                if (shelters.length === 0) {
-                    addDemoShelters();
-                }
-            }
-            
-            // Настройка интерфейса
-            updateNavigation();
-            initForms();
-            
-            // Показываем главную страницу
-            showPage('user-home');
-            
-            // Скрываем загрузку
-            document.getElementById('loadingOverlay').classList.add('hidden');
-            
-            console.log('✅ Приложение инициализировано');
-            
-        } catch (error) {
-            console.error('❌ Ошибка инициализации:', error);
-            showNotification('Ошибка загрузки приложения', 'error');
-            document.getElementById('loadingOverlay').classList.add('hidden');
-        }
-    }
-    
-    function addDemoShelters() {
-        const demoShelters = [
-            {
-                id: 'demo1',
-                userId: 'system',
-                type: 'shelter',
-                name: 'Демо приют',
-                shortDescription: 'Пример приюта для демонстрации',
-                detailedDescription: 'Это демонстрационный приют',
-                city: 'Москва',
-                address: 'ул. Примерная, 1',
-                phone: '+7 (999) 000-00-00',
-                email: 'demo@example.com',
-                website: '',
-                schedule: 'Пн-Пт 10:00-18:00',
-                status: 'approved',
-                registeredAt: new Date().toISOString(),
-                views: 0
-            }
-        ];
-        
-        shelters = demoShelters;
-        localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-    }
-    
-    // ===== ОСНОВНЫЕ ФУНКЦИИ =====
-    function showPage(pageId) {
-        document.querySelectorAll('.page').forEach(page => {
-            page.classList.remove('active');
-        });
-        
-        const page = document.getElementById(pageId);
-        if (page) {
-            page.classList.add('active');
-        }
-        
-        switch(pageId) {
-            case 'user-home':
-                updateRandomShelters();
-                updateStats();
-                break;
-            case 'all-shelters':
-                loadAllSheltersPage();
-                break;
-        }
-    }
-    
-    function updateNavigation() {
-        document.getElementById('mainNav').innerHTML = `
-            <button class="nav-tab active" onclick="showPage('user-home')">
-                <i class="fas fa-home"></i> Главная
-            </button>
-            <button class="nav-tab" onclick="showPage('all-shelters')">
-                <i class="fas fa-hands-helping"></i> Все приюты
-            </button>
-            <button class="nav-tab" onclick="showPage('user-favorites')">
-                <i class="fas fa-heart"></i> Избранное
-            </button>
-        `;
-    }
-    
-    // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
-    function initForms() {
-        // Форма регистрации приюта
-        const partnerRegisterForm = document.getElementById('partnerRegisterForm');
-        if (partnerRegisterForm) {
-            partnerRegisterForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const name = document.getElementById('partnerName').value.trim();
-                const city = document.getElementById('partnerCity').value.trim();
-                const phone = document.getElementById('partnerPhone').value.trim();
-                
-                if (!name || !city || !phone) {
-                    showNotification('Заполните обязательные поля', 'error');
-                    return;
-                }
-                
-                const shelterData = {
-                    id: 'shelter_' + Date.now(),
-                    userId: 'user_' + Date.now(),
-                    type: document.getElementById('partnerType').value,
-                    name: name,
-                    shortDescription: document.getElementById('partnerShortDescription').value.trim(),
-                    detailedDescription: document.getElementById('partnerDetailedDescription').value.trim(),
-                    city: city,
-                    address: document.getElementById('partnerAddress').value.trim(),
-                    phone: phone,
-                    email: document.getElementById('partnerEmail').value.trim() || '',
-                    website: document.getElementById('partnerWebsite').value.trim() || '',
-                    schedule: document.getElementById('partnerSchedule').value.trim() || '',
-                    status: 'approved',
-                    registeredAt: new Date().toISOString(),
-                    views: 0
-                };
-                
-                console.log('💾 Сохраняю приют:', shelterData);
-                
-                // 1. Сохраняем локально
-                shelters.push(shelterData);
-                localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-                
-                // 2. Пробуем сохранить в Google Sheets
-                const savedToGoogle = await saveShelterToGoogle(shelterData);
-                
-                if (!savedToGoogle) {
-                    // Если не сохранилось в Google, сохраняем локально
-                    showNotification('Приют сохранен локально (офлайн)', 'warning');
-                }
-                
-                // Очищаем форму
-                partnerRegisterForm.reset();
-                
-                // Показываем уведомление
-                showNotification(`Приют "${name}" сохранен!`, 'success');
-                
-                // Обновляем интерфейс
-                showPage('user-home');
-            });
-        }
-        
-        // Форма заявки
-        const leadForm = document.getElementById('leadForm');
-        if (leadForm) {
-            leadForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const leadData = {
-                    id: 'lead_' + Date.now(),
-                    userId: 'user_' + Date.now(),
-                    userName: document.getElementById('leadName').value.trim(),
-                    userPhone: document.getElementById('leadPhone').value.trim(),
-                    partnerId: document.getElementById('leadPartnerId').value,
-                    type: document.getElementById('leadType').value,
-                    date: document.getElementById('leadDate').value || '',
-                    comment: document.getElementById('leadComment').value.trim() || '',
-                    status: 'new',
+                // Создаем базовый профиль пользователя
+                currentUserData = {
+                    id: userId,
+                    name: tg?.initDataUnsafe?.user?.first_name || 'Гость',
                     createdAt: new Date().toISOString()
                 };
+                localStorage.setItem('futurepet_user', JSON.stringify(currentUserData));
+            }
+            return userId;
+        }
+        
+        function showLoading(text = 'Загрузка...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const textEl = document.querySelector('.loading-text');
+            if (overlay && textEl) {
+                textEl.textContent = text;
+                overlay.classList.remove('hidden');
+            }
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        function showNotification(text, type = 'info') {
+            const notification = document.getElementById('notification');
+            const textElement = document.getElementById('notificationText');
+            
+            const icon = notification.querySelector('i');
+            notification.className = 'notification';
+            
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+                notification.style.background = 'var(--primary)';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+                notification.classList.add('error');
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle';
+                notification.classList.add('warning');
+            } else {
+                icon.className = 'fas fa-info-circle';
+                notification.style.background = 'var(--secondary)';
+            }
+            
+            textElement.textContent = text;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+        
+        function saveDataToLocalStorage() {
+            localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
+            localStorage.setItem('futurepet_leads', JSON.stringify(leads));
+            localStorage.setItem('futurepet_favorite_shelters', JSON.stringify(favoriteShelters));
+            localStorage.setItem('futurepet_reminders', JSON.stringify(reminders));
+        }
+        
+        function clearLocalData() {
+            if (confirm('Вы уверены, что хотите очистить все локальные данные?')) {
+                localStorage.removeItem('futurepet_shelters');
+                localStorage.removeItem('futurepet_leads');
+                localStorage.removeItem('futurepet_favorite_shelters');
+                localStorage.removeItem('futurepet_reminders');
+                localStorage.removeItem('futurepet_user');
+                localStorage.removeItem('futurepet_user_id');
+                localStorage.removeItem('futurepet_mode');
                 
-                console.log('📝 Сохраняю заявку:', leadData);
-                showNotification('Заявка отправлена!', 'success');
-                closeLeadModal();
+                shelters = [];
+                leads = [];
+                favoriteShelters = [];
+                reminders = [];
+                
+                showNotification('Данные очищены', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+        
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
+        function initializeApp() {
+            console.log('🚀 Инициализация приложения');
+            
+            try {
+                // Инициализация Telegram
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    tg.ready();
+                    tg.expand();
+                }
+                
+                // Инициализация пользователя
+                initializeUser();
+                
+                // Настройка интерфейса
+                updateNavigation();
+                initForms();
+                
+                // Загружаем данные
+                loadInitialData();
+                
+                // Проверяем напоминания
+                checkReminders();
+                
+                // Показываем главную страницу
+                showPage('user-home');
+                
+                console.log('✅ Приложение инициализировано');
+                hideLoading();
+                
+            } catch (error) {
+                console.error('❌ Ошибка инициализации:', error);
+                showNotification('Ошибка инициализации приложения', 'error');
+                hideLoading();
+            }
+        }
+        
+        function initializeUser() {
+            const userId = getUserId();
+            
+            if (!currentUserData) {
+                currentUserData = {
+                    id: userId,
+                    name: tg?.initDataUnsafe?.user?.first_name || 'Гость',
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem('futurepet_user', JSON.stringify(currentUserData));
+            }
+            
+            currentUser = currentUserData;
+            
+            // Обновляем информацию в настройках
+            const userName = document.getElementById('userName');
+            const userIdEl = document.getElementById('userId');
+            
+            if (userName) userName.textContent = currentUser.name;
+            if (userIdEl) userIdEl.textContent = `ID: ${currentUser.id.substring(0, 15)}...`;
+        }
+        
+        function loadInitialData() {
+            // Загружаем из localStorage
+            shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
+            leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+            favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
+            reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
+            
+            // Без тестовых данных - приложения стартуют с чистой БД
+            updateStats();
+            updatePartnerStatus();
+        }
+        
+        function updateStats() {
+            const userId = getUserId();
+            
+            // Статистика пользователя
+            const userStats = document.getElementById('userStats');
+            if (userStats) {
+                const approvedShelters = shelters.filter(s => s.status === 'approved');
+                const userLeads = leads.filter(l => l.userId === userId).length;
+                const favoriteCount = favoriteShelters.length;
+                const reminderCount = reminders.filter(r => r.userId === userId && !r.completed).length;
+                
+                userStats.innerHTML = `
+                    <div class="list-item">
+                        <i class="fas fa-hands-helping" style="color: var(--primary);"></i>
+                        <span>Приютов на платформе: <strong>${approvedShelters.length}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-heart" style="color: var(--danger);"></i>
+                        <span>Избранных приютов: <strong>${favoriteCount}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-paper-plane" style="color: var(--secondary);"></i>
+                        <span>Ваших заявок: <strong>${userLeads}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-bell" style="color: var(--accent);"></i>
+                        <span>Активных напоминаний: <strong>${reminderCount}</strong></span>
+                    </div>
+                `;
+            }
+            
+            // Статистика для партнёра
+            const shelterLeadCount = document.getElementById('shelterLeadCount');
+            const shelterNewLeadsCount = document.getElementById('shelterNewLeadsCount');
+            
+            if (shelterLeadCount || shelterNewLeadsCount) {
+                const userId = getUserId();
+                const partnerShelter = shelters.find(s => s.userId === userId);
+                if (partnerShelter) {
+                    const shelterLeads = leads.filter(l => l.partnerId === partnerShelter.id);
+                    const newLeads = shelterLeads.filter(l => l.status === 'new').length;
+                    
+                    if (shelterLeadCount) shelterLeadCount.textContent = shelterLeads.length;
+                    if (shelterNewLeadsCount) shelterNewLeadsCount.textContent = newLeads;
+                }
+            }
+        }
+        
+        // ===== ФУНКЦИИ ДЛЯ НАПОМИНАНИЙ =====
+        function showReminderModal() {
+            const modal = document.getElementById('reminderModal');
+            if (!modal) return;
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 16);
+            
+            document.getElementById('reminderDateTime').value = localDateTime;
+            document.getElementById('reminderDateTime').min = localDateTime;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeReminderModal() {
+            const modal = document.getElementById('reminderModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.getElementById('reminderForm').reset();
+            }
+        }
+        
+        function loadReminders() {
+            const container = document.getElementById('remindersList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const userReminders = reminders.filter(r => r.userId === userId);
+            
+            userReminders.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+            
+            if (userReminders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-bell empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
+                        <p class="text-muted">Добавьте ваше первое напоминание</p>
+                        <button class="btn btn-primary mt-20" onclick="showReminderModal()">
+                            <i class="fas fa-plus"></i> Добавить напоминание
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const now = new Date();
+            let html = '';
+            
+            userReminders.forEach(reminder => {
+                const reminderDate = new Date(reminder.dateTime);
+                const timeDiff = reminderDate - now;
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                if (reminder.completed) {
+                    statusClass = 'completed';
+                    statusText = 'Выполнено';
+                } else if (hoursDiff < 0) {
+                    statusClass = 'overdue';
+                    statusText = 'Просрочено';
+                } else if (hoursDiff < 24) {
+                    statusClass = 'due';
+                    statusText = 'Скоро';
+                }
+                
+                const priorityColors = {
+                    'low': '#4CAF50',
+                    'medium': '#FF9800',
+                    'high': '#F44336'
+                };
+                
+                html += `
+                    <div class="reminder-item ${statusClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark);">${reminder.text}</div>
+                                <div class="reminder-time">
+                                    <i class="fas fa-clock"></i>
+                                    ${reminderDate.toLocaleDateString()} ${reminderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                    <span style="font-size: 12px; padding: 2px 8px; background: ${priorityColors[reminder.priority]}; color: white; border-radius: 10px;">
+                                        ${reminder.priority === 'high' ? 'Высокий' : reminder.priority === 'medium' ? 'Средний' : 'Низкий'}
+                                    </span>
+                                    <span style="font-size: 12px; padding: 2px 8px; background: var(--light); color: var(--gray); border-radius: 10px;">
+                                        ${reminder.type === 'visit' ? 'Посещение приюта' : 
+                                          reminder.type === 'volunteer' ? 'Волонтёрство' : 'Общее'}
+                                    </span>
+                                    ${statusText ? `
+                                    <span style="font-size: 12px; padding: 2px 8px; background: ${statusClass === 'overdue' ? '#F44336' : statusClass === 'due' ? '#FF9800' : '#4CAF50'}; color: white; border-radius: 10px;">
+                                        ${statusText}
+                                    </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn btn-outline btn-small" onclick="toggleReminderCompletion('${reminder.id}')" style="flex: 1;">
+                                <i class="fas ${reminder.completed ? 'fa-undo' : 'fa-check'}"></i>
+                                ${reminder.completed ? 'Возобновить' : 'Выполнено'}
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteReminder('${reminder.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function toggleReminderCompletion(reminderId) {
+            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
+            if (reminderIndex !== -1) {
+                reminders[reminderIndex].completed = !reminders[reminderIndex].completed;
+                saveDataToLocalStorage();
+                loadReminders();
+                updateStats();
+                
+                showNotification(
+                    reminders[reminderIndex].completed 
+                        ? 'Напоминание отмечено как выполненное' 
+                        : 'Напоминание возобновлено',
+                    'success'
+                );
+            }
+        }
+        
+        function deleteReminder(reminderId) {
+            if (confirm('Удалить это напоминание?')) {
+                reminders = reminders.filter(r => r.id !== reminderId);
+                saveDataToLocalStorage();
+                loadReminders();
+                updateStats();
+                showNotification('Напоминание удалено', 'success');
+            }
+        }
+        
+        function checkReminders() {
+            const userId = getUserId();
+            const now = new Date();
+            const userReminders = reminders.filter(r => 
+                r.userId === userId && 
+                !r.completed && 
+                new Date(r.dateTime) <= now &&
+                (!r.lastNotified || new Date(r.lastNotified) < new Date(now.getTime() - 60 * 60 * 1000))
+            );
+            
+            if (userReminders.length > 0) {
+                const nearestReminder = userReminders.sort((a, b) => 
+                    new Date(a.dateTime) - new Date(b.dateTime)
+                )[0];
+                
+                showNotification(`Напоминание: ${nearestReminder.text}`, 'warning');
+                
+                const reminderIndex = reminders.findIndex(r => r.id === nearestReminder.id);
+                if (reminderIndex !== -1) {
+                    reminders[reminderIndex].lastNotified = new Date().toISOString();
+                    saveDataToLocalStorage();
+                }
+            }
+        }
+        
+        // ===== ФУНКЦИИ ДЛЯ СЛУЧАЙНЫХ ПРИЮТОВ =====
+        function updateRandomShelters() {
+            const container = document.getElementById('randomSheltersContainer');
+            if (!container) return;
+            
+            const approvedShelters = shelters.filter(s => s.status === 'approved');
+            
+            if (approvedShelters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-home empty-state-icon"></i>
+                        <p class="text-muted">Пока нет зарегистрированных приютов</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let randomShelters = [];
+            if (approvedShelters.length <= 2) {
+                randomShelters = [...approvedShelters];
+            } else {
+                const shuffled = [...approvedShelters].sort(() => 0.5 - Math.random());
+                randomShelters = shuffled.slice(0, 2);
+            }
+            
+            container.innerHTML = '';
+            
+            randomShelters.forEach(shelter => {
+                const shelterCard = createRandomShelterCard(shelter);
+                container.appendChild(shelterCard);
             });
         }
-    }
-    
-    // ===== ФУНКЦИИ ОТОБРАЖЕНИЯ =====
-    function updateRandomShelters() {
-        const container = document.getElementById('randomSheltersContainer');
-        if (!container) return;
         
-        if (shelters.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-home empty-state-icon"></i>
-                    <p class="text-muted">Пока нет приютов</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const recentShelters = [...shelters].slice(-3).reverse();
-        
-        container.innerHTML = '';
-        recentShelters.forEach(shelter => {
+        function createRandomShelterCard(shelter) {
+            const card = document.createElement('div');
+            card.className = 'shelter-card';
+            card.onclick = () => showShelterDetail(shelter.id);
+            
             const isFavorite = favoriteShelters.includes(shelter.id);
-            const card = createShelterCard(shelter, isFavorite);
-            container.appendChild(card);
-        });
-    }
-    
-    function loadAllSheltersPage() {
-        const container = document.getElementById('allSheltersList');
-        if (!container) return;
-        
-        if (shelters.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-home empty-state-icon"></i>
-                    <h3>Нет приютов</h3>
-                    <p class="text-muted">Зарегистрируйте первый приют!</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = '';
-        shelters.forEach(shelter => {
-            const isFavorite = favoriteShelters.includes(shelter.id);
-            const card = createShelterCard(shelter, isFavorite);
-            container.appendChild(card);
-        });
-    }
-    
-    function createShelterCard(shelter, isFavorite) {
-        const card = document.createElement('div');
-        card.className = 'shelter-card';
-        card.onclick = () => showShelterDetail(shelter);
-        
-        card.innerHTML = `
-            <div style="display: flex; align-items: center;">
-                <div class="shelter-icon">
-                    <i class="fas fa-home"></i>
-                </div>
-                <div class="shelter-info">
-                    <div class="shelter-name">${shelter.name}</div>
-                    <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
-                    <div class="shelter-short-info">${shelter.shortDescription || ''}</div>
-                    <div class="shelter-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${shelter.city}</span>
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <div class="shelter-icon">
+                        <i class="fas fa-home"></i>
                     </div>
-                </div>
-                <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
-                    <i class="fas fa-heart" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
-                </button>
-            </div>
-        `;
-        
-        return card;
-    }
-    
-    function getShelterTypeName(type) {
-        const types = {
-            'shelter': 'Приют для животных',
-            'clinic': 'Ветеринарная клиника',
-            'volunteer': 'Волонтёрская организация',
-            'other': 'Другое'
-        };
-        return types[type] || 'Приют';
-    }
-    
-    function updateStats() {
-        const userStats = document.getElementById('userStats');
-        if (userStats) {
-            userStats.innerHTML = `
-                <div class="list-item">
-                    <i class="fas fa-hands-helping"></i>
-                    <span>Приютов: <strong>${shelters.length}</strong></span>
-                </div>
-                <div class="list-item">
-                    <i class="fas fa-heart"></i>
-                    <span>Избранных: <strong>${favoriteShelters.length}</strong></span>
+                    <div class="shelter-info">
+                        <div class="shelter-name">${shelter.name}</div>
+                        <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
+                        <div class="shelter-short-info">${shelter.shortDescription.substring(0, 100)}${shelter.shortDescription.length > 100 ? '...' : ''}</div>
+                        <div class="shelter-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${shelter.city}</span>
+                        </div>
+                    </div>
+                    <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
+                        <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}"></i>
+                    </button>
                 </div>
             `;
+            
+            return card;
         }
-    }
-    
-    function showShelterDetail(shelter) {
-        const container = document.getElementById('shelterDetailContent');
-        if (!container) return;
         
-        const isFavorite = favoriteShelters.includes(shelter.id);
+        function refreshRandomShelters() {
+            const btn = document.getElementById('refreshRandomBtn');
+            if (btn) {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<div class="loader"></div>';
+                btn.disabled = true;
+                
+                updateRandomShelters();
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    showNotification('Случайные приюты обновлены', 'success');
+                }, 500);
+            }
+        }
         
-        container.innerHTML = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div class="shelter-icon" style="width: 100px; height: 100px; margin: 0 auto 15px;">
-                    <i class="fas fa-home" style="font-size: 48px;"></i>
-                </div>
-                <h2>${shelter.name}</h2>
-                <div style="margin-bottom: 15px;">
-                    <span class="badge badge-shelter">${getShelterTypeName(shelter.type)}</span>
-                    <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}')">
+        function getShelterTypeName(type) {
+            const types = {
+                'shelter': 'Приют для животных',
+                'clinic': 'Ветеринарная клиника',
+                'volunteer': 'Волонтёрская организация',
+                'other': 'Другая организация'
+            };
+            return types[type] || 'Организация';
+        }
+        
+        // ===== ОСНОВНЫЕ ФУНКЦИИ =====
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const page = document.getElementById(pageId);
+            if (page) {
+                page.classList.add('active');
+            }
+            
+            const tab = document.querySelector(`[data-page="${pageId}"]`);
+            if (tab) {
+                tab.classList.add('active');
+            }
+            
+            switch(pageId) {
+                case 'user-home':
+                    updateRandomShelters();
+                    updateStats();
+                    break;
+                case 'user-favorites':
+                    loadFavorites();
+                    break;
+                case 'all-shelters':
+                    loadAllSheltersPage();
+                    break;
+                case 'user-reminders':
+                    loadReminders();
+                    break;
+                case 'partner-home':
+                    updatePartnerStatus();
+                    updateStats();
+                    break;
+                case 'partner-leads':
+                    loadPartnerLeads();
+                    break;
+            }
+            
+            window.scrollTo(0, 0);
+        }
+        
+        function updateNavigation() {
+            const nav = document.getElementById('mainNav');
+            
+            if (currentMode === 'user') {
+                nav.innerHTML = `
+                    <button class="nav-tab active" data-page="user-home">
+                        <i class="fas fa-home"></i> Главная
+                    </button>
+                    <button class="nav-tab" data-page="all-shelters">
+                        <i class="fas fa-hands-helping"></i> Все приюты
+                    </button>
+                    <button class="nav-tab" data-page="user-favorites">
+                        <i class="fas fa-heart"></i> Избранное
+                    </button>
+                    <button class="nav-tab" data-page="user-reminders">
+                        <i class="fas fa-bell"></i> Напоминания
+                    </button>
+                    <button class="nav-tab" data-page="user-settings">
+                        <i class="fas fa-cog"></i> Настройки
+                    </button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button class="nav-tab active" data-page="partner-home">
+                        <i class="fas fa-store"></i> Кабинет
+                    </button>
+                    <button class="nav-tab" data-page="partner-leads">
+                        <i class="fas fa-inbox"></i> Заявки
+                    </button>
+                    <button class="nav-tab" data-page="partner-settings">
+                        <i class="fas fa-cog"></i> Настройки
+                    </button>
+                `;
+            }
+            
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const pageId = this.dataset.page;
+                    showPage(pageId);
+                });
+            });
+        }
+        
+        function toggleMode() {
+            if (currentMode === 'user') {
+                currentMode = 'partner';
+                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
+            } else {
+                currentMode = 'user';
+                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
+            }
+            
+            localStorage.setItem('futurepet_mode', currentMode);
+            updateNavigation();
+            showPage(currentMode === 'user' ? 'user-home' : 'partner-home');
+            
+            showNotification(`Переключено в режим ${currentMode === 'user' ? 'пользователя' : 'партнёра'}`, 'info');
+        }
+        
+        function updatePartnerStatus() {
+            const userId = getUserId();
+            const partnerShelter = shelters.find(s => s.userId === userId);
+            
+            const statusPanel = document.getElementById('partnerStatusPanel');
+            const statusTitle = document.getElementById('partnerStatusTitle');
+            const statusDescription = document.getElementById('partnerStatusDescription');
+            
+            const partnerLeadsBtn = document.getElementById('partnerLeadsBtn');
+            
+            if (partnerShelter) {
+                if (statusPanel) {
+                    statusPanel.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">${partnerShelter.name}</div>
+                                <div style="font-size: 14px; color: var(--gray);">${getShelterTypeName(partnerShelter.type)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (partnerLeadsBtn) partnerLeadsBtn.disabled = false;
+            } else {
+                if (statusTitle) statusTitle.textContent = 'Требуется регистрация';
+                if (statusDescription) statusDescription.textContent = 'Заполните информацию о вашем приюте';
+                
+                if (partnerLeadsBtn) partnerLeadsBtn.disabled = true;
+            }
+        }
+        
+        // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
+        function initForms() {
+            // Счетчик символов для краткого описания
+            const shortDescTextarea = document.getElementById('partnerShortDescription');
+            if (shortDescTextarea) {
+                shortDescTextarea.addEventListener('input', function() {
+                    const counter = document.getElementById('shortDescCounter');
+                    if (counter) {
+                        counter.textContent = this.value.length;
+                    }
+                });
+            }
+            
+            // Форма регистрации приюта
+            const partnerRegisterForm = document.getElementById('partnerRegisterForm');
+            if (partnerRegisterForm) {
+                partnerRegisterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = [
+                        {id: 'partnerType', name: 'Тип организации'},
+                        {id: 'partnerName', name: 'Название организации'},
+                        {id: 'partnerShortDescription', name: 'Краткое описание'},
+                        {id: 'partnerDetailedDescription', name: 'Подробное описание'},
+                        {id: 'partnerCity', name: 'Город'},
+                        {id: 'partnerAddress', name: 'Адрес'},
+                        {id: 'partnerPhone', name: 'Телефон'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const submitBtn = document.getElementById('partnerSubmitBtn');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
+                    submitBtn.disabled = true;
+                    
+                    const userId = getUserId();
+                    
+                    const existingShelter = shelters.find(s => s.userId === userId);
+                    
+                    const shelterData = {
+                        id: existingShelter ? existingShelter.id : 'shelter_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: userId,
+                        type: document.getElementById('partnerType').value,
+                        name: document.getElementById('partnerName').value.trim(),
+                        shortDescription: document.getElementById('partnerShortDescription').value.trim(),
+                        detailedDescription: document.getElementById('partnerDetailedDescription').value.trim(),
+                        city: document.getElementById('partnerCity').value,
+                        address: document.getElementById('partnerAddress').value.trim(),
+                        phone: document.getElementById('partnerPhone').value.trim(),
+                        email: document.getElementById('partnerEmail').value.trim() || null,
+                        website: document.getElementById('partnerWebsite').value.trim() || null,
+                        schedule: document.getElementById('partnerSchedule').value.trim() || null,
+                        status: 'approved',
+                        registeredAt: existingShelter ? existingShelter.registeredAt : new Date().toISOString(),
+                        views: existingShelter ? existingShelter.views : 0
+                    };
+                    
+                    console.log('📝 Сохранение приюта:', shelterData);
+                    
+                    if (existingShelter) {
+                        const index = shelters.findIndex(s => s.id === existingShelter.id);
+                        shelters[index] = shelterData;
+                    } else {
+                        shelters.push(shelterData);
+                    }
+                    
+                    saveDataToLocalStorage();
+                    
+                    partnerRegisterForm.reset();
+                    
+                    updatePartnerStatus();
+                    updateStats();
+                    
+                    showPage('partner-home');
+                    showNotification('Информация о приюте сохранена!', 'success');
+                    
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            }
+            
+            // Форма заявки
+            const leadForm = document.getElementById('leadForm');
+            if (leadForm) {
+                leadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = [
+                        {id: 'leadName', name: 'Имя'},
+                        {id: 'leadPhone', name: 'Телефон'},
+                        {id: 'leadType', name: 'Тип заявки'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const newLead = {
+                        id: 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: getUserId(),
+                        userName: document.getElementById('leadName').value.trim(),
+                        userPhone: document.getElementById('leadPhone').value.trim(),
+                        partnerId: document.getElementById('leadPartnerId').value,
+                        type: document.getElementById('leadType').value,
+                        date: document.getElementById('leadDate').value || null,
+                        comment: document.getElementById('leadComment').value.trim() || null,
+                        status: 'new',
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    console.log('📝 Создание новой заявки:', newLead);
+                    
+                    leads.unshift(newLead);
+                    saveDataToLocalStorage();
+                    
+                    leadForm.reset();
+                    closeLeadModal();
+                    
+                    showNotification('Заявка успешно отправлена!', 'success');
+                    
+                    if (currentMode === 'partner') {
+                        loadPartnerLeads();
+                    }
+                });
+            }
+            
+            // Форма добавления напоминания
+            const reminderForm = document.getElementById('reminderForm');
+            if (reminderForm) {
+                reminderForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = [
+                        {id: 'reminderText', name: 'Текст напоминания'},
+                        {id: 'reminderDateTime', name: 'Дата и время'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const userId = getUserId();
+                    
+                    const newReminder = {
+                        id: 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: userId,
+                        text: document.getElementById('reminderText').value.trim(),
+                        dateTime: document.getElementById('reminderDateTime').value,
+                        type: document.getElementById('reminderType').value,
+                        priority: document.getElementById('reminderPriority').value,
+                        completed: false,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    console.log('📝 Создание нового напоминания:', newReminder);
+                    
+                    reminders.push(newReminder);
+                    saveDataToLocalStorage();
+                    
+                    reminderForm.reset();
+                    closeReminderModal();
+                    
+                    loadReminders();
+                    updateStats();
+                    
+                    showNotification('Напоминание успешно добавлено!', 'success');
+                });
+            }
+        }
+        
+        // ===== ФУНКЦИИ ЗАГРУЗКИ СТРАНИЦ =====
+        function createShelterCard(shelter) {
+            const card = document.createElement('div');
+            card.className = 'shelter-card';
+            card.onclick = () => showShelterDetail(shelter.id);
+            
+            const isFavorite = favoriteShelters.includes(shelter.id);
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <div class="shelter-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="shelter-info">
+                        <div class="shelter-name">${shelter.name}</div>
+                        <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
+                        <div class="shelter-short-info">${shelter.shortDescription}</div>
+                        <div class="shelter-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${shelter.city}</span>
+                        </div>
+                    </div>
+                    <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
                         <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
                     </button>
                 </div>
-            </div>
-            
-            <div class="shelter-detail-card">
-                <div class="shelter-detail-section">
-                    <h3><i class="fas fa-info-circle"></i> Описание</h3>
-                    <div class="shelter-detail-content">
-                        ${shelter.detailedDescription || shelter.shortDescription || 'Нет описания'}
-                    </div>
-                </div>
-                
-                <div class="shelter-detail-section">
-                    <h3><i class="fas fa-map-marker-alt"></i> Контакты</h3>
-                    <div class="shelter-detail-content">
-                        <p><strong><i class="fas fa-city"></i> Город:</strong> ${shelter.city}</p>
-                        <p><strong><i class="fas fa-map-pin"></i> Адрес:</strong> ${shelter.address || 'Не указан'}</p>
-                        <p><strong><i class="fas fa-phone"></i> Телефон:</strong> ${shelter.phone}</p>
-                        ${shelter.email ? `<p><strong><i class="fas fa-envelope"></i> Email:</strong> ${shelter.email}</p>` : ''}
-                        ${shelter.website ? `<p><strong><i class="fas fa-globe"></i> Сайт:</strong> <a href="${shelter.website}" target="_blank">${shelter.website}</a></p>` : ''}
-                        ${shelter.schedule ? `<p><strong><i class="fas fa-clock"></i> График:</strong> ${shelter.schedule}</p>` : ''}
-                    </div>
-                </div>
-                
-                <button class="btn btn-primary mt-20" onclick="showLeadModal('${shelter.id}')">
-                    <i class="fas fa-paper-plane"></i> Оставить заявку
-                </button>
-            </div>
-        `;
-        
-        showPage('shelter-detail');
-    }
-    
-    function toggleFavoriteShelter(shelterId, event) {
-        if (event) event.stopPropagation();
-        
-        const index = favoriteShelters.indexOf(shelterId);
-        if (index === -1) {
-            favoriteShelters.push(shelterId);
-            showNotification('Добавлено в избранное', 'success');
-        } else {
-            favoriteShelters.splice(index, 1);
-            showNotification('Удалено из избранного', 'info');
-        }
-        
-        localStorage.setItem('futurepet_favorite_shelters', JSON.stringify(favoriteShelters));
-        
-        if (document.querySelector('.page.active').id === 'all-shelters') {
-            loadAllSheltersPage();
-        }
-        
-        updateStats();
-    }
-    
-    function showLeadModal(partnerId) {
-        document.getElementById('leadPartnerId').value = partnerId;
-        document.getElementById('leadModal').classList.remove('hidden');
-    }
-    
-    function closeLeadModal() {
-        document.getElementById('leadModal').classList.add('hidden');
-        document.getElementById('leadForm').reset();
-    }
-    
-    function goBack() {
-        showPage('all-shelters');
-    }
-    
-    function refreshRandomShelters() {
-        updateRandomShelters();
-        showNotification('Список обновлен', 'success');
-    }
-    
-    function searchShelters() {
-        const searchInput = document.getElementById('shelterSearchInput');
-        const container = document.getElementById('allSheltersList');
-        
-        if (!searchInput || !container) return;
-        
-        const searchTerm = searchInput.value.toLowerCase();
-        
-        if (!searchTerm) {
-            loadAllSheltersPage();
-            return;
-        }
-        
-        const filtered = shelters.filter(s => 
-            s.name.toLowerCase().includes(searchTerm) ||
-            s.city.toLowerCase().includes(searchTerm) ||
-            (s.shortDescription && s.shortDescription.toLowerCase().includes(searchTerm))
-        );
-        
-        if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-search empty-state-icon"></i>
-                    <h3>Ничего не найдено</h3>
-                </div>
             `;
-        } else {
+            
+            return card;
+        }
+        
+        function loadAllSheltersPage() {
+            const container = document.getElementById('allSheltersList');
+            if (!container) return;
+            
+            const approvedShelters = shelters.filter(s => s.status === 'approved');
+            
             container.innerHTML = '';
-            filtered.forEach(shelter => {
-                const isFavorite = favoriteShelters.includes(shelter.id);
-                const card = createShelterCard(shelter, isFavorite);
-                container.appendChild(card);
+            
+            if (approvedShelters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-home empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет приютов</h3>
+                        <p class="text-muted">Приюты проходят модерацию перед публикацией</p>
+                    </div>
+                `;
+            } else {
+                approvedShelters.forEach(shelter => {
+                    const shelterCard = createShelterCard(shelter);
+                    container.appendChild(shelterCard);
+                });
+            }
+        }
+        
+        function searchShelters() {
+            const searchInput = document.getElementById('shelterSearchInput');
+            const container = document.getElementById('allSheltersList');
+            
+            if (!searchInput || !container) return;
+            
+            const searchTerm = searchInput.value.toLowerCase();
+            const approvedShelters = shelters.filter(s => s.status === 'approved');
+            
+            if (!searchTerm) {
+                loadAllSheltersPage();
+                return;
+            }
+            
+            const filteredShelters = approvedShelters.filter(shelter => 
+                shelter.name.toLowerCase().includes(searchTerm) ||
+                shelter.city.toLowerCase().includes(searchTerm) ||
+                shelter.shortDescription.toLowerCase().includes(searchTerm) ||
+                getShelterTypeName(shelter.type).toLowerCase().includes(searchTerm)
+            );
+            
+            container.innerHTML = '';
+            
+            if (filteredShelters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Ничего не найдено</h3>
+                        <p class="text-muted">Попробуйте изменить поисковый запрос</p>
+                    </div>
+                `;
+            } else {
+                filteredShelters.forEach(shelter => {
+                    const shelterCard = createShelterCard(shelter);
+                    container.appendChild(shelterCard);
+                });
+            }
+        }
+        
+        function loadFavorites() {
+            const container = document.getElementById('favoritesList');
+            if (!container) return;
+            
+            const favoriteSheltersList = shelters.filter(s => favoriteShelters.includes(s.id));
+            
+            container.innerHTML = '';
+            
+            if (favoriteSheltersList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-heart empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет избранных приютов</h3>
+                        <p class="text-muted">Добавляйте приюты в избранное, нажимая на сердечко</p>
+                    </div>
+                `;
+            } else {
+                favoriteSheltersList.forEach(shelter => {
+                    const shelterCard = createShelterCard(shelter);
+                    container.appendChild(shelterCard);
+                });
+            }
+        }
+        
+        function toggleFavoriteShelter(shelterId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            const index = favoriteShelters.indexOf(shelterId);
+            if (index === -1) {
+                favoriteShelters.push(shelterId);
+                showNotification('Добавлено в избранное', 'success');
+            } else {
+                favoriteShelters.splice(index, 1);
+                showNotification('Удалено из избранного', 'info');
+            }
+            
+            saveDataToLocalStorage();
+            
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                const pageId = activePage.id;
+                if (pageId === 'user-favorites') {
+                    loadFavorites();
+                } else if (pageId === 'user-home') {
+                    updateRandomShelters();
+                } else if (pageId === 'all-shelters') {
+                    loadAllSheltersPage();
+                }
+            }
+            
+            updateStats();
+        }
+        
+        function loadPartnerLeads() {
+            const container = document.getElementById('partnerLeadsList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const partnerShelter = shelters.find(s => s.userId === userId);
+            
+            if (!partnerShelter) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет приюта</h3>
+                        <p class="text-muted">Зарегистрируйте приют для получения заявок</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const shelterLeads = leads.filter(lead => lead.partnerId === partnerShelter.id);
+            
+            container.innerHTML = '';
+            
+            if (shelterLeads.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
+                        <p class="text-muted">Здесь будут отображаться заявки от пользователей</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            shelterLeads.forEach(lead => {
+                const leadCard = document.createElement('div');
+                leadCard.className = 'shelter-card';
+                
+                const leadTypeText = {
+                    'visit': 'Посетить приют',
+                    'adopt': 'Забрать животное',
+                    'volunteer': 'Стать волонтёром',
+                    'other': 'Другое'
+                }[lead.type] || lead.type;
+                
+                leadCard.innerHTML = `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">${lead.userName}</div>
+                                <div style="font-size: 14px; color: var(--gray);">${leadTypeText}</div>
+                            </div>
+                            <span class="status status-${lead.status}" style="font-size: 10px; padding: 3px 8px;">
+                                ${lead.status === 'new' ? 'Новая' : 
+                                  lead.status === 'contacted' ? 'Связались' : 
+                                  lead.status === 'done' ? 'Выполнена' : 'Отклонена'}
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <div style="font-size: 14px; color: var(--dark);">
+                                <i class="fas fa-phone"></i> ${lead.userPhone}
+                            </div>
+                            ${lead.date ? `
+                            <div style="font-size: 14px; color: var(--dark); margin-top: 5px;">
+                                <i class="fas fa-calendar"></i> Дата: ${new Date(lead.date).toLocaleDateString()}
+                            </div>
+                            ` : ''}
+                            ${lead.comment ? `
+                            <div style="font-size: 14px; color: var(--gray); margin-top: 5px;">
+                                <i class="fas fa-comment"></i> ${lead.comment}
+                            </div>
+                            ` : ''}
+                            <div style="font-size: 12px; color: var(--gray); margin-top: 5px;">
+                                <i class="fas fa-clock"></i> ${new Date(lead.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'contacted')">
+                                <i class="fas fa-check"></i> Связаться
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'done')">
+                                <i class="fas fa-check-double"></i> Выполнено
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'rejected')">
+                                <i class="fas fa-times"></i> Отклонить
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(leadCard);
             });
         }
-    }
-    
-    // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🐾 Приложение запускается...');
-        initializeApp();
-    });
-</script>
+        
+        function updateLeadStatus(leadId, status) {
+            const leadIndex = leads.findIndex(l => l.id === leadId);
+            if (leadIndex !== -1) {
+                leads[leadIndex].status = status;
+                saveDataToLocalStorage();
+                loadPartnerLeads();
+                updateStats();
+                showNotification('Статус заявки обновлен', 'success');
+            }
+        }
+        
+        // ===== МОДАЛЬНЫЕ ОКНА =====
+        function showLeadModal(partnerId = '') {
+            const modal = document.getElementById('leadModal');
+            if (!modal) return;
+            
+            document.getElementById('leadPartnerId').value = partnerId;
+            document.getElementById('leadName').value = currentUser.name || '';
+            
+            // Установка минимальной даты (сегодня)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('leadDate').min = today;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeLeadModal() {
+            const modal = document.getElementById('leadModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.getElementById('leadForm').reset();
+            }
+        }
+        
+        // ===== ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О ПРИЮТЕ =====
+        function showShelterDetail(shelterId) {
+            const shelter = shelters.find(s => s.id === shelterId);
+            if (!shelter) return;
+            
+            const container = document.getElementById('shelterDetailContent');
+            if (!container) return;
+            
+            const isFavorite = favoriteShelters.includes(shelter.id);
+            
+            // Увеличиваем счетчик просмотров
+            shelter.views = (shelter.views || 0) + 1;
+            saveDataToLocalStorage();
+            
+            container.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="width: 100px; height: 100px; background: var(--light); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: var(--primary); font-size: 48px;">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h2 style="color: var(--dark); margin-bottom: 5px;">${shelter.name}</h2>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                        <span class="badge badge-shelter">
+                            ${getShelterTypeName(shelter.type)}
+                        </span>
+                        <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}')">
+                            <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="shelter-detail-card">
+                    <div class="shelter-detail-section">
+                        <h3><i class="fas fa-info-circle"></i> Краткая информация</h3>
+                        <div class="shelter-detail-content">
+                            ${shelter.shortDescription}
+                        </div>
+                    </div>
+                    
+                    <div class="shelter-detail-section">
+                        <h3><i class="fas fa-file-alt"></i> Подробная информация</h3>
+                        <div class="shelter-detail-content" style="white-space: pre-line;">
+                            ${shelter.detailedDescription}
+                        </div>
+                    </div>
+                    
+                    <div class="shelter-detail-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Контакты и расположение</h3>
+                        <div class="shelter-detail-content">
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                    <i class="fas fa-city"></i> Город
+                                </div>
+                                <div>${shelter.city}</div>
+                            </div>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                    <i class="fas fa-map-pin"></i> Адрес
+                                </div>
+                                <div>${shelter.address}</div>
+                            </div>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                    <i class="fas fa-phone"></i> Телефон
+                                </div>
+                                <div>${shelter.phone}</div>
+                            </div>
+                            
+                            ${shelter.email ? `
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                    <i class="fas fa-envelope"></i> Email
+                                </div>
+                                <div>${shelter.email}</div>
+                            </div>
+                            ` : ''}
+                            
+                            ${shelter.website ? `
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                    <i class="fas fa-globe"></i> Сайт
+                                </div>
+                                <div><a href="${shelter.website}" target="_blank">${shelter.website}</a></div>
+                            </div>
+                            ` : ''}
+                            
+                            ${shelter.schedule ? `
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                    <i class="fas fa-clock"></i> График работы
+                                </div>
+                                <div>${shelter.schedule}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" style="flex: 1;" onclick="showLeadModal('${shelter.id}')">
+                            <i class="fas fa-paper-plane"></i> Оставить заявку
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showPage('shelter-detail');
+        }
+        
+        function goBack() {
+            if (currentMode === 'user') {
+                showPage('all-shelters');
+            } else {
+                showPage('partner-home');
+            }
+        }
+        
+        // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        
+        console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
+    </script>
 </body>
 </html>
