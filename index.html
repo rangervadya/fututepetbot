@@ -8,10 +8,6 @@
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Firebase (для глобального хранения данных) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -298,39 +294,6 @@
             resize: vertical;
         }
         
-        /* ===== ЗАГРУЗКА ФОТО ===== */
-        .photo-upload {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .photo-upload:hover {
-            border-color: var(--primary);
-            background: rgba(76, 175, 80, 0.05);
-        }
-        
-        .photo-upload i {
-            font-size: 48px;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .photo-preview {
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .photo-preview img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
         /* ===== СПИСКИ ПИТОМЦЕВ ===== */
         .pets-grid {
             display: grid;
@@ -352,21 +315,15 @@
             transform: translateY(-5px);
         }
         
-        .pet-image {
+        .pet-icon {
             width: 100%;
-            height: 150px;
+            height: 120px;
             background: var(--light);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--gray);
+            color: var(--primary);
             font-size: 48px;
-        }
-        
-        .pet-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
         
         .pet-info {
@@ -629,36 +586,7 @@
             font-weight: 600;
         }
         
-        /* ===== КНОПКА ОБНОВЛЕНИЯ ===== */
-        .refresh-btn {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--secondary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-            z-index: 100;
-            transition: all 0.3s;
-        }
-        
-        .refresh-btn:hover {
-            transform: rotate(180deg);
-            background: var(--secondary-light);
-        }
-        
-        .refresh-btn.loading {
-            animation: spin 1s linear infinite;
-        }
-        
-        /* ===== СТИЛИ ДЛЯ РАНДОМНЫХ ПИТОМЦЕВ ===== */
+        /* ===== УПРОЩЕННЫЕ СТИЛИ ДЛЯ РАНДОМНЫХ ПИТОМЦЕВ ===== */
         .random-pets-section {
             margin: 20px 0;
         }
@@ -693,104 +621,16 @@
             margin-bottom: 15px;
         }
         
-        /* ===== ПАНЕЛЬ СТАТУСА ===== */
-        .status-panel {
-            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+        /* ===== УПРОЩЕННЫЙ СТИЛЬ ДЛЯ ФОРМ ===== */
+        .form-row {
             display: flex;
-            align-items: center;
             gap: 15px;
+            margin-bottom: 20px;
         }
         
-        .status-panel.warning {
-            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
-        }
-        
-        .status-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: var(--primary);
-        }
-        
-        .status-info {
+        .form-row .form-group {
             flex: 1;
-        }
-        
-        .status-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--dark);
-            margin-bottom: 5px;
-        }
-        
-        .status-description {
-            font-size: 14px;
-            color: var(--gray);
-        }
-        
-        /* ===== НАПОМИНАНИЯ ===== */
-        .reminder-item {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        
-        .reminder-content {
-            flex: 1;
-        }
-        
-        .reminder-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .reminder-description {
-            font-size: 14px;
-            color: var(--gray);
-            margin-bottom: 5px;
-        }
-        
-        .reminder-time {
-            font-size: 12px;
-            color: var(--gray);
-        }
-        
-        .reminder-actions {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .reminder-action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: none;
-            background: var(--light);
-            color: var(--gray);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        
-        .reminder-action-btn:hover {
-            background: var(--primary-light);
-            color: var(--primary);
+            margin-bottom: 0;
         }
         
         /* ===== СООБЩЕНИЯ ===== */
@@ -820,44 +660,6 @@
             border-left: 4px solid #F44336;
         }
         
-        /* ===== ВСПОМОГАТЕЛЬНЫЕ СТИЛИ ===== */
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        
-        .tags-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .tag {
-            padding: 6px 12px;
-            background: var(--light);
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .tag i {
-            cursor: pointer;
-            color: var(--gray);
-        }
-        
-        .tag i:hover {
-            color: var(--danger);
-        }
-        
         /* ===== ТАБЛИЦЫ ===== */
         .table {
             width: 100%;
@@ -881,156 +683,13 @@
         .table tr:hover {
             background: rgba(0,0,0,0.02);
         }
-        
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        
-        /* ===== ЗАЯВКИ ===== */
-        .lead-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
-        
-        .lead-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .lead-info {
-            margin-bottom: 15px;
-        }
-        
-        .lead-field {
-            margin-bottom: 8px;
-            display: flex;
-        }
-        
-        .lead-label {
-            font-weight: 600;
-            min-width: 120px;
-            color: var(--dark);
-        }
-        
-        .lead-value {
-            color: var(--gray);
-        }
-        
-        /* ===== АДМИН ПАНЕЛЬ ===== */
-        .admin-section {
-            margin-bottom: 30px;
-        }
-        
-        .admin-section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .stat-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: var(--gray);
-        }
     </style>
 </head>
 <body>
     <!-- Индикатор загрузки -->
-    <div id="loadingOverlay" class="loading-overlay">
+    <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="loader"></div>
-        <div class="loading-text" id="loadingText">Загрузка приложения...</div>
-        <div id="loadingProgress" style="margin-top: 10px; color: var(--gray); font-size: 14px;"></div>
-    </div>
-    
-    <!-- Модальное окно для напоминаний -->
-    <div id="reminderModal" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Добавить напоминание</h3>
-                <button class="modal-close" onclick="closeReminderModal()">&times;</button>
-            </div>
-            <form id="addReminderForm">
-                <div class="form-group">
-                    <label>Тип напоминания</label>
-                    <select class="form-select" id="reminderType" required>
-                        <option value="">Выберите тип</option>
-                        <option value="feeding">Кормление</option>
-                        <option value="medication">Лекарство</option>
-                        <option value="vet">Посещение ветеринара</option>
-                        <option value="vaccination">Вакцинация</option>
-                        <option value="grooming">Груминг</option>
-                        <option value="walk">Прогулка</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Название напоминания *</label>
-                    <input type="text" class="form-input" id="reminderTitle" required placeholder="Например: Кормление кота">
-                </div>
-                
-                <div class="form-group">
-                    <label>Описание</label>
-                    <textarea class="form-textarea" id="reminderDescription" placeholder="Дополнительная информация..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Дата и время *</label>
-                    <input type="datetime-local" class="form-input" id="reminderDateTime" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Повтор</label>
-                    <select class="form-select" id="reminderRepeat">
-                        <option value="none">Не повторять</option>
-                        <option value="daily">Каждый день</option>
-                        <option value="weekly">Каждую неделю</option>
-                        <option value="monthly">Каждый месяц</option>
-                        <option value="yearly">Каждый год</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Привязать к питомцу</label>
-                    <select class="form-select" id="reminderPetId">
-                        <option value="">Выберите питомца</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-bell"></i> Добавить напоминание
-                </button>
-            </form>
-        </div>
+        <div class="loading-text">Загрузка приложения...</div>
     </div>
     
     <!-- Модальное окно для заявки -->
@@ -1052,13 +711,8 @@
                 
                 <div class="form-group">
                     <label>Телефон *</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="tel" class="form-input" id="leadPhone" required 
-                               placeholder="+7 (XXX) XXX-XX-XX">
-                        <button type="button" class="btn btn-outline btn-small" onclick="requestContact()">
-                            <i class="fas fa-address-book"></i> Контакт
-                        </button>
-                    </div>
+                    <input type="tel" class="form-input" id="leadPhone" required 
+                           placeholder="+7 (XXX) XXX-XX-XX">
                 </div>
                 
                 <div class="form-group">
@@ -1077,79 +731,10 @@
                               placeholder="Дополнительная информация..."></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label>Питомец (опционально)</label>
-                    <select class="form-select" id="leadUserPetId">
-                        <option value="">Выберите питомца</option>
-                    </select>
-                </div>
-                
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-paper-plane"></i> Отправить заявку
                 </button>
             </form>
-        </div>
-    </div>
-    
-    <!-- Модальное окно для офферов -->
-    <div id="offerModal" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Создать акцию/услугу</h3>
-                <button class="modal-close" onclick="closeOfferModal()">&times;</button>
-            </div>
-            <form id="offerForm">
-                <div class="form-group">
-                    <label>Заголовок *</label>
-                    <input type="text" class="form-input" id="offerTitle" required 
-                           placeholder="Название акции">
-                </div>
-                
-                <div class="form-group">
-                    <label>Описание *</label>
-                    <textarea class="form-textarea" id="offerDescription" required 
-                              placeholder="Подробное описание акции..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Категория</label>
-                    <select class="form-select" id="offerCategory">
-                        <option value="">Выберите категорию</option>
-                        <option value="sale">Скидка</option>
-                        <option value="service">Услуга</option>
-                        <option value="event">Мероприятие</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Срок действия *</label>
-                    <input type="date" class="form-input" id="offerValidUntil" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Промокод</label>
-                    <input type="text" class="form-input" id="offerPromoCode" 
-                           placeholder="Например: PETLOVE2024">
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Создать акцию
-                </button>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Модальное окно для админки -->
-    <div id="adminModal" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="adminModalTitle">Админка</h3>
-                <button class="modal-close" onclick="closeAdminModal()">&times;</button>
-            </div>
-            <div id="adminModalContent">
-                <!-- Контент загружается динамически -->
-            </div>
         </div>
     </div>
     
@@ -1162,7 +747,7 @@
                 </div>
                 <div class="logo-text">
                     <h1>Твой Будущий Питомец</h1>
-                    <small style="opacity: 0.8;">Все питомцы видны всем пользователям</small>
+                    <small style="opacity: 0.8;">Только текстовая информация</small>
                 </div>
             </div>
             
@@ -1221,8 +806,8 @@
                         <i class="fas fa-plus"></i> Выложить питомца
                     </button>
                     
-                    <button class="btn btn-warning mt-20" onclick="showPage('user-reminders')">
-                        <i class="fas fa-bell"></i> Мои напоминания
+                    <button class="btn btn-warning mt-20" onclick="showPage('user-favorites')">
+                        <i class="fas fa-heart"></i> Избранные питомцы
                     </button>
                 </div>
                 
@@ -1245,9 +830,6 @@
                         </div>
                         <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
                             <i class="fas fa-arrow-left"></i> Назад
-                        </button>
-                        <button class="btn btn-primary btn-small" onclick="refreshAllPets()" id="refreshAllBtn">
-                            <i class="fas fa-sync-alt"></i> Обновить
                         </button>
                     </div>
                     
@@ -1281,6 +863,28 @@
                 </div>
             </div>
             
+            <!-- Избранные питомцы -->
+            <div id="user-favorites" class="page">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-heart"></i> Избранные питомцы
+                        </div>
+                        <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                    
+                    <div id="favoritesList" class="pets-grid">
+                        <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                            <i class="fas fa-heart empty-state-icon"></i>
+                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет избранных питомцев</h3>
+                            <p class="text-muted">Добавляйте питомцев в избранное, нажимая на сердечко</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Приюты и партнёры -->
             <div id="user-shelters" class="page">
                 <div class="card">
@@ -1288,8 +892,8 @@
                         <div class="card-title">
                             <i class="fas fa-hands-helping"></i> Приюты и партнёры
                         </div>
-                        <button class="btn btn-primary btn-small" onclick="refreshAllData()">
-                            <i class="fas fa-sync-alt"></i> Обновить
+                        <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
+                            <i class="fas fa-arrow-left"></i> Назад
                         </button>
                     </div>
                     
@@ -1315,24 +919,6 @@
                     </div>
                     
                     <form id="userAddPetForm">
-                        <!-- Загрузка фото -->
-                        <div class="form-group">
-                            <label>Фотография питомца *</label>
-                            <div class="photo-upload" onclick="document.getElementById('petPhotoInput').click()">
-                                <i class="fas fa-camera"></i>
-                                <p>Нажмите чтобы загрузить фото</p>
-                                <p class="text-muted">Рекомендуемый размер: 1000x1000 пикселей</p>
-                                <input type="file" id="petPhotoInput" accept="image/*" class="hidden" 
-                                       onchange="handlePhotoUpload(event, 'petPhotoPreview')">
-                            </div>
-                            <div class="photo-preview hidden" id="petPhotoPreview">
-                                <img id="petPhotoPreviewImg" src="" alt="Предпросмотр">
-                                <button type="button" class="btn btn-outline btn-small mt-10" onclick="clearPhoto('petPhotoPreview')">
-                                    <i class="fas fa-trash"></i> Удалить фото
-                                </button>
-                            </div>
-                        </div>
-                        
                         <div class="form-group">
                             <label>Тип животного *</label>
                             <div style="display: flex; gap: 10px;">
@@ -1414,40 +1000,6 @@
                 </div>
             </div>
             
-            <!-- Напоминания пользователя -->
-            <div id="user-reminders" class="page">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-bell"></i> Мои напоминания
-                        </div>
-                        <div>
-                            <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
-                                <i class="fas fa-arrow-left"></i> Назад
-                            </button>
-                            <button class="btn btn-primary btn-small" onclick="showReminderModal()">
-                                <i class="fas fa-plus"></i> Добавить
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="message message-info">
-                        <p><i class="fas fa-info-circle"></i> Напоминания будут приходить в виде уведомлений в указанное время</p>
-                    </div>
-                    
-                    <div id="remindersList" class="mt-20">
-                        <div class="text-center" style="padding: 40px 20px;">
-                            <i class="fas fa-bell empty-state-icon"></i>
-                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
-                            <p class="text-muted">Добавьте напоминание для ваших питомцев</p>
-                            <button class="btn btn-primary mt-20" onclick="showReminderModal()">
-                                <i class="fas fa-plus"></i> Добавить напоминание
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Регистрация партнёра -->
             <div id="partner-register" class="page">
                 <div class="card">
@@ -1461,16 +1013,12 @@
                     </div>
                     
                     <form id="partnerRegisterForm">
-                        <!-- Информация об организации -->
                         <div class="form-group">
                             <label>Тип организации *</label>
                             <select class="form-select" id="partnerType" required>
                                 <option value="">Выберите тип</option>
                                 <option value="shelter">Приют для животных</option>
                                 <option value="clinic">Ветеринарная клиника</option>
-                                <option value="hotel">Гостиница для животных</option>
-                                <option value="grooming">Груминг-салон</option>
-                                <option value="store">Зоомагазин</option>
                                 <option value="volunteer">Волонтёрская организация</option>
                                 <option value="other">Другое</option>
                             </select>
@@ -1485,108 +1033,32 @@
                         <div class="form-group">
                             <label>Описание организации *</label>
                             <textarea class="form-textarea" id="partnerDescription" required 
-                                      placeholder="Расскажите о вашей организации, миссии, целях..."></textarea>
+                                      placeholder="Расскажите о вашей организации..."></textarea>
                         </div>
                         
-                        <!-- Контактная информация -->
                         <div class="form-group">
                             <label>Город *</label>
                             <input type="text" class="form-input" id="partnerCity" required placeholder="Например: Казань">
                         </div>
                         
                         <div class="form-group">
-                            <label>Адрес *</label>
-                            <input type="text" class="form-input" id="partnerAddress" required 
+                            <label>Адрес</label>
+                            <input type="text" class="form-input" id="partnerAddress" 
                                    placeholder="Улица, дом, корпус">
                         </div>
                         
                         <div class="form-group">
-                            <label>Район</label>
-                            <select class="form-select" id="partnerDistrict">
-                                <option value="">Выберите район</option>
-                                <option value="vahitovsky">Вахитовский</option>
-                                <option value="privolzhsky">Приволжский</option>
-                                <option value="sovetsky">Советский</option>
-                                <option value="moskovsky">Московский</option>
-                                <option value="novo-savinovsky">Ново-Савиновский</option>
-                                <option value="kirovsky">Кировский</option>
-                                <option value="aviastroitelny">Авиастроительный</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Телефон *</label>
+                            <label>Телефон для связи *</label>
                             <input type="tel" class="form-input" id="partnerPhone" required 
                                    placeholder="+7 (XXX) XXX-XX-XX">
                         </div>
                         
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-input" id="partnerEmail" 
-                                   placeholder="info@example.com">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Режим работы *</label>
-                            <input type="text" class="form-input" id="partnerHours" required 
-                                   placeholder="Например: Пн-Пт 9:00-18:00, Сб 10:00-16:00">
-                        </div>
-                        
-                        <!-- Получатель лидов в Telegram -->
-                        <div class="form-group">
-                            <label>Telegram для получения заявок *</label>
-                            <input type="text" class="form-input" id="partnerTgRecipient" required 
-                                   placeholder="@username или user_id">
-                            <p class="text-muted" style="font-size: 12px; margin-top: 5px;">
-                                Сюда будут приходить заявки от пользователей
-                            </p>
-                        </div>
-                        
-                        <!-- Услуги -->
-                        <div class="form-group">
-                            <label>Основные услуги *</label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="service-checkbox" id="serviceAdoption" value="adoption">
-                                    <span>Усыновление животных</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="service-checkbox" id="serviceTreatment" value="treatment">
-                                    <span>Ветеринарная помощь</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="service-checkbox" id="serviceHotel" value="hotel">
-                                    <span>Передержка животных</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="service-checkbox" id="serviceGrooming" value="grooming">
-                                    <span>Груминг</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="service-checkbox" id="serviceTraining" value="training">
-                                    <span>Дрессировка</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" class="service-checkbox" id="serviceConsultation" value="consultation">
-                                    <span>Консультации</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Дополнительная информация об услугах</label>
-                            <textarea class="form-textarea" id="partnerServicesInfo" 
-                                      placeholder="Подробное описание услуг, цены, особенности..."></textarea>
-                        </div>
-                        
-                        <!-- Кнопка завершения -->
                         <button type="submit" class="btn btn-primary mt-20" id="partnerSubmitBtn">
                             <i class="fas fa-check"></i> Зарегистрировать организацию
                         </button>
                         
                         <div class="text-center mt-10">
                             <p class="text-muted">* - обязательные поля</p>
-                            <p class="text-muted" style="font-size: 12px;">После регистрации ваша организация будет проверена администратором</p>
                         </div>
                     </form>
                 </div>
@@ -1599,13 +1071,15 @@
                         <i class="fas fa-store"></i> Партнёрский кабинет
                     </h2>
                     
-                    <div id="partnerStatusPanel" class="status-panel">
-                        <div class="status-icon" id="partnerStatusIcon">
-                            <i class="fas fa-user-clock"></i>
-                        </div>
-                        <div class="status-info">
-                            <div class="status-title" id="partnerStatusTitle">Требуется регистрация</div>
-                            <div class="status-description" id="partnerStatusDescription">Заполните информацию о вашей организации</div>
+                    <div id="partnerStatusPanel" class="card" style="background: var(--light);">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);" id="partnerStatusTitle">Требуется регистрация</div>
+                                <div style="font-size: 14px; color: var(--gray);" id="partnerStatusDescription">Заполните информацию о вашей организации</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -1621,10 +1095,6 @@
                         <i class="fas fa-list"></i> Мои питомцы
                     </button>
                     
-                    <button class="btn btn-warning mb-20" onclick="showPage('partner-offers')" id="partnerOffersBtn" disabled>
-                        <i class="fas fa-tags"></i> Акции и услуги
-                    </button>
-                    
                     <button class="btn btn-primary mb-20" onclick="showPage('partner-leads')" id="partnerLeadsBtn" disabled>
                         <i class="fas fa-inbox"></i> Заявки
                     </button>
@@ -1632,15 +1102,6 @@
                     <button class="btn btn-outline" onclick="showPage('partner-settings')">
                         <i class="fas fa-cog"></i> Настройки профиля
                     </button>
-                </div>
-                
-                <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-line"></i> Статистика платформы
-                    </h3>
-                    <div id="platformStats">
-                        <!-- Статистика будет здесь -->
-                    </div>
                 </div>
             </div>
             
@@ -1657,21 +1118,6 @@
                     </div>
                     
                     <form id="partnerAddPetForm">
-                        <!-- Загрузка нескольких фото -->
-                        <div class="form-group">
-                            <label>Фотографии питомца *</label>
-                            <div class="photo-upload" onclick="document.getElementById('shelterPhotoInput').click()">
-                                <i class="fas fa-images"></i>
-                                <p>Нажмите чтобы загрузить фото</p>
-                                <p class="text-muted">Можно загрузить несколько фотографий (до 5)</p>
-                                <input type="file" id="shelterPhotoInput" accept="image/*" class="hidden" multiple
-                                       onchange="handleMultiplePhotosUpload(event, 'shelterPhotosPreview')">
-                            </div>
-                            <div class="photo-preview hidden" id="shelterPhotosPreview">
-                                <!-- Превью фотографий будет здесь -->
-                            </div>
-                        </div>
-                        
                         <div class="form-group">
                             <label>Тип животного *</label>
                             <select class="form-select" id="shelterPetType" required>
@@ -1714,30 +1160,10 @@
                                    placeholder="Например: дворняга, рыжий">
                         </div>
                         
-                        <div style="display: flex; gap: 15px;">
-                            <div class="form-group" style="flex: 1;">
-                                <label>Вакцинирован</label>
-                                <select class="form-select" id="shelterPetVaccinated">
-                                    <option value="unknown">Неизвестно</option>
-                                    <option value="yes">Да</option>
-                                    <option value="no">Нет</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group" style="flex: 1;">
-                                <label>Стерилизован</label>
-                                <select class="form-select" id="shelterPetSterilized">
-                                    <option value="unknown">Неизвестно</option>
-                                    <option value="yes">Да</option>
-                                    <option value="no">Нет</option>
-                                </select>
-                            </div>
-                        </div>
-                        
                         <div class="form-group">
                             <label>История и характер *</label>
                             <textarea class="form-textarea" id="shelterPetDescription" required 
-                                      placeholder="Как попал в организацию, особенности характера, здоровье..."></textarea>
+                                      placeholder="Как попал в организацию, особенности характера..."></textarea>
                         </div>
                         
                         <div class="form-group">
@@ -1752,8 +1178,6 @@
                                 <option value="available">Ищет дом</option>
                                 <option value="reserved">Забронирован</option>
                                 <option value="adopted">Уже пристроен</option>
-                                <option value="treatment">На лечении</option>
-                                <option value="quarantine">На карантине</option>
                             </select>
                         </div>
                         
@@ -1780,9 +1204,6 @@
                         <button class="btn btn-primary btn-small" onclick="showPage('partner-add-pet')">
                             <i class="fas fa-plus"></i> Добавить
                         </button>
-                        <button class="btn btn-outline btn-small" onclick="refreshShelterPets()">
-                            <i class="fas fa-sync-alt"></i> Обновить
-                        </button>
                     </div>
                     
                     <div id="shelterPetsList" class="pets-grid">
@@ -1801,8 +1222,8 @@
                         <div class="card-title">
                             <i class="fas fa-inbox"></i> Заявки
                         </div>
-                        <button class="btn btn-outline btn-small" onclick="refreshPartnerLeads()">
-                            <i class="fas fa-sync-alt"></i> Обновить
+                        <button class="btn btn-outline btn-small" onclick="showPage('partner-home')">
+                            <i class="fas fa-arrow-left"></i> Назад
                         </button>
                     </div>
                     
@@ -1811,66 +1232,6 @@
                             <i class="fas fa-inbox" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
                             <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
                             <p class="text-muted">Здесь будут отображаться заявки от пользователей</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Офферы партнёра -->
-            <div id="partner-offers" class="page">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-tags"></i> Акции и услуги
-                        </div>
-                        <div>
-                            <button class="btn btn-outline btn-small" onclick="showPage('partner-home')">
-                                <i class="fas fa-arrow-left"></i> Назад
-                            </button>
-                            <button class="btn btn-primary btn-small" onclick="showOfferModal()">
-                                <i class="fas fa-plus"></i> Добавить
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="partnerOffersList" class="list">
-                        <div class="text-center" style="padding: 40px 20px;">
-                            <i class="fas fa-tags" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
-                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет акций</h3>
-                            <p class="text-muted">Добавьте акции и услуги вашей организации</p>
-                            <button class="btn btn-primary mt-20" onclick="showOfferModal()">
-                                <i class="fas fa-plus"></i> Добавить акцию
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Напоминания партнёра -->
-            <div id="partner-reminders" class="page">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-bell"></i> Напоминания организации
-                        </div>
-                        <div>
-                            <button class="btn btn-outline btn-small" onclick="showPage('partner-home')">
-                                <i class="fas fa-arrow-left"></i> Назад
-                            </button>
-                            <button class="btn btn-primary btn-small" onclick="showReminderModal()">
-                                <i class="fas fa-plus"></i> Добавить
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="partnerRemindersList">
-                        <div class="text-center" style="padding: 40px 20px;">
-                            <i class="fas fa-bell empty-state-icon"></i>
-                            <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
-                            <p class="text-muted">Добавьте напоминание для вашей организации</p>
-                            <button class="btn btn-primary mt-20" onclick="showReminderModal()">
-                                <i class="fas fa-plus"></i> Добавить напоминание
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1894,122 +1255,6 @@
                 </div>
             </div>
             
-            <!-- Админка -->
-            <div id="admin-panel" class="page">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-cogs"></i> Административная панель
-                        </div>
-                        <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
-                            <i class="fas fa-arrow-left"></i> Назад
-                        </button>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 class="admin-section-title">
-                            <i class="fas fa-chart-bar"></i> Статистика
-                        </h3>
-                        <div class="stat-cards">
-                            <div class="stat-card">
-                                <div class="stat-value" id="statUsers">0</div>
-                                <div class="stat-label">Пользователей</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="statPets">0</div>
-                                <div class="stat-label">Питомцев</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="statPartners">0</div>
-                                <div class="stat-label">Партнёров</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="statLeads">0</div>
-                                <div class="stat-label">Заявок</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 class="admin-section-title">
-                            <i class="fas fa-user-check"></i> Модерация партнёров
-                        </h3>
-                        <div id="adminPartnersList" class="list">
-                            <div class="text-center" style="padding: 20px;">
-                                <div class="loader" style="margin: 0 auto 15px;"></div>
-                                <p class="text-muted">Загрузка партнёров...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 class="admin-section-title">
-                            <i class="fas fa-paw"></i> Модерация животных
-                        </h3>
-                        <div id="adminPetsList" class="list">
-                            <div class="text-center" style="padding: 20px;">
-                                <div class="loader" style="margin: 0 auto 15px;"></div>
-                                <p class="text-muted">Загрузка животных...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 class="admin-section-title">
-                            <i class="fas fa-list"></i> Все заявки
-                        </h3>
-                        <div style="overflow-x: auto;">
-                            <table class="table" id="adminLeadsTable">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Имя</th>
-                                        <th>Телефон</th>
-                                        <th>Тип</th>
-                                        <th>Статус</th>
-                                        <th>Дата</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Данные загружаются динамически -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <button class="btn btn-outline mt-20" onclick="exportLeadsToCSV()">
-                            <i class="fas fa-download"></i> Выгрузить в CSV
-                        </button>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 class="admin-section-title">
-                            <i class="fas fa-broadcast"></i> Рассылки
-                        </h3>
-                        <button class="btn btn-primary mb-10" onclick="showBroadcastModal()">
-                            <i class="fas fa-bullhorn"></i> Создать рассылку
-                        </button>
-                        <button class="btn btn-secondary mb-10" onclick="showSegmentModal()">
-                            <i class="fas fa-users"></i> Отправить сегменту
-                        </button>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 class="admin-section-title">
-                            <i class="fas fa-database"></i> Справочники
-                        </h3>
-                        <button class="btn btn-outline mb-10" onclick="manageDistricts()">
-                            <i class="fas fa-map-marker-alt"></i> Управление районами
-                        </button>
-                        <button class="btn btn-outline mb-10" onclick="manageCategories()">
-                            <i class="fas fa-folder"></i> Управление категориями
-                        </button>
-                        <button class="btn btn-outline" onclick="manageVaccinations()">
-                            <i class="fas fa-syringe"></i> Шаблоны вакцинаций
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Настройки пользователя -->
             <div id="user-settings" class="page">
                 <div class="card">
@@ -2028,36 +1273,21 @@
                         </div>
                         <h3 id="userName">Пользователь</h3>
                         <p class="text-muted" id="userId">ID: загрузка...</p>
-                        <p class="text-muted" id="userSource">Источник: загрузка...</p>
                     </div>
-                    
-                    <div class="storage-info" style="margin-bottom: 30px; padding: 20px; background: var(--light); border-radius: 12px;">
-                        <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-database"></i> База данных</h4>
-                        <p style="font-size: 14px; color: var(--gray); margin-bottom: 10px;">
-                            Статус: <span id="storageStatus" style="color: var(--primary); font-weight: bold;">✓ Firebase подключен</span>
-                        </p>
-                        <div id="storageStats" style="font-size: 12px; color: var(--gray);">
-                            <!-- Статистика загрузки -->
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-primary mb-20" onclick="refreshAllData()">
-                        <i class="fas fa-sync-alt"></i> Обновить все данные
-                    </button>
-                    
-                    <button class="btn btn-outline mb-20" onclick="showReferralModal()">
-                        <i class="fas fa-share-alt"></i> Получить реферальную ссылку
-                    </button>
                     
                     <div style="margin-top: 30px; padding: 20px; background: var(--light); border-radius: 12px;">
                         <h4 style="color: var(--dark); margin-bottom: 10px;"><i class="fas fa-info-circle"></i> О приложении</h4>
                         <p style="font-size: 14px; color: var(--gray);">
                             "Твой Будущий Питомец" - сервис для помощи животным.<br>
-                            Версия 2.1.0<br>
-                            Все питомцы сохраняются в облаке и видны всем пользователям.<br>
-                            Используется Firebase Realtime Database.
+                            Версия 3.0.0 (упрощенная)<br>
+                            Все данные хранятся локально в вашем браузере.<br>
+                            Фотографии не сохраняются для экономии места.
                         </p>
                     </div>
+                    
+                    <button class="btn btn-outline mt-20" onclick="clearLocalData()">
+                        <i class="fas fa-trash"></i> Очистить локальные данные
+                    </button>
                 </div>
             </div>
             
@@ -2099,25 +1329,12 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-primary mb-20" onclick="refreshAllData()">
-                        <i class="fas fa-sync-alt"></i> Обновить данные
-                    </button>
-                    
-                    <button class="btn btn-warning mb-20" onclick="showPage('partner-reminders')">
-                        <i class="fas fa-bell"></i> Напоминания организации
-                    </button>
-                    
-                    <button class="btn btn-accent mb-20" onclick="generateWidgetLink()">
-                        <i class="fas fa-link"></i> Получить виджет*приглашение
+                    <button class="btn btn-outline" onclick="clearLocalData()">
+                        <i class="fas fa-trash"></i> Очистить локальные данные
                     </button>
                 </div>
             </div>
         </main>
-    </div>
-
-    <!-- Кнопка обновления -->
-    <div class="refresh-btn" onclick="refreshAllData()" title="Обновить данные">
-        <i class="fas fa-sync-alt"></i>
     </div>
 
     <!-- Уведомления -->
@@ -2127,36 +1344,16 @@
     </div>
 
     <script>
-        // ===== КОНФИГУРАЦИЯ FIREBASE =====
-        const firebaseConfig = {
-            apiKey: "AIzaSyC3u5W4xavn3aOVbZnwR3yfUj5eZ_fj98c",
-            authDomain: "pets-platform-12345.firebaseapp.com",
-            databaseURL: "https://pets-platform-12345-default-rtdb.firebaseio.com",
-            projectId: "pets-platform-12345",
-            storageBucket: "pets-platform-12345.appspot.com",
-            messagingSenderId: "987654321098",
-            appId: "1:987654321098:web:abcd1234efgh5678ijkl90"
-        };
-
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let tg = window.Telegram.WebApp;
         let currentMode = localStorage.getItem('futurepet_mode') || 'user';
         let currentUser = {};
-        let userPets = [];
-        let allPets = [];
-        let partners = [];
-        let offers = [];
-        let leads = [];
-        let reminders = [];
-        let users = [];
-        let userPhotos = [];
-        let shelterPhotos = [];
-        let isLoading = false;
-        let isInitialized = false;
+        let allPets = JSON.parse(localStorage.getItem('futurepet_pets')) || [];
+        let partners = JSON.parse(localStorage.getItem('futurepet_partners')) || [];
+        let leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+        let favorites = JSON.parse(localStorage.getItem('futurepet_favorites')) || [];
+        let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
         let selectedPetType = null;
-        let currentUserSource = localStorage.getItem('futurepet_source') || getUrlParameter('start') || 'direct';
-        let database = null;
-        let firebaseApp = null;
 
         // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
         function getUserId() {
@@ -2168,17 +1365,20 @@
                 userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('futurepet_user_id', userId);
                 
-                if (currentUserSource && currentUserSource !== 'direct') {
-                    localStorage.setItem('futurepet_source', currentUserSource);
-                }
+                // Создаем базовый профиль пользователя
+                currentUserData = {
+                    id: userId,
+                    name: tg?.initDataUnsafe?.user?.first_name || 'Гость',
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem('futurepet_user', JSON.stringify(currentUserData));
             }
             return userId;
         }
         
-        function showLoading(text = 'Загрузка данных...') {
-            isLoading = true;
+        function showLoading(text = 'Загрузка...') {
             const overlay = document.getElementById('loadingOverlay');
-            const textEl = document.getElementById('loadingText');
+            const textEl = document.querySelector('.loading-text');
             if (overlay && textEl) {
                 textEl.textContent = text;
                 overlay.classList.remove('hidden');
@@ -2186,17 +1386,9 @@
         }
         
         function hideLoading() {
-            isLoading = false;
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 overlay.classList.add('hidden');
-            }
-        }
-        
-        function updateLoadingProgress(text) {
-            const progressEl = document.getElementById('loadingProgress');
-            if (progressEl) {
-                progressEl.textContent = text;
             }
         }
         
@@ -2229,238 +1421,105 @@
             }, 3000);
         }
         
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            const results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        function saveDataToLocalStorage() {
+            localStorage.setItem('futurepet_pets', JSON.stringify(allPets));
+            localStorage.setItem('futurepet_partners', JSON.stringify(partners));
+            localStorage.setItem('futurepet_leads', JSON.stringify(leads));
+            localStorage.setItem('futurepet_favorites', JSON.stringify(favorites));
+        }
+        
+        function clearLocalData() {
+            if (confirm('Вы уверены, что хотите очистить все локальные данные?')) {
+                localStorage.removeItem('futurepet_pets');
+                localStorage.removeItem('futurepet_partners');
+                localStorage.removeItem('futurepet_leads');
+                localStorage.removeItem('futurepet_favorites');
+                localStorage.removeItem('futurepet_user');
+                localStorage.removeItem('futurepet_user_id');
+                localStorage.removeItem('futurepet_mode');
+                
+                allPets = [];
+                partners = [];
+                leads = [];
+                favorites = [];
+                
+                showNotification('Данные очищены', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
         }
         
         // ===== ИНИЦИАЛИЗАЦИЯ =====
-        async function initializeApp() {
-            console.log('🚀 Начало инициализации приложения');
+        function initializeApp() {
+            console.log('🚀 Инициализация приложения');
             
             try {
-                updateLoadingProgress('Шаг 1/5: Инициализация Telegram...');
-                
-                // 1. Инициализация Telegram
+                // Инициализация Telegram
                 if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
                     tg.ready();
                     tg.expand();
                 }
                 
-                updateLoadingProgress('Шаг 2/5: Инициализация Firebase...');
-                
-                // 2. Инициализация Firebase с обработкой ошибок
-                try {
-                    if (!firebase.apps.length) {
-                        firebaseApp = firebase.initializeApp(firebaseConfig);
-                    } else {
-                        firebaseApp = firebase.app();
-                    }
-                    database = firebase.database();
-                    console.log("✅ Firebase успешно инициализирован");
-                    document.getElementById('storageStatus').textContent = '✓ Firebase подключен';
-                } catch (firebaseError) {
-                    console.error("❌ Ошибка инициализации Firebase:", firebaseError);
-                    document.getElementById('storageStatus').textContent = '✗ Ошибка подключения';
-                    document.getElementById('storageStatus').style.color = 'var(--danger)';
-                    
-                    // Создаем заглушки для работы без Firebase
-                    database = {
-                        ref: (path) => ({
-                            set: async () => { console.log('Firebase не доступен'); return false; },
-                            get: async () => ({ val: () => null }),
-                            update: async () => false,
-                            remove: async () => false,
-                            once: () => Promise.resolve({ val: () => null })
-                        })
-                    };
-                    
-                    showNotification('Firebase не подключен. Работаем в автономном режиме', 'warning');
-                }
-                
-                updateLoadingProgress('Шаг 3/5: Инициализация пользователя...');
-                
-                // 3. Инициализация пользователя
+                // Инициализация пользователя
                 initializeUser();
                 
-                updateLoadingProgress('Шаг 4/5: Настройка интерфейса...');
-                
-                // 4. Инициализация навигации и форм
+                // Настройка интерфейса
                 updateNavigation();
                 initForms();
-                initModals();
                 
-                // 5. Показываем заглушки на главной
-                showInitialRandomPets();
+                // Загружаем данные
+                loadInitialData();
                 
-                updateLoadingProgress('Шаг 5/5: Загрузка данных...');
+                // Показываем главную страницу
+                showPage('user-home');
                 
-                // 6. Загружаем данные в фоне
-                setTimeout(async () => {
-                    try {
-                        await loadAllDataFromFirebase();
-                    } catch (error) {
-                        console.error('Ошибка загрузки данных:', error);
-                        showNotification('Ошибка загрузки данных', 'error');
-                    } finally {
-                        isInitialized = true;
-                        console.log('✅ Приложение полностью инициализировано');
-                        hideLoading();
-                    }
-                }, 100);
-                
-                // 7. Настройка проверки напоминаний
-                setupReminderChecks();
+                console.log('✅ Приложение инициализировано');
+                hideLoading();
                 
             } catch (error) {
-                console.error('❌ Критическая ошибка инициализации:', error);
-                showEmptyRandomPets();
-                hideLoading();
+                console.error('❌ Ошибка инициализации:', error);
                 showNotification('Ошибка инициализации приложения', 'error');
+                hideLoading();
             }
         }
         
         function initializeUser() {
-            if (tg && tg.initDataUnsafe?.user) {
-                const user = tg.initDataUnsafe.user;
-                currentUser = {
-                    id: getUserId(),
-                    tgUserId: user.id,
-                    name: `${user.first_name} ${user.last_name || ''}`.trim(),
-                    username: user.username,
-                    sourceCode: currentUserSource,
+            const userId = getUserId();
+            
+            if (!currentUserData) {
+                currentUserData = {
+                    id: userId,
+                    name: tg?.initDataUnsafe?.user?.first_name || 'Гость',
                     createdAt: new Date().toISOString()
                 };
-            } else {
-                currentUser = {
-                    id: getUserId(),
-                    name: 'Гость',
-                    sourceCode: currentUserSource,
-                    createdAt: new Date().toISOString()
-                };
+                localStorage.setItem('futurepet_user', JSON.stringify(currentUserData));
             }
             
-            // Сохраняем пользователя в Firebase
-            saveUserToFirebase(currentUser);
+            currentUser = currentUserData;
             
             // Обновляем информацию в настройках
             const userName = document.getElementById('userName');
-            const userId = document.getElementById('userId');
+            const userIdEl = document.getElementById('userId');
             
             if (userName) userName.textContent = currentUser.name;
-            if (userId) userId.textContent = `ID: ${currentUser.id.substring(0, 15)}...`;
+            if (userIdEl) userIdEl.textContent = `ID: ${currentUser.id.substring(0, 15)}...`;
         }
         
-        // ===== FIREBASE ФУНКЦИИ =====
-        async function saveUserToFirebase(userData) {
-            try {
-                if (!database) return false;
-                const userRef = database.ref('users/' + userData.id);
-                await userRef.set(userData);
-                console.log('✅ Пользователь сохранен в Firebase:', userData.id);
-                return true;
-            } catch (error) {
-                console.error('❌ Ошибка сохранения пользователя:', error);
-                return false;
-            }
-        }
-        
-        async function savePetToFirebase(petData) {
-            try {
-                if (!database) return false;
-                showLoading('Сохранение питомца...');
-                const petRef = database.ref('pets/' + petData.id);
-                await petRef.set(petData);
-                console.log('✅ Питомец сохранен в Firebase:', petData.id);
-                return true;
-            } catch (error) {
-                console.error('❌ Ошибка сохранения питомца:', error);
-                showNotification('Ошибка сохранения питомца', 'error');
-                return false;
-            } finally {
-                hideLoading();
-            }
-        }
-        
-        async function loadAllDataFromFirebase() {
-            try {
-                if (!database) {
-                    console.log('Firebase не инициализирован, создаем тестовые данные');
-                    createTestData();
-                    updateAllPages();
-                    return false;
-                }
-                
-                showLoading('Загрузка данных...');
-                
-                // Создаем таймаут для загрузки
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Таймаут загрузки')), 10000);
-                });
-                
-                // Загрузка данных с таймаутом
-                const loadPromise = (async () => {
-                    const [
-                        usersSnapshot,
-                        petsSnapshot,
-                        partnersSnapshot
-                    ] = await Promise.all([
-                        database.ref('users').once('value'),
-                        database.ref('pets').once('value'),
-                        database.ref('partners').once('value')
-                    ]);
-                    
-                    return { usersSnapshot, petsSnapshot, partnersSnapshot };
-                })();
-                
-                const result = await Promise.race([loadPromise, timeoutPromise]);
-                
-                // Обработка пользователей
-                const usersData = result.usersSnapshot.val();
-                users = usersData ? Object.keys(usersData).map(key => ({
-                    id: key,
-                    ...usersData[key]
-                })) : [];
-                
-                // Обработка питомцев
-                const petsData = result.petsSnapshot.val();
-                allPets = petsData ? Object.keys(petsData).map(key => ({
-                    id: key,
-                    ...petsData[key]
-                })) : [];
-                
-                // Обработка партнёров
-                const partnersData = result.partnersSnapshot.val();
-                partners = partnersData ? Object.keys(partnersData).map(key => ({
-                    id: key,
-                    ...partnersData[key]
-                })) : [];
-                
-                console.log('✅ Данные загружены:', {
-                    users: users.length,
-                    pets: allPets.length,
-                    partners: partners.length
-                });
-                
-                // Обновляем все страницы
-                updateAllPages();
-                
-                hideLoading();
-                showNotification('Данные успешно загружены', 'success');
-                return true;
-            } catch (error) {
-                console.error('❌ Ошибка загрузки всех данных:', error);
-                
-                // Создаем тестовые данные если не удалось загрузить
+        function loadInitialData() {
+            // Загружаем из localStorage
+            allPets = JSON.parse(localStorage.getItem('futurepet_pets')) || [];
+            partners = JSON.parse(localStorage.getItem('futurepet_partners')) || [];
+            leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+            favorites = JSON.parse(localStorage.getItem('futurepet_favorites')) || [];
+            
+            // Если данных нет, создаем тестовые
+            if (allPets.length === 0) {
                 createTestData();
-                updateAllPages();
-                
-                hideLoading();
-                showNotification('Используются локальные данные', 'warning');
-                return false;
             }
+            
+            updateStats();
+            updatePartnerStatus();
         }
         
         function createTestData() {
@@ -2484,10 +1543,8 @@
                     location: 'Казань, Вахитовский район',
                     contact: '+7 999 123-45-67',
                     status: 'available',
-                    photos: [],
                     tags: ['ласковый', 'игривый', 'приучен к лотку'],
                     createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
                     views: 0
                 },
                 {
@@ -2504,10 +1561,8 @@
                     location: 'Казань, Приволжский район',
                     contact: '+7 987 654-32-10',
                     status: 'available',
-                    photos: [],
                     tags: ['активный', 'добрый', 'любит детей'],
                     createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
                     views: 0
                 }
             ];
@@ -2522,65 +1577,13 @@
                     description: 'Приют для бездомных животных. Помогаем найти дом каждому питомцу.',
                     city: 'Казань',
                     address: 'ул. Пушкина, д. 10',
-                    district: 'vahitovsky',
                     phone: '+7 987 654-32-10',
-                    email: 'pomosh@mail.ru',
-                    hours: 'Пн-Пт 9:00-18:00, Сб-Вс 10:00-16:00',
-                    tgRecipient: '@shelter_helper',
-                    services: ['adoption', 'treatment'],
-                    servicesInfo: 'Бесплатная ветеринарная помощь для животных из приюта',
                     status: 'approved',
-                    registeredAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                    registeredAt: new Date().toISOString()
                 }
             ];
             
-            // Тестовые пользователи
-            users = [currentUser];
-        }
-        
-        function updateAllPages() {
-            updateRandomPets();
-            updateStats();
-            
-            // Обновляем текущую страницу
-            const activePage = document.querySelector('.page.active');
-            if (!activePage) return;
-            
-            const pageId = activePage.id;
-            
-            switch(pageId) {
-                case 'user-home':
-                    loadUserHome();
-                    break;
-                case 'user-pets':
-                    loadUserPets();
-                    break;
-                case 'all-pets':
-                    loadAllPetsPage();
-                    break;
-                case 'user-shelters':
-                    loadSheltersPage();
-                    break;
-                case 'partner-pets':
-                    loadShelterPets();
-                    break;
-                case 'user-reminders':
-                    loadUserReminders();
-                    break;
-                case 'partner-reminders':
-                    loadPartnerReminders();
-                    break;
-                case 'partner-leads':
-                    loadPartnerLeads();
-                    break;
-                case 'partner-offers':
-                    loadPartnerOffers();
-                    break;
-                case 'admin-panel':
-                    loadAdminPanel();
-                    break;
-            }
+            saveDataToLocalStorage();
         }
         
         function updateStats() {
@@ -2592,7 +1595,7 @@
                 const userPetCount = allPets.filter(p => p.userId === userId).length;
                 const availablePets = allPets.filter(p => p.status === 'available').length;
                 const totalPets = allPets.length;
-                const userReminders = reminders.filter(r => r.userId === userId).length;
+                const favoriteCount = favorites.length;
                 
                 userStats.innerHTML = `
                     <div class="list-item">
@@ -2604,8 +1607,8 @@
                         <span>Ищут дом: <strong>${availablePets}</strong></span>
                     </div>
                     <div class="list-item">
-                        <i class="fas fa-bell" style="color: var(--warning);"></i>
-                        <span>Активных напоминаний: <strong>${userReminders}</strong></span>
+                        <i class="fas fa-star" style="color: var(--warning);"></i>
+                        <span>Избранных: <strong>${favoriteCount}</strong></span>
                     </div>
                     <div class="list-item">
                         <i class="fas fa-users" style="color: var(--secondary);"></i>
@@ -2618,59 +1621,21 @@
                 `;
             }
             
-            // Статистика платформы
-            const platformStats = document.getElementById('platformStats');
-            if (platformStats) {
-                const userPetsCount = allPets.filter(p => p.type === 'user').length;
-                const shelterPetsCount = allPets.filter(p => p.type === 'shelter').length;
-                const adoptedPets = allPets.filter(p => p.status === 'adopted').length;
+            // Статистика для партнёра
+            const shelterPetCount = document.getElementById('shelterPetCount');
+            const shelterAdoptedCount = document.getElementById('shelterAdoptedCount');
+            
+            if (shelterPetCount || shelterAdoptedCount) {
+                const userId = getUserId();
+                const partnerPets = allPets.filter(p => p.userId === userId && p.ownerType === 'shelter');
+                const adoptedPets = partnerPets.filter(p => p.status === 'adopted').length;
                 
-                platformStats.innerHTML = `
-                    <div class="list-item">
-                        <i class="fas fa-user" style="color: var(--primary);"></i>
-                        <span>Питомцев от пользователей: <strong>${userPetsCount}</strong></span>
-                    </div>
-                    <div class="list-item">
-                        <i class="fas fa-building" style="color: var(--secondary);"></i>
-                        <span>Питомцев от организаций: <strong>${shelterPetsCount}</strong></span>
-                    </div>
-                    <div class="list-item">
-                        <i class="fas fa-home" style="color: var(--success);"></i>
-                        <span>Нашли дом: <strong>${adoptedPets}</strong></span>
-                    </div>
-                    <div class="list-item">
-                        <i class="fas fa-database" style="color: var(--accent);"></i>
-                        <span>Всего в базе: <strong>${allPets.length}</strong></span>
-                    </div>
-                `;
+                if (shelterPetCount) shelterPetCount.textContent = partnerPets.length;
+                if (shelterAdoptedCount) shelterAdoptedCount.textContent = adoptedPets;
             }
         }
         
         // ===== ФУНКЦИИ ДЛЯ РАНДОМНЫХ ПИТОМЦЕВ =====
-        function showInitialRandomPets() {
-            const container = document.getElementById('randomPetsContainer');
-            if (!container) return;
-            
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="loader" style="margin: 0 auto 15px;"></div>
-                    <p class="text-muted">Загрузка случайных питомцев...</p>
-                </div>
-            `;
-        }
-        
-        function showEmptyRandomPets() {
-            const container = document.getElementById('randomPetsContainer');
-            if (!container) return;
-            
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-paw empty-state-icon"></i>
-                    <p class="text-muted">Пока нет других питомцев. Будьте первым!</p>
-                </div>
-            `;
-        }
-        
         function updateRandomPets() {
             const container = document.getElementById('randomPetsContainer');
             if (!container) return;
@@ -2683,7 +1648,12 @@
             );
             
             if (otherPets.length === 0) {
-                showEmptyRandomPets();
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-paw empty-state-icon"></i>
+                        <p class="text-muted">Пока нет других питомцев. Будьте первым!</p>
+                    </div>
+                `;
                 return;
             }
             
@@ -2709,22 +1679,25 @@
             card.className = 'pet-card';
             card.onclick = () => showPetDetail(pet.id);
             
+            const icon = pet.type === 'cat' ? 'fa-cat' : pet.type === 'dog' ? 'fa-dog' : 'fa-paw';
+            const isFavorite = favorites.includes(pet.id);
+            
             card.innerHTML = `
-                <div class="pet-image">
-                    ${pet.photos && pet.photos.length > 0 ? 
-                        `<img src="${pet.photos[0]}" alt="${pet.name}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                        `<i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}" style="font-size: 48px;"></i>`
-                    }
+                <div class="pet-icon">
+                    <i class="fas ${icon}"></i>
                 </div>
                 <div class="pet-info">
                     <div class="pet-name">${pet.name || 'Без имени'}</div>
                     <div class="pet-details">
                         ${pet.type === 'cat' ? '🐱' : pet.type === 'dog' ? '🐶' : '🐾'} ${pet.age || ''}
                     </div>
-                    <div style="margin-top: 8px;">
+                    <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
                             ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
                         </span>
+                        <button class="btn btn-outline btn-small" style="padding: 4px 8px; font-size: 12px;" onclick="toggleFavorite('${pet.id}', event)">
+                            <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -2776,10 +1749,14 @@
             // Загружаем данные для страницы
             switch(pageId) {
                 case 'user-home':
-                    loadUserHome();
+                    updateRandomPets();
+                    updateStats();
                     break;
                 case 'user-pets':
                     loadUserPets();
+                    break;
+                case 'user-favorites':
+                    loadFavorites();
                     break;
                 case 'user-shelters':
                     loadSheltersPage();
@@ -2787,35 +1764,15 @@
                 case 'all-pets':
                     loadAllPetsPage();
                     break;
-                case 'user-reminders':
-                    loadUserReminders();
-                    break;
-                case 'user-settings':
-                    loadUserSettings();
-                    break;
                 case 'partner-home':
-                    loadPartnerHome();
+                    updatePartnerStatus();
+                    updateStats();
                     break;
                 case 'partner-pets':
                     loadShelterPets();
                     break;
                 case 'partner-leads':
                     loadPartnerLeads();
-                    break;
-                case 'partner-offers':
-                    loadPartnerOffers();
-                    break;
-                case 'partner-reminders':
-                    loadPartnerReminders();
-                    break;
-                case 'partner-settings':
-                    loadPartnerSettings();
-                    break;
-                case 'partner-register':
-                    loadPartnerRegister();
-                    break;
-                case 'admin-panel':
-                    loadAdminPanel();
                     break;
             }
             
@@ -2840,8 +1797,8 @@
                     <button class="nav-tab" data-page="user-shelters">
                         <i class="fas fa-hands-helping"></i> Приюты
                     </button>
-                    <button class="nav-tab" data-page="user-reminders">
-                        <i class="fas fa-bell"></i> Напоминания
+                    <button class="nav-tab" data-page="user-favorites">
+                        <i class="fas fa-heart"></i> Избранное
                     </button>
                     <button class="nav-tab" data-page="user-settings">
                         <i class="fas fa-cog"></i> Настройки
@@ -2857,9 +1814,6 @@
                     </button>
                     <button class="nav-tab" data-page="partner-add-pet">
                         <i class="fas fa-plus"></i> Добавить
-                    </button>
-                    <button class="nav-tab" data-page="partner-offers">
-                        <i class="fas fa-tags"></i> Акции
                     </button>
                     <button class="nav-tab" data-page="partner-leads">
                         <i class="fas fa-inbox"></i> Заявки
@@ -2895,6 +1849,48 @@
             showNotification(`Переключено в режим ${currentMode === 'user' ? 'пользователя' : 'партнёра'}`, 'info');
         }
         
+        function updatePartnerStatus() {
+            const userId = getUserId();
+            const partner = partners.find(p => p.userId === userId);
+            
+            const statusPanel = document.getElementById('partnerStatusPanel');
+            const statusTitle = document.getElementById('partnerStatusTitle');
+            const statusDescription = document.getElementById('partnerStatusDescription');
+            
+            const partnerAddPetBtn = document.getElementById('partnerAddPetBtn');
+            const partnerPetsBtn = document.getElementById('partnerPetsBtn');
+            const partnerLeadsBtn = document.getElementById('partnerLeadsBtn');
+            
+            if (partner) {
+                if (statusPanel) {
+                    statusPanel.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">${partner.name}</div>
+                                <div style="font-size: 14px; color: var(--gray);">${partner.type === 'shelter' ? 'Приют' : partner.type === 'clinic' ? 'Клиника' : 'Организация'}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Включаем кнопки для партнёра
+                if (partnerAddPetBtn) partnerAddPetBtn.disabled = false;
+                if (partnerPetsBtn) partnerPetsBtn.disabled = false;
+                if (partnerLeadsBtn) partnerLeadsBtn.disabled = false;
+            } else {
+                if (statusTitle) statusTitle.textContent = 'Требуется регистрация';
+                if (statusDescription) statusDescription.textContent = 'Заполните информацию о вашей организации';
+                
+                // Отключаем кнопки
+                if (partnerAddPetBtn) partnerAddPetBtn.disabled = true;
+                if (partnerPetsBtn) partnerPetsBtn.disabled = true;
+                if (partnerLeadsBtn) partnerLeadsBtn.disabled = true;
+            }
+        }
+        
         // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
         function selectPetType(type) {
             resetPetTypeButtons();
@@ -2920,107 +1916,11 @@
             });
         }
         
-        function handlePhotoUpload(event, previewId) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (file.size > 5 * 1024 * 1024) {
-                showNotification('Файл слишком большой. Максимальный размер: 5MB', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById(previewId);
-                const img = document.getElementById(previewId + 'Img');
-                
-                if (img) {
-                    img.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    
-                    if (previewId === 'petPhotoPreview') {
-                        userPhotos = [e.target.result];
-                        console.log('📸 Фото пользователя сохранено в userPhotos');
-                    }
-                }
-            };
-            reader.onerror = function() {
-                showNotification('Ошибка загрузки фото', 'error');
-            };
-            reader.readAsDataURL(file);
-        }
-        
-        function clearPhoto(previewId) {
-            const preview = document.getElementById(previewId);
-            const img = document.getElementById(previewId + 'Img');
-            const fileInput = previewId === 'petPhotoPreview' ? 
-                document.getElementById('petPhotoInput') : 
-                document.getElementById('shelterPhotoInput');
-            
-            if (preview) preview.classList.add('hidden');
-            if (img) img.src = '';
-            if (fileInput) fileInput.value = '';
-            
-            if (previewId === 'petPhotoPreview') {
-                userPhotos = [];
-            } else {
-                shelterPhotos = [];
-            }
-        }
-        
-        function handleMultiplePhotosUpload(event, previewId) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-            
-            const preview = document.getElementById(previewId);
-            if (!preview) return;
-            
-            preview.innerHTML = '';
-            shelterPhotos = [];
-            
-            const maxPhotos = Math.min(files.length, 5);
-            
-            for (let i = 0; i < maxPhotos; i++) {
-                const file = files[i];
-                
-                if (file.size > 5 * 1024 * 1024) {
-                    showNotification(`Фото ${i+1} слишком большое. Максимальный размер: 5MB`, 'error');
-                    continue;
-                }
-                
-                const reader = new FileReader();
-                
-                reader.onload = (function(index) {
-                    return function(e) {
-                        shelterPhotos.push(e.target.result);
-                        
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.maxWidth = '100px';
-                        img.style.maxHeight = '100px';
-                        img.style.margin = '5px';
-                        img.style.borderRadius = '8px';
-                        img.style.objectFit = 'cover';
-                        
-                        preview.appendChild(img);
-                        preview.classList.remove('hidden');
-                    };
-                })(i);
-                
-                reader.readAsDataURL(file);
-            }
-            
-            if (shelterPhotos.length > 0) {
-                showNotification(`Загружено ${shelterPhotos.length} фотографий`, 'success');
-            }
-        }
-        
-        // ===== ИНИЦИАЛИЗАЦИЯ ФОРМ =====
         function initForms() {
             // Форма пользователя для добавления питомца
             const userForm = document.getElementById('userAddPetForm');
             if (userForm) {
-                userForm.addEventListener('submit', async function(e) {
+                userForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
                     if (!selectedPetType) {
@@ -3073,47 +1973,42 @@
                         location: document.getElementById('petLocation').value.trim(),
                         contact: document.getElementById('petContact').value.trim(),
                         status: document.getElementById('petStatus').value,
-                        photos: userPhotos,
                         tags: tags,
                         createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
                         views: 0
                     };
                     
                     console.log('📝 Создание нового питомца:', newPet);
                     
-                    // Сохраняем в Firebase
-                    const success = await savePetToFirebase(newPet);
+                    // Сохраняем
+                    allPets.unshift(newPet);
+                    saveDataToLocalStorage();
                     
-                    if (success) {
-                        allPets.unshift(newPet);
-                        
-                        // Очищаем форму
-                        userForm.reset();
-                        userPhotos = [];
-                        document.getElementById('petPhotoPreview').classList.add('hidden');
-                        document.getElementById('petPhotoInput').value = '';
-                        
-                        // Сбрасываем кнопки типа
-                        resetPetTypeButtons();
-                        selectedPetType = null;
-                        
-                        // Обновляем случайных питомцев
-                        updateRandomPets();
-                        
-                        // Показываем успех
-                        showNotification('Питомец успешно опубликован!', 'success');
-                    }
+                    // Очищаем форму
+                    userForm.reset();
+                    
+                    // Сбрасываем кнопки типа
+                    resetPetTypeButtons();
+                    selectedPetType = null;
+                    
+                    // Обновляем случайных питомцев
+                    updateRandomPets();
+                    
+                    // Показываем успех
+                    showNotification('Питомец успешно опубликован!', 'success');
                     
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
+                    
+                    // Возвращаем на главную
+                    setTimeout(() => showPage('user-home'), 1000);
                 });
             }
             
             // Форма регистрации партнёра
             const partnerRegisterForm = document.getElementById('partnerRegisterForm');
             if (partnerRegisterForm) {
-                partnerRegisterForm.addEventListener('submit', async function(e) {
+                partnerRegisterForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -3121,10 +2016,7 @@
                         {id: 'partnerName', name: 'Название организации'},
                         {id: 'partnerDescription', name: 'Описание организации'},
                         {id: 'partnerCity', name: 'Город'},
-                        {id: 'partnerAddress', name: 'Адрес'},
-                        {id: 'partnerPhone', name: 'Телефон'},
-                        {id: 'partnerHours', name: 'Режим работы'},
-                        {id: 'partnerTgRecipient', name: 'Telegram для заявок'}
+                        {id: 'partnerPhone', name: 'Телефон'}
                     ];
                     
                     for (const field of requiredFields) {
@@ -3143,10 +2035,6 @@
                     
                     const userId = getUserId();
                     
-                    // Собираем выбранные услуги
-                    const serviceCheckboxes = document.querySelectorAll('.service-checkbox:checked');
-                    const services = Array.from(serviceCheckboxes).map(cb => cb.value);
-                    
                     // Собираем данные партнёра
                     const partnerData = {
                         id: 'partner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -3155,76 +2043,170 @@
                         name: document.getElementById('partnerName').value.trim(),
                         description: document.getElementById('partnerDescription').value.trim(),
                         city: document.getElementById('partnerCity').value,
-                        address: document.getElementById('partnerAddress').value.trim(),
-                        district: document.getElementById('partnerDistrict').value || null,
+                        address: document.getElementById('partnerAddress').value.trim() || null,
                         phone: document.getElementById('partnerPhone').value.trim(),
-                        email: document.getElementById('partnerEmail').value.trim() || null,
-                        hours: document.getElementById('partnerHours').value.trim(),
-                        tgRecipient: document.getElementById('partnerTgRecipient').value.trim(),
-                        services: services,
-                        servicesInfo: document.getElementById('partnerServicesInfo').value.trim() || null,
-                        status: 'pending',
-                        registeredAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
+                        status: 'approved',
+                        registeredAt: new Date().toISOString()
                     };
                     
                     console.log('📝 Создание нового партнёра:', partnerData);
                     
-                    // Сохраняем в Firebase
-                    const success = await savePartnerToFirebase(partnerData);
+                    // Сохраняем
+                    partners.push(partnerData);
+                    saveDataToLocalStorage();
                     
-                    if (success) {
-                        partners.push(partnerData);
-                        
-                        // Очищаем форму
-                        partnerRegisterForm.reset();
-                        
-                        // Обновляем статус партнёра
-                        updatePartnerStatus();
-                        
-                        // Обновляем данные
-                        updateAllPages();
-                        
-                        // Показываем успех
-                        showPage('partner-home');
-                        showNotification('Организация успешно зарегистрирована!', 'success');
-                    }
+                    // Очищаем форму
+                    partnerRegisterForm.reset();
+                    
+                    // Обновляем статус партнёра
+                    updatePartnerStatus();
+                    
+                    // Обновляем данные
+                    updateStats();
+                    
+                    // Показываем успех
+                    showPage('partner-home');
+                    showNotification('Организация успешно зарегистрирована!', 'success');
                     
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
                 });
             }
-        }
-        
-        function initModals() {
-            // Настройка даты и времени для напоминания
-            const dateTimeInput = document.getElementById('reminderDateTime');
-            if (dateTimeInput) {
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                dateTimeInput.min = now.toISOString().slice(0, 16);
-                dateTimeInput.value = now.toISOString().slice(0, 16);
+            
+            // Форма партнёра для добавления питомца
+            const partnerPetForm = document.getElementById('partnerAddPetForm');
+            if (partnerPetForm) {
+                partnerPetForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = [
+                        {id: 'shelterPetType', name: 'Тип животного'},
+                        {id: 'shelterPetName', name: 'Имя питомца'},
+                        {id: 'shelterPetSex', name: 'Пол'},
+                        {id: 'shelterPetAge', name: 'Возраст'},
+                        {id: 'shelterPetDescription', name: 'Описание'},
+                        {id: 'shelterPetStatus', name: 'Статус'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const submitBtn = document.getElementById('submitShelterPetBtn');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
+                    submitBtn.disabled = true;
+                    
+                    const userId = getUserId();
+                    const partner = partners.find(p => p.userId === userId);
+                    
+                    // Обработка тегов
+                    const tagsInput = document.getElementById('shelterPetTags');
+                    const tags = tagsInput.value ? 
+                        tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+                    
+                    const newPet = {
+                        id: 'pet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: userId,
+                        ownerType: 'shelter',
+                        ownerName: partner?.name || 'Организация',
+                        type: document.getElementById('shelterPetType').value,
+                        name: document.getElementById('shelterPetName').value.trim(),
+                        sex: document.getElementById('shelterPetSex').value,
+                        age: document.getElementById('shelterPetAge').value.trim(),
+                        breed: document.getElementById('shelterPetBreed').value.trim() || null,
+                        description: document.getElementById('shelterPetDescription').value.trim(),
+                        specialNeeds: document.getElementById('shelterPetSpecialNeeds').value.trim() || null,
+                        status: document.getElementById('shelterPetStatus').value,
+                        tags: tags,
+                        createdAt: new Date().toISOString(),
+                        views: 0
+                    };
+                    
+                    console.log('📝 Создание нового питомца организации:', newPet);
+                    
+                    // Сохраняем
+                    allPets.unshift(newPet);
+                    saveDataToLocalStorage();
+                    
+                    // Очищаем форму
+                    partnerPetForm.reset();
+                    
+                    // Обновляем статистику
+                    updateStats();
+                    
+                    // Показываем успех
+                    showNotification('Питомец успешно добавлен!', 'success');
+                    
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    // Возвращаем на страницу питомцев
+                    setTimeout(() => showPage('partner-pets'), 1000);
+                });
             }
             
-            // Настройка даты для оффера
-            const offerDateInput = document.getElementById('offerValidUntil');
-            if (offerDateInput) {
-                const now = new Date();
-                now.setDate(now.getDate() + 1);
-                offerDateInput.min = now.toISOString().slice(0, 10);
-                now.setDate(now.getDate() + 30);
-                offerDateInput.value = now.toISOString().slice(0, 10);
+            // Форма заявки
+            const leadForm = document.getElementById('leadForm');
+            if (leadForm) {
+                leadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const requiredFields = [
+                        {id: 'leadName', name: 'Имя'},
+                        {id: 'leadPhone', name: 'Телефон'},
+                        {id: 'leadType', name: 'Цель заявки'}
+                    ];
+                    
+                    for (const field of requiredFields) {
+                        const element = document.getElementById(field.id);
+                        if (!element || !element.value.trim()) {
+                            showNotification(`Заполните обязательное поле: ${field.name}`, 'error');
+                            element?.focus();
+                            return;
+                        }
+                    }
+                    
+                    const newLead = {
+                        id: 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        userId: getUserId(),
+                        userName: document.getElementById('leadName').value.trim(),
+                        userPhone: document.getElementById('leadPhone').value.trim(),
+                        partnerId: document.getElementById('leadPartnerId').value,
+                        petId: document.getElementById('leadPetId').value,
+                        type: document.getElementById('leadType').value,
+                        comment: document.getElementById('leadComment').value.trim() || null,
+                        status: 'new',
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    console.log('📝 Создание новой заявки:', newLead);
+                    
+                    // Сохраняем
+                    leads.unshift(newLead);
+                    saveDataToLocalStorage();
+                    
+                    // Очищаем форму
+                    leadForm.reset();
+                    closeLeadModal();
+                    
+                    // Показываем успех
+                    showNotification('Заявка успешно отправлена!', 'success');
+                    
+                    // Если это партнёрский режим, обновляем список заявок
+                    if (currentMode === 'partner') {
+                        loadPartnerLeads();
+                    }
+                });
             }
         }
         
         // ===== ФУНКЦИИ ЗАГРУЗКИ СТРАНИЦ =====
-        function loadUserHome() {
-            if (isInitialized) {
-                updateRandomPets();
-            }
-            updateStats();
-        }
-        
         function loadUserPets() {
             const container = document.getElementById('userPetsList');
             if (!container) return;
@@ -3258,26 +2240,31 @@
             card.className = 'pet-card';
             card.onclick = () => showPetDetail(pet.id);
             
+            const icon = pet.type === 'cat' ? 'fa-cat' : pet.type === 'dog' ? 'fa-dog' : 'fa-paw';
+            const isFavorite = favorites.includes(pet.id);
+            
             card.innerHTML = `
-                <div class="pet-image">
-                    ${pet.photos && pet.photos.length > 0 ? 
-                        `<img src="${pet.photos[0]}" alt="${pet.name}">` : 
-                        `<i class="fas fa-${pet.type === 'cat' ? 'cat' : pet.type === 'dog' ? 'dog' : 'paw'}"></i>`
-                    }
+                <div class="pet-icon">
+                    <i class="fas ${icon}"></i>
                 </div>
                 <div class="pet-info">
                     <div class="pet-name">${pet.name || 'Без имени'}</div>
                     <div class="pet-details">
                         ${pet.type === 'cat' ? '🐱' : pet.type === 'dog' ? '🐶' : '🐾'} ${pet.age || ''}
                     </div>
-                    <div style="margin-top: 8px;">
+                    <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
                             ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
                         </span>
-                        <span class="status status-${pet.status}" style="float: right;">
+                        <span class="status status-${pet.status}" style="font-size: 10px; padding: 3px 8px;">
                             ${pet.status === 'available' ? 'Ищет дом' : 
                               pet.status === 'reserved' ? 'Забронирован' : 'Пристроен'}
                         </span>
+                    </div>
+                    <div style="margin-top: 8px; text-align: right;">
+                        <button class="btn btn-outline btn-small" style="padding: 4px 8px; font-size: 12px;" onclick="toggleFavorite('${pet.id}', event)">
+                            <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'red' : 'gray'}"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -3319,21 +2306,64 @@
             }
         }
         
-        function refreshAllPets() {
-            const btn = document.getElementById('refreshAllBtn');
-            if (btn) {
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<div class="loader"></div>';
-                btn.disabled = true;
-                
-                loadAllPetsPage();
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
-                    showNotification('Список питомцев обновлен', 'success');
-                }, 500);
+        function loadFavorites() {
+            const container = document.getElementById('favoritesList');
+            if (!container) return;
+            
+            const favoritePets = allPets.filter(pet => favorites.includes(pet.id));
+            
+            container.innerHTML = '';
+            
+            if (favoritePets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                        <i class="fas fa-heart" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет избранных питомцев</h3>
+                        <p class="text-muted">Добавляйте питомцев в избранное, нажимая на сердечко</p>
+                    </div>
+                `;
+            } else {
+                favoritePets.forEach(pet => {
+                    const petCard = createPetCard(pet);
+                    container.appendChild(petCard);
+                });
             }
+        }
+        
+        function toggleFavorite(petId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            const index = favorites.indexOf(petId);
+            if (index === -1) {
+                favorites.push(petId);
+                showNotification('Добавлено в избранное', 'success');
+            } else {
+                favorites.splice(index, 1);
+                showNotification('Удалено из избранного', 'info');
+            }
+            
+            saveDataToLocalStorage();
+            
+            // Обновляем текущую страницу
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                const pageId = activePage.id;
+                if (pageId === 'user-favorites') {
+                    loadFavorites();
+                } else if (pageId === 'user-home') {
+                    updateRandomPets();
+                } else if (pageId === 'all-pets') {
+                    loadAllPetsPage();
+                } else if (pageId === 'user-pets') {
+                    loadUserPets();
+                } else if (pageId === 'partner-pets') {
+                    loadShelterPets();
+                }
+            }
+            
+            updateStats();
         }
         
         function loadSheltersPage() {
@@ -3371,7 +2401,7 @@
                             <div class="shelter-type">${getPartnerTypeName(partner.type)}</div>
                             <div class="shelter-location">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span>${partner.city}, ${partner.address}</span>
+                                <span>${partner.city}${partner.address ? ', ' + partner.address : ''}</span>
                             </div>
                             <div class="shelter-contact">
                                 <i class="fas fa-phone"></i>
@@ -3388,53 +2418,125 @@
             const types = {
                 'shelter': 'Приют для животных',
                 'clinic': 'Ветеринарная клиника',
-                'hotel': 'Гостиница для животных',
-                'grooming': 'Груминг-салон',
-                'store': 'Зоомагазин',
                 'volunteer': 'Волонтёрская организация',
                 'other': 'Другая организация'
             };
             return types[type] || 'Организация';
         }
         
-        // ===== МОДАЛЬНЫЕ ОКНА =====
-        function showReminderModal() {
-            const modal = document.getElementById('reminderModal');
-            if (!modal) return;
+        function loadShelterPets() {
+            const container = document.getElementById('shelterPetsList');
+            if (!container) return;
             
-            // Заполняем список питомцев
-            const petSelect = document.getElementById('reminderPetId');
-            if (petSelect) {
-                petSelect.innerHTML = '<option value="">Выберите питомца</option>';
-                
-                const userId = getUserId();
-                let userPets = [];
-                
-                if (currentMode === 'user') {
-                    userPets = allPets.filter(pet => pet.userId === userId);
-                } else {
-                    userPets = allPets.filter(pet => pet.userId === userId && pet.ownerType === 'shelter');
-                }
-                
-                userPets.forEach(pet => {
-                    const option = document.createElement('option');
-                    option.value = pet.id;
-                    option.textContent = pet.name || 'Без имени';
-                    petSelect.appendChild(option);
+            const userId = getUserId();
+            const shelterPets = allPets.filter(pet => pet.userId === userId && pet.ownerType === 'shelter');
+            
+            container.innerHTML = '';
+            
+            if (shelterPets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 20px;">
+                        <i class="fas fa-paw" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет питомцев в организации</h3>
+                        <p class="text-muted">Добавьте первого питомца!</p>
+                        <button class="btn btn-primary mt-20" onclick="showPage('partner-add-pet')">
+                            <i class="fas fa-plus"></i> Добавить питомца
+                        </button>
+                    </div>
+                `;
+            } else {
+                shelterPets.forEach(pet => {
+                    const petCard = createPetCard(pet);
+                    container.appendChild(petCard);
                 });
             }
-            
-            modal.classList.remove('hidden');
         }
         
-        function closeReminderModal() {
-            const modal = document.getElementById('reminderModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                document.getElementById('addReminderForm').reset();
+        function loadPartnerLeads() {
+            const container = document.getElementById('partnerLeadsList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const partnerLeads = leads.filter(lead => lead.partnerId === userId || 
+                (lead.petId && allPets.find(p => p.id === lead.petId && p.userId === userId)));
+            
+            container.innerHTML = '';
+            
+            if (partnerLeads.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class="fas fa-inbox" style="font-size: 48px; color: var(--primary-light); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
+                        <p class="text-muted">Здесь будут отображаться заявки от пользователей</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            partnerLeads.forEach(lead => {
+                const leadCard = document.createElement('div');
+                leadCard.className = 'shelter-card';
+                
+                const pet = lead.petId ? allPets.find(p => p.id === lead.petId) : null;
+                const leadTypeText = lead.type === 'record' ? 'Запись' : 
+                                     lead.type === 'question' ? 'Вопрос' : 'Усыновление';
+                
+                leadCard.innerHTML = `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">${lead.userName}</div>
+                                <div style="font-size: 14px; color: var(--gray);">${leadTypeText}</div>
+                            </div>
+                            <span class="status status-${lead.status}" style="font-size: 10px; padding: 3px 8px;">
+                                ${lead.status === 'new' ? 'Новая' : 
+                                  lead.status === 'contacted' ? 'Связались' : 
+                                  lead.status === 'done' ? 'Выполнена' : 'Отклонена'}
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <div style="font-size: 14px; color: var(--dark);">
+                                <i class="fas fa-phone"></i> ${lead.userPhone}
+                            </div>
+                            ${pet ? `
+                            <div style="font-size: 14px; color: var(--dark); margin-top: 5px;">
+                                <i class="fas fa-paw"></i> Питомец: ${pet.name}
+                            </div>
+                            ` : ''}
+                            ${lead.comment ? `
+                            <div style="font-size: 14px; color: var(--gray); margin-top: 5px;">
+                                <i class="fas fa-comment"></i> ${lead.comment}
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'contacted')">
+                                <i class="fas fa-check"></i> Связаться
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'done')">
+                                <i class="fas fa-check-double"></i> Выполнено
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'rejected')">
+                                <i class="fas fa-times"></i> Отклонить
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(leadCard);
+            });
+        }
+        
+        function updateLeadStatus(leadId, status) {
+            const leadIndex = leads.findIndex(l => l.id === leadId);
+            if (leadIndex !== -1) {
+                leads[leadIndex].status = status;
+                saveDataToLocalStorage();
+                loadPartnerLeads();
+                showNotification('Статус заявки обновлен', 'success');
             }
         }
         
+        // ===== МОДАЛЬНЫЕ ОКНА =====
         function showLeadModal(partnerId = '', petId = '') {
             const modal = document.getElementById('leadModal');
             if (!modal) return;
@@ -3443,22 +2545,6 @@
             document.getElementById('leadPartnerId').value = partnerId;
             document.getElementById('leadPetId').value = petId;
             document.getElementById('leadName').value = currentUser.name || '';
-            
-            // Заполняем список питомцев пользователя
-            const petSelect = document.getElementById('leadUserPetId');
-            if (petSelect) {
-                petSelect.innerHTML = '<option value="">Выберите питомца</option>';
-                
-                const userId = getUserId();
-                const userPets = allPets.filter(pet => pet.userId === userId);
-                
-                userPets.forEach(pet => {
-                    const option = document.createElement('option');
-                    option.value = pet.id;
-                    option.textContent = pet.name || 'Без имени';
-                    petSelect.appendChild(option);
-                });
-            }
             
             modal.classList.remove('hidden');
         }
@@ -3471,59 +2557,125 @@
             }
         }
         
-        function showOfferModal() {
-            const modal = document.getElementById('offerModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
+        // ===== ДЕТАЛЬНАЯ ИНФОРМАЦИЯ =====
+        function showPetDetail(petId) {
+            const pet = allPets.find(p => p.id === petId);
+            if (!pet) return;
+            
+            const container = document.getElementById('petDetailContent');
+            if (!container) return;
+            
+            const icon = pet.type === 'cat' ? 'fa-cat' : pet.type === 'dog' ? 'fa-dog' : 'fa-paw';
+            const isFavorite = favorites.includes(pet.id);
+            
+            container.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="width: 100px; height: 100px; background: var(--light); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: var(--primary); font-size: 48px;">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <h2 style="color: var(--dark); margin-bottom: 5px;">${pet.name || 'Без имени'}</h2>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                        <span class="badge ${pet.ownerType === 'shelter' ? 'badge-shelter' : 'badge-user'}">
+                            ${pet.ownerType === 'shelter' ? 'Приют' : 'Частное лицо'}
+                        </span>
+                        <span class="status status-${pet.status}">
+                            ${pet.status === 'available' ? 'Ищет дом' : 
+                              pet.status === 'reserved' ? 'Забронирован' : 'Пристроен'}
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: var(--dark); margin-bottom: 10px; font-size: 16px;">
+                        <i class="fas fa-info-circle"></i> Информация
+                    </h3>
+                    <div style="background: var(--light); border-radius: 12px; padding: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-size: 12px; color: var(--gray);">Тип</div>
+                                <div style="font-weight: 600;">${pet.type === 'cat' ? 'Кошка' : pet.type === 'dog' ? 'Собака' : 'Другое'}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: var(--gray);">Пол</div>
+                                <div style="font-weight: 600;">${pet.sex === 'male' ? 'Мальчик' : 'Девочка'}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: var(--gray);">Возраст</div>
+                                <div style="font-weight: 600;">${pet.age || 'Не указан'}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: var(--gray);">Порода</div>
+                                <div style="font-weight: 600;">${pet.breed || 'Не указана'}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 15px;">
+                            <div style="font-size: 12px; color: var(--gray);">Описание</div>
+                            <div style="margin-top: 5px;">${pet.description}</div>
+                        </div>
+                        
+                        ${pet.specialNeeds ? `
+                        <div style="margin-top: 15px;">
+                            <div style="font-size: 12px; color: var(--gray);">Особые потребности</div>
+                            <div style="margin-top: 5px;">${pet.specialNeeds}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${pet.tags && pet.tags.length > 0 ? `
+                        <div style="margin-top: 15px;">
+                            <div style="font-size: 12px; color: var(--gray);">Теги</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                                ${pet.tags.map(tag => `<span style="background: var(--primary-light); color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 12px;">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: var(--dark); margin-bottom: 10px; font-size: 16px;">
+                        <i class="fas fa-map-marker-alt"></i> Контакты
+                    </h3>
+                    <div style="background: var(--light); border-radius: 12px; padding: 15px;">
+                        <div style="margin-bottom: 10px;">
+                            <div style="font-size: 12px; color: var(--gray);">Местоположение</div>
+                            <div style="font-weight: 600;">${pet.location}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--gray);">Контакты для связи</div>
+                            <div style="font-weight: 600;">${pet.contact}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="showLeadModal('${pet.userId}', '${pet.id}')">
+                        <i class="fas fa-paper-plane"></i> Оставить заявку
+                    </button>
+                    <button class="btn ${isFavorite ? 'btn-danger' : 'btn-outline'}" style="width: 50px;" onclick="toggleFavorite('${pet.id}')">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            `;
+            
+            showPage('pet-detail');
         }
         
-        function closeOfferModal() {
-            const modal = document.getElementById('offerModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                document.getElementById('offerForm').reset();
-            }
+        function showShelterDetail(partnerId) {
+            const partner = partners.find(p => p.id === partnerId);
+            if (!partner) return;
+            
+            showLeadModal(partnerId, '');
+            
+            // Можно добавить детальную страницу для приюта в будущем
         }
         
-        // ===== ПРОЧИЕ ФУНКЦИИ =====
         function goBack() {
             if (currentMode === 'user') {
                 showPage('user-home');
             } else {
                 showPage('partner-home');
             }
-        }
-        
-        async function refreshAllData() {
-            const refreshBtn = document.querySelector('.refresh-btn');
-            const originalHTML = refreshBtn.innerHTML;
-            refreshBtn.innerHTML = '<div class="loader"></div>';
-            refreshBtn.classList.add('loading');
-            
-            await loadAllDataFromFirebase();
-            
-            refreshBtn.innerHTML = originalHTML;
-            refreshBtn.classList.remove('loading');
-            showNotification('Все данные обновлены', 'success');
-        }
-        
-        function requestContact() {
-            if (tg && tg.requestContact) {
-                tg.requestContact();
-            } else {
-                showNotification('Функция запроса контакта доступна только в Telegram', 'warning');
-            }
-        }
-        
-        // Настройка проверки напоминаний
-        function setupReminderChecks() {
-            setInterval(checkReminders, 60000);
-            setTimeout(checkReminders, 5000);
-        }
-        
-        function checkReminders() {
-            // Заглушка для напоминаний
         }
         
         // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
