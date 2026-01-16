@@ -1409,11 +1409,7 @@
             favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
             reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
             
-            // Если данных нет, создаем тестовые напоминания (без приютов)
-            if (shelters.length === 0) {
-                createTestData();
-            }
-            
+            // Без тестовых данных - приложения стартуют с чистой БД
             updateStats();
             updatePartnerStatus();
         }
