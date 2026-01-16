@@ -1267,1154 +1267,534 @@
     </div>
 
     <script>
-        // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
-        let tg = window.Telegram.WebApp;
-        let currentMode = localStorage.getItem('futurepet_mode') || 'user';
-        let currentUser = {};
-        let shelters = [];
-        let leads = [];
-        let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
-        let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
-        let lastSyncTime = localStorage.getItem('futurepet_last_sync') || null;
-        let isOnline = true;
-
-        // ===== GOOGLE SHEETS API =====
-        async function saveToGoogleSheets(action, data) {
-            try {
-                console.log('📤 Отправка в Google Sheets:', { action, data });
-                
-                const params = new URLSearchParams();
-                params.append('action', action);
-                params.append('data', JSON.stringify(data));
-                
-                // Важно: для Google Apps Script используем 'no-cors' или настраиваем CORS на сервере
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Используем no-cors для обхода CORS
-                    body: params,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
-                
-                console.log('✅ Данные отправлены в Google Sheets');
-                return true;
-            } catch (error) {
-                console.error('❌ Ошибка отправки в Google Sheets:', error);
-                return false;
-            }
+    // ===== КОНСТАНТЫ =====
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznI4LIOSMHvwYYZVgwsePqWEk0CGN1K3F9qNePi-2Ow1EDvDaSndUEfnssCWNuSqVLnQ/exec';
+    
+    // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+    let shelters = [];
+    let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
+    
+    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+    function showNotification(text, type = 'info') {
+        const notification = document.getElementById('notification');
+        const textElement = document.getElementById('notificationText');
+        
+        const icon = notification.querySelector('i');
+        notification.className = 'notification';
+        
+        if (type === 'success') {
+            icon.className = 'fas fa-check-circle';
+            notification.style.background = 'var(--primary)';
+        } else if (type === 'error') {
+            icon.className = 'fas fa-exclamation-circle';
+            notification.classList.add('error');
+        } else if (type === 'warning') {
+            icon.className = 'fas fa-exclamation-triangle';
+            notification.classList.add('warning');
         }
         
-        async function loadFromGoogleSheets() {
-            try {
-                console.log('📥 Загрузка из Google Sheets...');
-                
-                // Загружаем приюты
-                const sheltersResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_shelters&timestamp=${Date.now()}`);
-                
-                if (!sheltersResponse.ok) {
-                    throw new Error(`HTTP error! status: ${sheltersResponse.status}`);
-                }
-                
-                const sheltersData = await sheltersResponse.json();
-                console.log('✅ Данные приютов загружены:', sheltersData);
-                
-                if (sheltersData && sheltersData.success) {
-                    shelters = sheltersData.data || [];
-                    localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-                }
-                
-                // Загружаем заявки
-                const leadsResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_leads&timestamp=${Date.now()}`);
-                
-                if (leadsResponse.ok) {
-                    const leadsData = await leadsResponse.json();
-                    console.log('✅ Данные заявок загружены:', leadsData);
-                    
-                    if (leadsData && leadsData.success) {
-                        leads = leadsData.data || [];
-                        localStorage.setItem('futurepet_leads', JSON.stringify(leads));
-                    }
-                }
-                
-                // Обновляем время синхронизации
-                lastSyncTime = new Date().toISOString();
-                localStorage.setItem('futurepet_last_sync', lastSyncTime);
-                
+        textElement.textContent = text;
+        notification.classList.remove('hidden');
+        
+        setTimeout(() => {
+            notification.classList.add('hidden');
+        }, 3000);
+    }
+    
+    // ===== GOOGLE SHEETS ФУНКЦИИ =====
+    async function testGoogleScript() {
+        try {
+            console.log('🔍 Тестирую Google Script...');
+            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=test`);
+            const data = await response.json();
+            console.log('✅ Google Script ответил:', data);
+            return data.success === true;
+        } catch (error) {
+            console.error('❌ Google Script не доступен:', error);
+            return false;
+        }
+    }
+    
+    async function loadSheltersFromGoogle() {
+        try {
+            console.log('📥 Загружаю приюты из Google Sheets...');
+            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_shelters`);
+            const data = await response.json();
+            
+            if (data.success && Array.isArray(data.shelters)) {
+                console.log(`✅ Загружено ${data.shelters.length} приютов из Google Sheets`);
+                shelters = data.shelters;
+                localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
                 return true;
-                
-            } catch (error) {
-                console.log('⚠️ Используем локальные данные:', error);
-                // Используем локальные данные как запасной вариант
+            } else {
+                console.warn('⚠️ Нет данных в Google Sheets:', data);
+                // Используем локальные данные
                 shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
-                leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Ошибка загрузки из Google Sheets:', error);
+            // Используем локальные данные
+            shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
+            return false;
+        }
+    }
+    
+    async function saveShelterToGoogle(shelterData) {
+        try {
+            console.log('💾 Сохраняю приют в Google Sheets:', shelterData.name);
+            
+            const params = new URLSearchParams();
+            params.append('action', 'add_shelter');
+            params.append('data', JSON.stringify(shelterData));
+            
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: params
+            });
+            
+            const result = await response.json();
+            console.log('📤 Результат сохранения:', result);
+            
+            if (result.success) {
+                showNotification('Приют сохранен в Google Sheets! Другие пользователи увидят его.', 'success');
+                return true;
+            } else {
+                showNotification('Ошибка сохранения в Google Sheets', 'error');
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Ошибка при сохранении в Google Sheets:', error);
+            showNotification('Не удалось сохранить в Google Sheets', 'warning');
+            return false;
+        }
+    }
+    
+    // ===== ИНИЦИАЛИЗАЦИЯ =====
+    async function initializeApp() {
+        console.log('🚀 Инициализация приложения');
+        
+        try {
+            // Тестируем Google Script
+            const googleWorks = await testGoogleScript();
+            
+            if (googleWorks) {
+                console.log('✅ Google Script доступен');
+                showNotification('Подключено к Google Sheets', 'success');
                 
-                // Добавляем демо-данные если нет
+                // Загружаем данные из Google Sheets
+                await loadSheltersFromGoogle();
+            } else {
+                console.log('⚠️ Google Script не доступен, работаем локально');
+                showNotification('Работаем в офлайн-режиме', 'warning');
+                
+                // Загружаем локальные данные
+                shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
+                
+                // Если нет данных, добавляем демо
                 if (shelters.length === 0) {
                     addDemoShelters();
                 }
-                
-                return false;
-            }
-        }
-        
-        async function syncData() {
-            updateSyncStatus('syncing', 'Синхронизация...');
-            
-            try {
-                await loadFromGoogleSheets();
-                
-                updateSyncStatus(true, 'Данные синхронизированы');
-                showNotification('Данные успешно синхронизированы с сервером', 'success');
-                
-                // Обновляем отображение
-                const activePage = document.querySelector('.page.active');
-                if (activePage) {
-                    const pageId = activePage.id;
-                    if (pageId === 'user-home') {
-                        updateRandomShelters();
-                        updateStats();
-                    } else if (pageId === 'all-shelters') {
-                        loadAllSheltersPage();
-                    } else if (pageId === 'partner-leads') {
-                        loadPartnerLeads();
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Ошибка синхронизации:', error);
-                updateSyncStatus(false, 'Ошибка синхронизации');
-                showNotification('Ошибка синхронизации. Работаем в офлайн-режиме', 'warning');
-            }
-        }
-        
-        function updateSyncStatus(status, message = '') {
-            const indicator = document.getElementById('syncIndicator');
-            const statusText = document.getElementById('syncStatusText');
-            const lastSyncEl = document.getElementById('lastSyncTime');
-            const syncIcon = document.getElementById('syncStatusIcon');
-            const syncMsg = document.getElementById('syncMessage');
-            const lastSyncInfo = document.getElementById('lastSyncInfo');
-            
-            if (indicator) {
-                indicator.className = 'sync-indicator';
-                if (status === true || status === 'synced') {
-                    indicator.classList.add('synced');
-                } else if (status === false || status === 'error') {
-                    indicator.classList.add('error');
-                } else if (status === 'syncing') {
-                    indicator.classList.add('syncing');
-                }
             }
             
-            if (syncIcon) {
-                syncIcon.className = 'sync-indicator';
-                if (status === true || status === 'synced') {
-                    syncIcon.classList.add('synced');
-                } else if (status === false || status === 'error') {
-                    syncIcon.classList.add('error');
-                } else if (status === 'syncing') {
-                    syncIcon.classList.add('syncing');
-                }
-            }
-            
-            if (statusText) statusText.textContent = message;
-            if (syncMsg) syncMsg.textContent = message;
-            
-            if (lastSyncTime) {
-                const syncDate = new Date(lastSyncTime);
-                const timeStr = syncDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                const dateStr = syncDate.toLocaleDateString();
-                
-                if (lastSyncEl) lastSyncEl.textContent = `Обновлено: ${dateStr} ${timeStr}`;
-                if (lastSyncInfo) lastSyncInfo.textContent = `Последняя синхронизация: ${dateStr} ${timeStr}`;
-            }
-        }
-
-        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-        function getUserId() {
-            let userId = localStorage.getItem('futurepet_user_id');
-            if (!userId) {
-                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('futurepet_user_id', userId);
-            }
-            return userId;
-        }
-        
-        function showNotification(text, type = 'info') {
-            const notification = document.getElementById('notification');
-            const textElement = document.getElementById('notificationText');
-            
-            const icon = notification.querySelector('i');
-            notification.className = 'notification';
-            
-            if (type === 'success') {
-                icon.className = 'fas fa-check-circle';
-                notification.style.background = 'var(--primary)';
-            } else if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle';
-                notification.classList.add('error');
-            } else if (type === 'warning') {
-                icon.className = 'fas fa-exclamation-triangle';
-                notification.classList.add('warning');
-            } else {
-                icon.className = 'fas fa-info-circle';
-                notification.style.background = 'var(--secondary)';
-            }
-            
-            textElement.textContent = text;
-            notification.classList.remove('hidden');
-            
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
-        }
-        
-        function addDemoShelters() {
-            const demoShelters = [
-                {
-                    id: 'shelter_demo_1',
-                    userId: 'system',
-                    type: 'shelter',
-                    name: 'Добрые руки',
-                    shortDescription: 'Приют для бездомных собак и кошек. Помогаем животным найти новый дом.',
-                    detailedDescription: 'Наш приют существует с 2010 года. Мы спасаем бездомных животных, лечим их и ищем им новых хозяев. У нас работает команда волонтёров и ветеринаров.',
-                    city: 'Москва',
-                    address: 'ул. Ленина, д. 10',
-                    phone: '+7 (999) 123-45-67',
-                    email: 'info@dobrye-ruki.ru',
-                    website: 'https://dobrye-ruki.ru',
-                    schedule: 'Ежедневно 10:00-18:00',
-                    status: 'approved',
-                    registeredAt: '2024-01-15T10:00:00Z',
-                    views: 0
-                },
-                {
-                    id: 'shelter_demo_2',
-                    userId: 'system',
-                    type: 'clinic',
-                    name: 'ВетКлиника "Айболит"',
-                    shortDescription: 'Ветеринарная клиника с приютом. Оказываем помощь животным.',
-                    detailedDescription: 'Клиника работает круглосуточно. Оказываем все виды ветеринарной помощи. При клинике есть небольшой приют для животных, ожидающих хозяев.',
-                    city: 'Санкт-Петербург',
-                    address: 'пр. Невский, д. 25',
-                    phone: '+7 (812) 345-67-89',
-                    email: 'clinic@aybolit.ru',
-                    website: 'https://aybolit-vet.ru',
-                    schedule: 'Круглосуточно',
-                    status: 'approved',
-                    registeredAt: '2024-02-20T14:30:00Z',
-                    views: 0
-                }
-            ];
-            
-            shelters.push(...demoShelters);
-            localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-        }
-        
-        // ===== ИНИЦИАЛИЗАЦИЯ =====
-        async function initializeApp() {
-            console.log('🚀 Инициализация приложения');
-            
-            try {
-                // Загружаем данные
-                const loadedFromGoogle = await loadFromGoogleSheets();
-                
-                // Инициализация пользователя
-                initializeUser();
-                
-                // Настройка интерфейса
-                updateNavigation();
-                initForms();
-                
-                // Показываем панель синхронизации
-                document.getElementById('syncPanel').style.display = 'flex';
-                
-                // Обновляем статус синхронизации
-                updateSyncStatus(loadedFromGoogle ? true : false, 
-                    loadedFromGoogle ? 'Данные загружены с сервера' : 'Офлайн режим');
-                
-                // Показываем главную страницу
-                showPage('user-home');
-                
-                // Скрываем загрузку
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                
-                console.log('✅ Приложение инициализировано');
-                
-                if (!loadedFromGoogle) {
-                    showNotification('Работаем в офлайн-режиме. Данные загружены локально.', 'warning');
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка инициализации:', error);
-                showNotification('Ошибка загрузки', 'error');
-                document.getElementById('loadingOverlay').classList.add('hidden');
-            }
-        }
-        
-        function initializeUser() {
-            const userId = getUserId();
-            const userName = document.getElementById('userName');
-            const userIdEl = document.getElementById('userId');
-            
-            if (userName) userName.textContent = `Пользователь ${userId.substring(0, 6)}`;
-            if (userIdEl) userIdEl.textContent = `ID: ${userId.substring(0, 15)}...`;
-        }
-        
-        // ===== ОСНОВНЫЕ ФУНКЦИИ =====
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            const page = document.getElementById(pageId);
-            if (page) {
-                page.classList.add('active');
-            }
-            
-            const tab = document.querySelector(`[data-page="${pageId}"]`);
-            if (tab) {
-                tab.classList.add('active');
-            }
-            
-            switch(pageId) {
-                case 'user-home':
-                    updateRandomShelters();
-                    updateStats();
-                    break;
-                case 'user-favorites':
-                    loadFavorites();
-                    break;
-                case 'all-shelters':
-                    loadAllSheltersPage();
-                    break;
-                case 'partner-leads':
-                    loadPartnerLeads();
-                    break;
-            }
-        }
-        
-        function updateNavigation() {
-            const nav = document.getElementById('mainNav');
-            
-            if (currentMode === 'user') {
-                nav.innerHTML = `
-                    <button class="nav-tab active" data-page="user-home">
-                        <i class="fas fa-home"></i> Главная
-                    </button>
-                    <button class="nav-tab" data-page="all-shelters">
-                        <i class="fas fa-hands-helping"></i> Все приюты
-                    </button>
-                    <button class="nav-tab" data-page="user-favorites">
-                        <i class="fas fa-heart"></i> Избранное
-                    </button>
-                    <button class="nav-tab" data-page="user-settings">
-                        <i class="fas fa-cog"></i> Настройки
-                    </button>
-                `;
-            } else {
-                nav.innerHTML = `
-                    <button class="nav-tab active" data-page="partner-home">
-                        <i class="fas fa-store"></i> Кабинет
-                    </button>
-                    <button class="nav-tab" data-page="partner-leads">
-                        <i class="fas fa-inbox"></i> Заявки
-                    </button>
-                    <button class="nav-tab" data-page="partner-settings">
-                        <i class="fas fa-cog"></i> Настройки
-                    </button>
-                `;
-            }
-            
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const pageId = this.dataset.page;
-                    showPage(pageId);
-                });
-            });
-        }
-        
-        function toggleMode() {
-            if (currentMode === 'user') {
-                currentMode = 'partner';
-                document.getElementById('currentModeText').textContent = 'Режим: Партнёр';
-            } else {
-                currentMode = 'user';
-                document.getElementById('currentModeText').textContent = 'Режим: Пользователь';
-            }
-            
-            localStorage.setItem('futurepet_mode', currentMode);
+            // Настройка интерфейса
             updateNavigation();
-            showPage(currentMode === 'user' ? 'user-home' : 'partner-home');
+            initForms();
+            
+            // Показываем главную страницу
+            showPage('user-home');
+            
+            // Скрываем загрузку
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            
+            console.log('✅ Приложение инициализировано');
+            
+        } catch (error) {
+            console.error('❌ Ошибка инициализации:', error);
+            showNotification('Ошибка загрузки приложения', 'error');
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+    }
+    
+    function addDemoShelters() {
+        const demoShelters = [
+            {
+                id: 'demo1',
+                userId: 'system',
+                type: 'shelter',
+                name: 'Демо приют',
+                shortDescription: 'Пример приюта для демонстрации',
+                detailedDescription: 'Это демонстрационный приют',
+                city: 'Москва',
+                address: 'ул. Примерная, 1',
+                phone: '+7 (999) 000-00-00',
+                email: 'demo@example.com',
+                website: '',
+                schedule: 'Пн-Пт 10:00-18:00',
+                status: 'approved',
+                registeredAt: new Date().toISOString(),
+                views: 0
+            }
+        ];
+        
+        shelters = demoShelters;
+        localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
+    }
+    
+    // ===== ОСНОВНЫЕ ФУНКЦИИ =====
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        
+        const page = document.getElementById(pageId);
+        if (page) {
+            page.classList.add('active');
         }
         
-        // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
-        function initForms() {
-            // Счетчик символов для краткого описания
-            const shortDescTextarea = document.getElementById('partnerShortDescription');
-            if (shortDescTextarea) {
-                shortDescTextarea.addEventListener('input', function() {
-                    const counter = document.getElementById('shortDescCounter');
-                    if (counter) {
-                        counter.textContent = this.value.length;
-                    }
-                });
-            }
-            
-            // Форма регистрации приюта
-            const partnerRegisterForm = document.getElementById('partnerRegisterForm');
-            if (partnerRegisterForm) {
-                partnerRegisterForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const userId = getUserId();
-                    const shelterData = {
-                        id: 'shelter_' + Date.now(),
-                        userId: userId,
-                        type: document.getElementById('partnerType').value,
-                        name: document.getElementById('partnerName').value.trim(),
-                        shortDescription: document.getElementById('partnerShortDescription').value.trim(),
-                        detailedDescription: document.getElementById('partnerDetailedDescription').value.trim(),
-                        city: document.getElementById('partnerCity').value,
-                        address: document.getElementById('partnerAddress').value.trim(),
-                        phone: document.getElementById('partnerPhone').value.trim(),
-                        email: document.getElementById('partnerEmail').value.trim() || '',
-                        website: document.getElementById('partnerWebsite').value.trim() || '',
-                        schedule: document.getElementById('partnerSchedule').value.trim() || '',
-                        status: 'approved',
-                        registeredAt: new Date().toISOString(),
-                        views: 0
-                    };
-                    
-                    console.log('💾 Сохранение приюта:', shelterData);
-                    
-                    // Сохраняем локально
-                    shelters.push(shelterData);
-                    localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-                    
-                    // Пробуем сохранить в Google Sheets
-                    const savedToCloud = await saveToGoogleSheets('add_shelter', shelterData);
-                    
-                    if (savedToCloud) {
-                        showNotification('Приют сохранен в Google Sheets! Другие пользователи увидят его.', 'success');
-                    } else {
-                        showNotification('Приют сохранен локально (работаем офлайн)', 'info');
-                    }
-                    
-                    // Очищаем форму
-                    partnerRegisterForm.reset();
-                    
-                    // Показываем кабинет партнёра
-                    showPage('partner-home');
-                    
-                    // Обновляем статус
-                    updatePartnerStatus();
-                    updateStats();
-                });
-            }
-            
-            // Форма заявки
-            const leadForm = document.getElementById('leadForm');
-            if (leadForm) {
-                leadForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const leadData = {
-                        id: 'lead_' + Date.now(),
-                        userId: getUserId(),
-                        userName: document.getElementById('leadName').value.trim(),
-                        userPhone: document.getElementById('leadPhone').value.trim(),
-                        partnerId: document.getElementById('leadPartnerId').value,
-                        type: document.getElementById('leadType').value,
-                        date: document.getElementById('leadDate').value || '',
-                        comment: document.getElementById('leadComment').value.trim() || '',
-                        status: 'new',
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    // Сохраняем локально
-                    leads.push(leadData);
-                    localStorage.setItem('futurepet_leads', JSON.stringify(leads));
-                    
-                    // Пробуем сохранить в Google Sheets
-                    await saveToGoogleSheets('add_lead', leadData);
-                    
-                    showNotification('Заявка отправлена!', 'success');
-                    closeLeadModal();
-                    
-                    updateStats();
-                });
-            }
-        }
-        
-        // ===== ФУНКЦИИ ОТОБРАЖЕНИЯ =====
-        function updateRandomShelters() {
-            const container = document.getElementById('randomSheltersContainer');
-            if (!container) return;
-            
-            const approvedShelters = shelters.filter(s => s.status === 'approved');
-            
-            if (approvedShelters.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-home empty-state-icon"></i>
-                        <p class="text-muted">Пока нет зарегистрированных приютов</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Показываем случайные 2 приюта
-            let randomShelters = [];
-            if (approvedShelters.length <= 2) {
-                randomShelters = [...approvedShelters];
-            } else {
-                const shuffled = [...approvedShelters].sort(() => 0.5 - Math.random());
-                randomShelters = shuffled.slice(0, 2);
-            }
-            
-            container.innerHTML = '';
-            randomShelters.forEach(shelter => {
-                const card = document.createElement('div');
-                card.className = 'shelter-card';
-                card.onclick = () => showShelterDetail(shelter.id);
-                
-                card.innerHTML = `
-                    <div style="display: flex; align-items: center;">
-                        <div class="shelter-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="shelter-info">
-                            <div class="shelter-name">${shelter.name}</div>
-                            <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
-                            <div class="shelter-short-info">${shelter.shortDescription}</div>
-                            <div class="shelter-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${shelter.city}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-        
-        function loadAllSheltersPage() {
-            const container = document.getElementById('allSheltersList');
-            if (!container) return;
-            
-            const approvedShelters = shelters.filter(s => s.status === 'approved');
-            
-            container.innerHTML = '';
-            
-            if (approvedShelters.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-home empty-state-icon"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет приютов</h3>
-                        <p class="text-muted">Будьте первым, кто зарегистрирует приют!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            approvedShelters.forEach(shelter => {
-                const card = document.createElement('div');
-                card.className = 'shelter-card';
-                card.onclick = () => showShelterDetail(shelter.id);
-                
-                const isFavorite = favoriteShelters.includes(shelter.id);
-                
-                card.innerHTML = `
-                    <div style="display: flex; align-items: center;">
-                        <div class="shelter-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="shelter-info">
-                            <div class="shelter-name">${shelter.name}</div>
-                            <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
-                            <div class="shelter-short-info">${shelter.shortDescription}</div>
-                            <div class="shelter-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${shelter.city}</span>
-                            </div>
-                        </div>
-                        <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
-                            <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-        
-        function getShelterTypeName(type) {
-            const types = {
-                'shelter': 'Приют для животных',
-                'clinic': 'Ветеринарная клиника',
-                'volunteer': 'Волонтёрская организация',
-                'other': 'Другая организация'
-            };
-            return types[type] || 'Организация';
-        }
-        
-        function updatePartnerStatus() {
-            const userId = getUserId();
-            const partnerShelter = shelters.find(s => s.userId === userId);
-            
-            const statusPanel = document.getElementById('partnerStatusPanel');
-            const partnerLeadsBtn = document.getElementById('partnerLeadsBtn');
-            
-            if (partnerShelter) {
-                if (statusPanel) {
-                    statusPanel.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="width: 50px; height: 50px; background: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">${partnerShelter.name}</div>
-                                <div style="font-size: 14px; color: var(--gray);">${getShelterTypeName(partnerShelter.type)}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                if (partnerLeadsBtn) partnerLeadsBtn.disabled = false;
-            }
-        }
-        
-        function updateStats() {
-            const userStats = document.getElementById('userStats');
-            if (userStats) {
-                const approvedShelters = shelters.filter(s => s.status === 'approved');
-                const userLeads = leads.filter(l => l.userId === getUserId()).length;
-                
-                userStats.innerHTML = `
-                    <div class="list-item">
-                        <i class="fas fa-hands-helping" style="color: var(--primary);"></i>
-                        <span>Приютов на платформе: <strong>${approvedShelters.length}</strong></span>
-                    </div>
-                    <div class="list-item">
-                        <i class="fas fa-heart" style="color: var(--danger);"></i>
-                        <span>Избранных приютов: <strong>${favoriteShelters.length}</strong></span>
-                    </div>
-                    <div class="list-item">
-                        <i class="fas fa-paper-plane" style="color: var(--secondary);"></i>
-                        <span>Ваших заявок: <strong>${userLeads}</strong></span>
-                    </div>
-                `;
-            }
-            
-            // Статистика для партнёра
-            const shelterLeadCount = document.getElementById('shelterLeadCount');
-            const shelterNewLeadsCount = document.getElementById('shelterNewLeadsCount');
-            
-            if (shelterLeadCount || shelterNewLeadsCount) {
-                const userId = getUserId();
-                const partnerShelter = shelters.find(s => s.userId === userId);
-                if (partnerShelter) {
-                    const shelterLeads = leads.filter(l => l.partnerId === partnerShelter.id);
-                    const newLeads = shelterLeads.filter(l => l.status === 'new').length;
-                    
-                    if (shelterLeadCount) shelterLeadCount.textContent = shelterLeads.length;
-                    if (shelterNewLeadsCount) shelterNewLeadsCount.textContent = newLeads;
-                }
-            }
-        }
-        
-        function loadFavorites() {
-            const container = document.getElementById('favoritesList');
-            if (!container) return;
-            
-            const favoriteSheltersList = shelters.filter(s => favoriteShelters.includes(s.id));
-            
-            container.innerHTML = '';
-            
-            if (favoriteSheltersList.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-heart empty-state-icon"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет избранных приютов</h3>
-                        <p class="text-muted">Добавляйте приюты в избранное, нажимая на сердечко</p>
-                    </div>
-                `;
-            } else {
-                favoriteSheltersList.forEach(shelter => {
-                    const card = document.createElement('div');
-                    card.className = 'shelter-card';
-                    card.onclick = () => showShelterDetail(shelter.id);
-                    
-                    const isFavorite = favoriteShelters.includes(shelter.id);
-                    
-                    card.innerHTML = `
-                        <div style="display: flex; align-items: center;">
-                            <div class="shelter-icon">
-                                <i class="fas fa-home"></i>
-                            </div>
-                            <div class="shelter-info">
-                                <div class="shelter-name">${shelter.name}</div>
-                                <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
-                                <div class="shelter-short-info">${shelter.shortDescription}</div>
-                                <div class="shelter-location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>${shelter.city}</span>
-                                </div>
-                            </div>
-                            <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
-                                <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            }
-        }
-        
-        function toggleFavoriteShelter(shelterId, event) {
-            if (event) {
-                event.stopPropagation();
-            }
-            
-            const index = favoriteShelters.indexOf(shelterId);
-            if (index === -1) {
-                favoriteShelters.push(shelterId);
-                showNotification('Добавлено в избранное', 'success');
-            } else {
-                favoriteShelters.splice(index, 1);
-                showNotification('Удалено из избранного', 'info');
-            }
-            
-            localStorage.setItem('futurepet_favorite_shelters', JSON.stringify(favoriteShelters));
-            
-            if (document.getElementById('user-favorites').classList.contains('active')) {
-                loadFavorites();
-            }
-            
-            updateStats();
-        }
-        
-        function searchShelters() {
-            const searchInput = document.getElementById('shelterSearchInput');
-            const container = document.getElementById('allSheltersList');
-            
-            if (!searchInput || !container) return;
-            
-            const searchTerm = searchInput.value.toLowerCase();
-            const approvedShelters = shelters.filter(s => s.status === 'approved');
-            
-            if (!searchTerm) {
-                loadAllSheltersPage();
-                return;
-            }
-            
-            const filteredShelters = approvedShelters.filter(shelter => 
-                shelter.name.toLowerCase().includes(searchTerm) ||
-                shelter.city.toLowerCase().includes(searchTerm) ||
-                shelter.shortDescription.toLowerCase().includes(searchTerm) ||
-                getShelterTypeName(shelter.type).toLowerCase().includes(searchTerm)
-            );
-            
-            container.innerHTML = '';
-            
-            if (filteredShelters.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search empty-state-icon"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Ничего не найдено</h3>
-                        <p class="text-muted">Попробуйте изменить поисковый запрос</p>
-                    </div>
-                `;
-            } else {
-                filteredShelters.forEach(shelter => {
-                    const card = document.createElement('div');
-                    card.className = 'shelter-card';
-                    card.onclick = () => showShelterDetail(shelter.id);
-                    
-                    const isFavorite = favoriteShelters.includes(shelter.id);
-                    
-                    card.innerHTML = `
-                        <div style="display: flex; align-items: center;">
-                            <div class="shelter-icon">
-                                <i class="fas fa-home"></i>
-                            </div>
-                            <div class="shelter-info">
-                                <div class="shelter-name">${shelter.name}</div>
-                                <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
-                                <div class="shelter-short-info">${shelter.shortDescription}</div>
-                                <div class="shelter-location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>${shelter.city}</span>
-                                </div>
-                            </div>
-                            <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
-                                <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            }
-        }
-        
-        function loadPartnerLeads() {
-            const container = document.getElementById('partnerLeadsList');
-            if (!container) return;
-            
-            const userId = getUserId();
-            const partnerShelter = shelters.find(s => s.userId === userId);
-            
-            if (!partnerShelter) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox empty-state-icon"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет приюта</h3>
-                        <p class="text-muted">Зарегистрируйте приют для получения заявок</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const shelterLeads = leads.filter(lead => lead.partnerId === partnerShelter.id);
-            
-            container.innerHTML = '';
-            
-            if (shelterLeads.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox empty-state-icon"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет заявок</h3>
-                        <p class="text-muted">Здесь будут отображаться заявки от пользователей</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            shelterLeads.forEach(lead => {
-                const leadCard = document.createElement('div');
-                leadCard.className = 'shelter-card';
-                
-                const leadTypeText = {
-                    'visit': 'Посетить приют',
-                    'adopt': 'Забрать животное',
-                    'volunteer': 'Стать волонтёром',
-                    'other': 'Другое'
-                }[lead.type] || lead.type;
-                
-                leadCard.innerHTML = `
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">${lead.userName}</div>
-                                <div style="font-size: 14px; color: var(--gray);">${leadTypeText}</div>
-                            </div>
-                            <span class="status status-${lead.status}" style="font-size: 10px; padding: 3px 8px;">
-                                ${lead.status === 'new' ? 'Новая' : 
-                                  lead.status === 'contacted' ? 'Связались' : 
-                                  lead.status === 'done' ? 'Выполнена' : 'Отклонена'}
-                            </span>
-                        </div>
-                        <div style="margin-bottom: 10px;">
-                            <div style="font-size: 14px; color: var(--dark);">
-                                <i class="fas fa-phone"></i> ${lead.userPhone}
-                            </div>
-                            ${lead.date ? `
-                            <div style="font-size: 14px; color: var(--dark); margin-top: 5px;">
-                                <i class="fas fa-calendar"></i> Дата: ${new Date(lead.date).toLocaleDateString()}
-                            </div>
-                            ` : ''}
-                            ${lead.comment ? `
-                            <div style="font-size: 14px; color: var(--gray); margin-top: 5px;">
-                                <i class="fas fa-comment"></i> ${lead.comment}
-                            </div>
-                            ` : ''}
-                            <div style="font-size: 12px; color: var(--gray); margin-top: 5px;">
-                                <i class="fas fa-clock"></i> ${new Date(lead.createdAt).toLocaleString()}
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'contacted')">
-                                <i class="fas fa-check"></i> Связаться
-                            </button>
-                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'done')">
-                                <i class="fas fa-check-double"></i> Выполнено
-                            </button>
-                            <button class="btn btn-outline btn-small" onclick="updateLeadStatus('${lead.id}', 'rejected')">
-                                <i class="fas fa-times"></i> Отклонить
-                            </button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(leadCard);
-            });
-        }
-        
-        function updateLeadStatus(leadId, status) {
-            const leadIndex = leads.findIndex(l => l.id === leadId);
-            if (leadIndex !== -1) {
-                leads[leadIndex].status = status;
-                localStorage.setItem('futurepet_leads', JSON.stringify(leads));
-                
-                // Также пытаемся обновить на сервере
-                saveToGoogleSheets('update_lead', { id: leadId, status: status });
-                
-                loadPartnerLeads();
-                updateStats();
-                showNotification('Статус заявки обновлен', 'success');
-            }
-        }
-        
-        function refreshRandomShelters() {
-            const btn = document.getElementById('refreshRandomBtn');
-            if (btn) {
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<div class="loader"></div>';
-                btn.disabled = true;
-                
+        switch(pageId) {
+            case 'user-home':
                 updateRandomShelters();
+                updateStats();
+                break;
+            case 'all-shelters':
+                loadAllSheltersPage();
+                break;
+        }
+    }
+    
+    function updateNavigation() {
+        document.getElementById('mainNav').innerHTML = `
+            <button class="nav-tab active" onclick="showPage('user-home')">
+                <i class="fas fa-home"></i> Главная
+            </button>
+            <button class="nav-tab" onclick="showPage('all-shelters')">
+                <i class="fas fa-hands-helping"></i> Все приюты
+            </button>
+            <button class="nav-tab" onclick="showPage('user-favorites')">
+                <i class="fas fa-heart"></i> Избранное
+            </button>
+        `;
+    }
+    
+    // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
+    function initForms() {
+        // Форма регистрации приюта
+        const partnerRegisterForm = document.getElementById('partnerRegisterForm');
+        if (partnerRegisterForm) {
+            partnerRegisterForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
-                    showNotification('Случайные приюты обновлены', 'success');
-                }, 500);
-            }
-        }
-        
-        // ===== ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О ПРИЮТЕ =====
-        function showShelterDetail(shelterId) {
-            const shelter = shelters.find(s => s.id === shelterId);
-            if (!shelter) return;
-            
-            const container = document.getElementById('shelterDetailContent');
-            if (!container) return;
-            
-            const isFavorite = favoriteShelters.includes(shelter.id);
-            
-            // Увеличиваем счетчик просмотров
-            shelter.views = (shelter.views || 0) + 1;
-            localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-            
-            container.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="width: 100px; height: 100px; background: var(--light); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: var(--primary); font-size: 48px;">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h2 style="color: var(--dark); margin-bottom: 5px;">${shelter.name}</h2>
-                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
-                        <span class="badge badge-shelter">
-                            ${getShelterTypeName(shelter.type)}
-                        </span>
-                        <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}')">
-                            <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
-                        </button>
-                    </div>
-                </div>
+                const name = document.getElementById('partnerName').value.trim();
+                const city = document.getElementById('partnerCity').value.trim();
+                const phone = document.getElementById('partnerPhone').value.trim();
                 
-                <div class="shelter-detail-card">
-                    <div class="shelter-detail-section">
-                        <h3><i class="fas fa-info-circle"></i> Краткая информация</h3>
-                        <div class="shelter-detail-content">
-                            ${shelter.shortDescription}
-                        </div>
-                    </div>
-                    
-                    <div class="shelter-detail-section">
-                        <h3><i class="fas fa-file-alt"></i> Подробная информация</h3>
-                        <div class="shelter-detail-content" style="white-space: pre-line;">
-                            ${shelter.detailedDescription}
-                        </div>
-                    </div>
-                    
-                    <div class="shelter-detail-section">
-                        <h3><i class="fas fa-map-marker-alt"></i> Контакты и расположение</h3>
-                        <div class="shelter-detail-content">
-                            <div style="margin-bottom: 10px;">
-                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
-                                    <i class="fas fa-city"></i> Город
-                                </div>
-                                <div>${shelter.city}</div>
-                            </div>
-                            
-                            <div style="margin-bottom: 10px;">
-                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
-                                    <i class="fas fa-map-pin"></i> Адрес
-                                </div>
-                                <div>${shelter.address}</div>
-                            </div>
-                            
-                            <div style="margin-bottom: 10px;">
-                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
-                                    <i class="fas fa-phone"></i> Телефон
-                                </div>
-                                <div>${shelter.phone}</div>
-                            </div>
-                            
-                            ${shelter.email ? `
-                            <div style="margin-bottom: 10px;">
-                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
-                                    <i class="fas fa-envelope"></i> Email
-                                </div>
-                                <div>${shelter.email}</div>
-                            </div>
-                            ` : ''}
-                            
-                            ${shelter.website ? `
-                            <div style="margin-bottom: 10px;">
-                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
-                                    <i class="fas fa-globe"></i> Сайт
-                                </div>
-                                <div><a href="${shelter.website}" target="_blank">${shelter.website}</a></div>
-                            </div>
-                            ` : ''}
-                            
-                            ${shelter.schedule ? `
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
-                                    <i class="fas fa-clock"></i> График работы
-                                </div>
-                                <div>${shelter.schedule}</div>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; display: flex; gap: 10px;">
-                        <button class="btn btn-primary" style="flex: 1;" onclick="showLeadModal('${shelter.id}')">
-                            <i class="fas fa-paper-plane"></i> Оставить заявку
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            showPage('shelter-detail');
-        }
-        
-        function goBack() {
-            if (currentMode === 'user') {
-                showPage('all-shelters');
-            } else {
-                showPage('partner-home');
-            }
-        }
-        
-        // ===== МОДАЛЬНЫЕ ОКНА =====
-        function showLeadModal(partnerId = '') {
-            const modal = document.getElementById('leadModal');
-            if (!modal) return;
-            
-            document.getElementById('leadPartnerId').value = partnerId;
-            modal.classList.remove('hidden');
-        }
-        
-        function closeLeadModal() {
-            const modal = document.getElementById('leadModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                document.getElementById('leadForm').reset();
-            }
-        }
-        
-        // ===== ЭКСПОРТ/ИМПОРТ ДАННЫХ =====
-        function exportData() {
-            const data = {
-                shelters: shelters,
-                leads: leads,
-                favoriteShelters: favoriteShelters,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `shelters_backup_${new Date().toISOString().slice(0,10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('Данные экспортированы', 'success');
-        }
-        
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            
-            input.onchange = function(event) {
-                const file = event.target.files[0];
-                const reader = new FileReader();
+                if (!name || !city || !phone) {
+                    showNotification('Заполните обязательные поля', 'error');
+                    return;
+                }
                 
-                reader.onload = function(e) {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        
-                        if (confirm(`Импортировать данные? Это перезапишет текущие данные.`)) {
-                            if (data.shelters) {
-                                shelters = data.shelters;
-                                localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-                            }
-                            
-                            if (data.leads) {
-                                leads = data.leads;
-                                localStorage.setItem('futurepet_leads', JSON.stringify(leads));
-                            }
-                            
-                            if (data.favoriteShelters) {
-                                favoriteShelters = data.favoriteShelters;
-                                localStorage.setItem('futurepet_favorite_shelters', JSON.stringify(favoriteShelters));
-                            }
-                            
-                            showNotification('Данные импортированы', 'success');
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        }
-                    } catch (error) {
-                        showNotification('Ошибка импорта данных', 'error');
-                        console.error('Import error:', error);
-                    }
+                const shelterData = {
+                    id: 'shelter_' + Date.now(),
+                    userId: 'user_' + Date.now(),
+                    type: document.getElementById('partnerType').value,
+                    name: name,
+                    shortDescription: document.getElementById('partnerShortDescription').value.trim(),
+                    detailedDescription: document.getElementById('partnerDetailedDescription').value.trim(),
+                    city: city,
+                    address: document.getElementById('partnerAddress').value.trim(),
+                    phone: phone,
+                    email: document.getElementById('partnerEmail').value.trim() || '',
+                    website: document.getElementById('partnerWebsite').value.trim() || '',
+                    schedule: document.getElementById('partnerSchedule').value.trim() || '',
+                    status: 'approved',
+                    registeredAt: new Date().toISOString(),
+                    views: 0
                 };
                 
-                reader.readAsText(file);
-            };
+                console.log('💾 Сохраняю приют:', shelterData);
+                
+                // 1. Сохраняем локально
+                shelters.push(shelterData);
+                localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
+                
+                // 2. Пробуем сохранить в Google Sheets
+                const savedToGoogle = await saveShelterToGoogle(shelterData);
+                
+                if (!savedToGoogle) {
+                    // Если не сохранилось в Google, сохраняем локально
+                    showNotification('Приют сохранен локально (офлайн)', 'warning');
+                }
+                
+                // Очищаем форму
+                partnerRegisterForm.reset();
+                
+                // Показываем уведомление
+                showNotification(`Приют "${name}" сохранен!`, 'success');
+                
+                // Обновляем интерфейс
+                showPage('user-home');
+            });
+        }
+        
+        // Форма заявки
+        const leadForm = document.getElementById('leadForm');
+        if (leadForm) {
+            leadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const leadData = {
+                    id: 'lead_' + Date.now(),
+                    userId: 'user_' + Date.now(),
+                    userName: document.getElementById('leadName').value.trim(),
+                    userPhone: document.getElementById('leadPhone').value.trim(),
+                    partnerId: document.getElementById('leadPartnerId').value,
+                    type: document.getElementById('leadType').value,
+                    date: document.getElementById('leadDate').value || '',
+                    comment: document.getElementById('leadComment').value.trim() || '',
+                    status: 'new',
+                    createdAt: new Date().toISOString()
+                };
+                
+                console.log('📝 Сохраняю заявку:', leadData);
+                showNotification('Заявка отправлена!', 'success');
+                closeLeadModal();
+            });
+        }
+    }
+    
+    // ===== ФУНКЦИИ ОТОБРАЖЕНИЯ =====
+    function updateRandomShelters() {
+        const container = document.getElementById('randomSheltersContainer');
+        if (!container) return;
+        
+        if (shelters.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-home empty-state-icon"></i>
+                    <p class="text-muted">Пока нет приютов</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const recentShelters = [...shelters].slice(-3).reverse();
+        
+        container.innerHTML = '';
+        recentShelters.forEach(shelter => {
+            const isFavorite = favoriteShelters.includes(shelter.id);
+            const card = createShelterCard(shelter, isFavorite);
+            container.appendChild(card);
+        });
+    }
+    
+    function loadAllSheltersPage() {
+        const container = document.getElementById('allSheltersList');
+        if (!container) return;
+        
+        if (shelters.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-home empty-state-icon"></i>
+                    <h3>Нет приютов</h3>
+                    <p class="text-muted">Зарегистрируйте первый приют!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = '';
+        shelters.forEach(shelter => {
+            const isFavorite = favoriteShelters.includes(shelter.id);
+            const card = createShelterCard(shelter, isFavorite);
+            container.appendChild(card);
+        });
+    }
+    
+    function createShelterCard(shelter, isFavorite) {
+        const card = document.createElement('div');
+        card.className = 'shelter-card';
+        card.onclick = () => showShelterDetail(shelter);
+        
+        card.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                <div class="shelter-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="shelter-info">
+                    <div class="shelter-name">${shelter.name}</div>
+                    <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
+                    <div class="shelter-short-info">${shelter.shortDescription || ''}</div>
+                    <div class="shelter-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${shelter.city}</span>
+                    </div>
+                </div>
+                <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
+                    <i class="fas fa-heart" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
+                </button>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    function getShelterTypeName(type) {
+        const types = {
+            'shelter': 'Приют для животных',
+            'clinic': 'Ветеринарная клиника',
+            'volunteer': 'Волонтёрская организация',
+            'other': 'Другое'
+        };
+        return types[type] || 'Приют';
+    }
+    
+    function updateStats() {
+        const userStats = document.getElementById('userStats');
+        if (userStats) {
+            userStats.innerHTML = `
+                <div class="list-item">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>Приютов: <strong>${shelters.length}</strong></span>
+                </div>
+                <div class="list-item">
+                    <i class="fas fa-heart"></i>
+                    <span>Избранных: <strong>${favoriteShelters.length}</strong></span>
+                </div>
+            `;
+        }
+    }
+    
+    function showShelterDetail(shelter) {
+        const container = document.getElementById('shelterDetailContent');
+        if (!container) return;
+        
+        const isFavorite = favoriteShelters.includes(shelter.id);
+        
+        container.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div class="shelter-icon" style="width: 100px; height: 100px; margin: 0 auto 15px;">
+                    <i class="fas fa-home" style="font-size: 48px;"></i>
+                </div>
+                <h2>${shelter.name}</h2>
+                <div style="margin-bottom: 15px;">
+                    <span class="badge badge-shelter">${getShelterTypeName(shelter.type)}</span>
+                    <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}')">
+                        <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
+                    </button>
+                </div>
+            </div>
             
-            input.click();
+            <div class="shelter-detail-card">
+                <div class="shelter-detail-section">
+                    <h3><i class="fas fa-info-circle"></i> Описание</h3>
+                    <div class="shelter-detail-content">
+                        ${shelter.detailedDescription || shelter.shortDescription || 'Нет описания'}
+                    </div>
+                </div>
+                
+                <div class="shelter-detail-section">
+                    <h3><i class="fas fa-map-marker-alt"></i> Контакты</h3>
+                    <div class="shelter-detail-content">
+                        <p><strong><i class="fas fa-city"></i> Город:</strong> ${shelter.city}</p>
+                        <p><strong><i class="fas fa-map-pin"></i> Адрес:</strong> ${shelter.address || 'Не указан'}</p>
+                        <p><strong><i class="fas fa-phone"></i> Телефон:</strong> ${shelter.phone}</p>
+                        ${shelter.email ? `<p><strong><i class="fas fa-envelope"></i> Email:</strong> ${shelter.email}</p>` : ''}
+                        ${shelter.website ? `<p><strong><i class="fas fa-globe"></i> Сайт:</strong> <a href="${shelter.website}" target="_blank">${shelter.website}</a></p>` : ''}
+                        ${shelter.schedule ? `<p><strong><i class="fas fa-clock"></i> График:</strong> ${shelter.schedule}</p>` : ''}
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary mt-20" onclick="showLeadModal('${shelter.id}')">
+                    <i class="fas fa-paper-plane"></i> Оставить заявку
+                </button>
+            </div>
+        `;
+        
+        showPage('shelter-detail');
+    }
+    
+    function toggleFavoriteShelter(shelterId, event) {
+        if (event) event.stopPropagation();
+        
+        const index = favoriteShelters.indexOf(shelterId);
+        if (index === -1) {
+            favoriteShelters.push(shelterId);
+            showNotification('Добавлено в избранное', 'success');
+        } else {
+            favoriteShelters.splice(index, 1);
+            showNotification('Удалено из избранного', 'info');
         }
         
-        function clearLocalData() {
-            if (confirm('Вы уверены, что хотите очистить все локальные данные?')) {
-                localStorage.removeItem('futurepet_shelters');
-                localStorage.removeItem('futurepet_leads');
-                localStorage.removeItem('futurepet_favorite_shelters');
-                localStorage.removeItem('futurepet_user');
-                localStorage.removeItem('futurepet_user_id');
-                localStorage.removeItem('futurepet_mode');
-                localStorage.removeItem('futurepet_last_sync');
-                
-                shelters = [];
-                leads = [];
-                favoriteShelters = [];
-                
-                showNotification('Данные очищены', 'success');
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            }
+        localStorage.setItem('futurepet_favorite_shelters', JSON.stringify(favoriteShelters));
+        
+        if (document.querySelector('.page.active').id === 'all-shelters') {
+            loadAllSheltersPage();
         }
         
-        // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        updateStats();
+    }
+    
+    function showLeadModal(partnerId) {
+        document.getElementById('leadPartnerId').value = partnerId;
+        document.getElementById('leadModal').classList.remove('hidden');
+    }
+    
+    function closeLeadModal() {
+        document.getElementById('leadModal').classList.add('hidden');
+        document.getElementById('leadForm').reset();
+    }
+    
+    function goBack() {
+        showPage('all-shelters');
+    }
+    
+    function refreshRandomShelters() {
+        updateRandomShelters();
+        showNotification('Список обновлен', 'success');
+    }
+    
+    function searchShelters() {
+        const searchInput = document.getElementById('shelterSearchInput');
+        const container = document.getElementById('allSheltersList');
         
-        console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
-        console.log('📊 Используется Google Sheets API для хранения данных');
-    </script>
+        if (!searchInput || !container) return;
+        
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        if (!searchTerm) {
+            loadAllSheltersPage();
+            return;
+        }
+        
+        const filtered = shelters.filter(s => 
+            s.name.toLowerCase().includes(searchTerm) ||
+            s.city.toLowerCase().includes(searchTerm) ||
+            (s.shortDescription && s.shortDescription.toLowerCase().includes(searchTerm))
+        );
+        
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search empty-state-icon"></i>
+                    <h3>Ничего не найдено</h3>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+            filtered.forEach(shelter => {
+                const isFavorite = favoriteShelters.includes(shelter.id);
+                const card = createShelterCard(shelter, isFavorite);
+                container.appendChild(card);
+            });
+        }
+    }
+    
+    // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🐾 Приложение запускается...');
+        initializeApp();
+    });
+</script>
 </body>
 </html>
