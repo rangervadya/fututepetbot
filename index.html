@@ -8,6 +8,9 @@
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -1196,12 +1199,16 @@
                         <p style="font-size: 14px; color: var(--gray);">
                             "Твой Будущий Питомец" - сервис для помощи животным.<br>
                             Версия 4.0.0 (работа с приютами)<br>
-                            Для работы приложения нужно настроить Supabase.
+                            <span id="databaseStatus">База данных: Загрузка...</span>
                         </p>
                     </div>
                     
                     <button class="btn btn-outline mt-20" onclick="showPage('setup-instructions')">
                         <i class="fas fa-cog"></i> Инструкция по настройке
+                    </button>
+                    
+                    <button class="btn btn-outline mt-20" onclick="syncWithSupabase()" id="syncButton">
+                        <i class="fas fa-sync"></i> Синхронизировать с Supabase
                     </button>
                     
                     <button class="btn btn-outline mt-20" onclick="clearLocalData()">
@@ -1241,7 +1248,7 @@
                     <p style="margin-bottom: 10px;">В левом меню выберите <strong>SQL Editor → New query</strong> и выполните этот код:</p>
                     
                     <pre style="background: var(--light); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; margin-bottom: 20px;">
-CREATE TABLE shelters (
+CREATE TABLE IF NOT EXISTS shelters (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
   type TEXT NOT NULL,
@@ -1260,7 +1267,7 @@ CREATE TABLE shelters (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE leads (
+CREATE TABLE IF NOT EXISTS leads (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
   user_name TEXT NOT NULL,
@@ -1273,15 +1280,25 @@ CREATE TABLE leads (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Включите RLS
+-- Включаем RLS
 ALTER TABLE shelters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 
--- Настройте политики доступа
-CREATE POLICY "Anyone can view shelters" ON shelters FOR SELECT USING (true);
-CREATE POLICY "Anyone can insert shelters" ON shelters FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can view leads" ON leads FOR SELECT USING (true);
-CREATE POLICY "Anyone can insert leads" ON leads FOR INSERT WITH CHECK (true);</pre>
+-- Настраиваем политики доступа
+CREATE POLICY "Allow public access to shelters" ON shelters
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public to insert shelters" ON shelters
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public to update own shelters" ON shelters
+  FOR UPDATE USING (auth.uid()::text = user_id);
+
+CREATE POLICY "Allow public access to leads" ON leads
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public to insert leads" ON leads
+  FOR INSERT WITH CHECK (true);</pre>
                     
                     <h3 style="color: var(--dark); margin: 20px 0 10px;">Шаг 3: Получите ключи</h3>
                     <ol style="margin-left: 20px; margin-bottom: 20px;">
@@ -1314,9 +1331,8 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
 
     <script>
         // ===== НАСТРОЙКИ SUPABASE =====
-        // ⚠️ ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ!
-        const SUPABASE_URL = 'https://azodayrofbzbdzedaurf.supabase.co';  // Project URL из настроек Supabase
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6b2RheXJvZmJ6YmR6ZWRhdXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzUzODMsImV4cCI6MjA4NDIxMTM4M30.EBIjD3G9023-BPVtqPKBMzkchlmoL8LH7aCxh5q3mhA';         // anon public ключ (НЕ secret!)
+        const SUPABASE_URL = 'https://azodayrofbzbdzedaurf.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6b2RheXJvZmJ6YmR6ZWRhdXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzUzODMsImV4cCI6MjA4NDIxMTM4M30.EBIjD3G9023-BPVtqPKBMzkchlmoL8LH7aCxh5q3mhA';
         
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let tg = window.Telegram.WebApp;
@@ -1327,24 +1343,33 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
         let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
         let reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
         let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
-        let supabaseClient = null; // Клиент Supabase
+        let supabaseClient = null;
+        let isSupabaseConfigured = false;
         
         // ===== ИНИЦИАЛИЗАЦИЯ SUPABASE =====
         function initSupabase() {
             try {
-                // Проверяем, что URL и ключ не дефолтные
-                if (SUPABASE_URL.includes('ВАШ_ID') || SUPABASE_KEY.includes('ВАШ_ANON')) {
+                // Проверяем, что URL и ключ не пустые
+                if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL.includes('ВАШ_ID') || SUPABASE_KEY.includes('ВАШ_ANON')) {
                     console.log('⚠️ Supabase не настроен. Используйте локальное хранилище.');
+                    isSupabaseConfigured = false;
                     return false;
                 }
                 
                 // Создаем клиент Supabase
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                    auth: {
+                        persistSession: false
+                    }
+                });
+                
                 console.log('✅ Supabase подключен:', SUPABASE_URL);
+                isSupabaseConfigured = true;
                 return true;
                 
             } catch (error) {
                 console.error('❌ Ошибка подключения к Supabase:', error);
+                isSupabaseConfigured = false;
                 return false;
             }
         }
@@ -1426,9 +1451,13 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
                 localStorage.removeItem('futurepet_user');
                 localStorage.removeItem('futurepet_user_id');
                 localStorage.removeItem('futurepet_mode');
+                localStorage.removeItem('futurepet_shelters_cache');
+                localStorage.removeItem('futurepet_leads_cache');
                 
                 favoriteShelters = [];
                 reminders = [];
+                shelters = [];
+                leads = [];
                 
                 showNotification('Локальные данные очищены', 'success');
                 setTimeout(() => {
@@ -1444,28 +1473,219 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
             return shelters;
         }
         
-        function saveShelterToLocalStorage(shelterData) {
-            const existingIndex = shelters.findIndex(s => s.id === shelterData.id);
-            if (existingIndex !== -1) {
-                shelters[existingIndex] = shelterData;
-            } else {
-                shelters.push(shelterData);
-            }
-            
-            localStorage.setItem('futurepet_shelters_cache', JSON.stringify(shelters));
-            return shelterData;
-        }
-        
         function loadLeadsFromLocalStorage() {
             const cached = localStorage.getItem('futurepet_leads_cache');
             leads = cached ? JSON.parse(cached) : [];
             return leads;
         }
         
-        function saveLeadToLocalStorage(leadData) {
-            leads.unshift(leadData);
-            localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
-            return leadData;
+        // ===== ФУНКЦИИ ДЛЯ РАБОТЫ С SUPABASE =====
+        async function loadSheltersFromSupabase() {
+            try {
+                if (!supabaseClient) return;
+                
+                const { data, error } = await supabaseClient
+                    .from('shelters')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('❌ Ошибка загрузки приютов:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    shelters = data.map(item => ({
+                        id: item.id,
+                        userId: item.user_id,
+                        type: item.type,
+                        name: item.name,
+                        shortDescription: item.short_description,
+                        detailedDescription: item.detailed_description,
+                        city: item.city,
+                        address: item.address,
+                        phone: item.phone,
+                        email: item.email,
+                        website: item.website,
+                        schedule: item.schedule,
+                        status: item.status,
+                        views: item.views || 0,
+                        registeredAt: item.created_at
+                    }));
+                    
+                    localStorage.setItem('futurepet_shelters_cache', JSON.stringify(shelters));
+                    console.log(`✅ Загружено ${shelters.length} приютов из Supabase`);
+                    
+                    // Обновляем интерфейс
+                    updateRandomShelters();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка при загрузке приютов:', error);
+            }
+        }
+        
+        async function saveShelterToSupabase(shelterData) {
+            try {
+                if (!supabaseClient) return false;
+                
+                const { error } = await supabaseClient
+                    .from('shelters')
+                    .upsert({
+                        id: shelterData.id,
+                        user_id: shelterData.userId,
+                        type: shelterData.type,
+                        name: shelterData.name,
+                        short_description: shelterData.shortDescription,
+                        detailed_description: shelterData.detailedDescription,
+                        city: shelterData.city,
+                        address: shelterData.address,
+                        phone: shelterData.phone,
+                        email: shelterData.email,
+                        website: shelterData.website,
+                        schedule: shelterData.schedule,
+                        status: shelterData.status,
+                        views: shelterData.views || 0,
+                        updated_at: new Date().toISOString()
+                    });
+                
+                if (error) {
+                    console.error('❌ Ошибка сохранения приюта в Supabase:', error);
+                    return false;
+                }
+                
+                console.log('✅ Приют сохранен в Supabase');
+                return true;
+            } catch (error) {
+                console.error('❌ Ошибка при сохранении приюта:', error);
+                return false;
+            }
+        }
+        
+        async function loadLeadsFromSupabase() {
+            try {
+                if (!supabaseClient) return;
+                
+                const userId = getUserId();
+                const userShelterIds = getUserShelterIds();
+                
+                let query = supabaseClient
+                    .from('leads')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                // Если у пользователя есть приюты, загружаем заявки для них
+                if (userShelterIds.length > 0) {
+                    query = query.or(`user_id.eq.${userId},partner_id.in.(${userShelterIds.join(',')})`);
+                } else {
+                    query = query.eq('user_id', userId);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) {
+                    console.error('❌ Ошибка загрузки заявок:', error);
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    leads = data.map(item => ({
+                        id: item.id,
+                        userId: item.user_id,
+                        userName: item.user_name,
+                        userPhone: item.user_phone,
+                        partnerId: item.partner_id,
+                        type: item.type,
+                        date: item.date,
+                        comment: item.comment,
+                        status: item.status,
+                        createdAt: item.created_at
+                    }));
+                    
+                    localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
+                    console.log(`✅ Загружено ${leads.length} заявок из Supabase`);
+                    
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка при загрузке заявок:', error);
+            }
+        }
+        
+        async function saveLeadToSupabase(leadData) {
+            try {
+                if (!supabaseClient) return false;
+                
+                const { error } = await supabaseClient
+                    .from('leads')
+                    .insert({
+                        id: leadData.id,
+                        user_id: leadData.userId,
+                        user_name: leadData.userName,
+                        user_phone: leadData.userPhone,
+                        partner_id: leadData.partnerId,
+                        type: leadData.type,
+                        date: leadData.date,
+                        comment: leadData.comment,
+                        status: leadData.status
+                    });
+                
+                if (error) {
+                    console.error('❌ Ошибка сохранения заявки в Supabase:', error);
+                    return false;
+                }
+                
+                console.log('✅ Заявка сохранена в Supabase');
+                return true;
+            } catch (error) {
+                console.error('❌ Ошибка при сохранении заявки:', error);
+                return false;
+            }
+        }
+        
+        function getUserShelterIds() {
+            const userId = getUserId();
+            return shelters.filter(s => s.userId === userId).map(s => s.id);
+        }
+        
+        async function syncWithSupabase() {
+            showLoading('Синхронизация с Supabase...');
+            
+            try {
+                if (!supabaseClient) {
+                    initSupabase();
+                }
+                
+                if (!supabaseClient) {
+                    showNotification('Supabase не настроен', 'error');
+                    hideLoading();
+                    return;
+                }
+                
+                // Загружаем свежие данные с Supabase
+                await loadSheltersFromSupabase();
+                await loadLeadsFromSupabase();
+                
+                // Обновляем интерфейс
+                updateRandomShelters();
+                updateStats();
+                
+                if (document.querySelector('.page.active').id === 'all-shelters') {
+                    loadAllSheltersPage();
+                }
+                
+                if (document.querySelector('.page.active').id === 'user-favorites') {
+                    loadFavorites();
+                }
+                
+                showNotification('Данные синхронизированы с Supabase', 'success');
+                
+            } catch (error) {
+                console.error('❌ Ошибка синхронизации:', error);
+                showNotification('Ошибка синхронизации', 'error');
+            } finally {
+                hideLoading();
+            }
         }
         
         // ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
@@ -1479,6 +1699,15 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
                     tg.expand();
                 }
                 
+                // Инициализируем Supabase
+                isSupabaseConfigured = initSupabase();
+                
+                // Обновляем статус базы данных
+                const dbStatus = document.getElementById('databaseStatus');
+                if (dbStatus) {
+                    dbStatus.textContent = `База данных: ${isSupabaseConfigured ? 'Supabase' : 'Локальная'}`;
+                }
+                
                 // Пользователь
                 initializeUser();
                 
@@ -1487,10 +1716,14 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
                 initForms();
                 
                 // Загружаем локальные данные
-                loadLocalData();
+                loadSheltersFromLocalStorage();
+                loadLeadsFromLocalStorage();
                 
-                // Проверяем настройку Supabase
-                if (!isSupabaseConfigured) {
+                // Если Supabase подключен, загружаем данные с сервера
+                if (isSupabaseConfigured) {
+                    await loadSheltersFromSupabase();
+                    await loadLeadsFromSupabase();
+                } else {
                     document.getElementById('setupAlert').style.display = 'block';
                     showNotification('Supabase не настроен. Приюты будут локальными.', 'warning');
                 }
@@ -1530,18 +1763,6 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
             
             if (userName) userName.textContent = currentUser.name;
             if (userIdEl) userIdEl.textContent = `ID: ${currentUser.id.substring(0, 15)}...`;
-        }
-        
-        function loadLocalData() {
-            // Загружаем данные из localStorage
-            loadSheltersFromLocalStorage();
-            loadLeadsFromLocalStorage();
-            favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
-            reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
-            
-            updateStats();
-            updatePartnerStatus();
-            updateRandomShelters();
         }
         
         function updateStats() {
@@ -1830,7 +2051,7 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
             // Форма регистрации приюта
             const partnerRegisterForm = document.getElementById('partnerRegisterForm');
             if (partnerRegisterForm) {
-                partnerRegisterForm.addEventListener('submit', function(e) {
+                partnerRegisterForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -1882,11 +2103,20 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
                     console.log('📝 Сохранение приюта:', shelterData);
                     
                     // Сохраняем локально
-                    saveShelterToLocalStorage(shelterData);
+                    shelters = shelters.filter(s => s.id !== shelterData.id);
+                    shelters.push(shelterData);
+                    localStorage.setItem('futurepet_shelters_cache', JSON.stringify(shelters));
                     
-                    // Показываем сообщение в зависимости от настроек
+                    // Сохраняем в Supabase
+                    let supabaseSuccess = false;
                     if (isSupabaseConfigured) {
-                        showNotification('✅ Приют зарегистрирован локально. Настройте Supabase для синхронизации.', 'warning');
+                        supabaseSuccess = await saveShelterToSupabase(shelterData);
+                    }
+                    
+                    if (isSupabaseConfigured && !supabaseSuccess) {
+                        showNotification('Приют сохранен локально. Ошибка синхронизации с Supabase.', 'warning');
+                    } else if (isSupabaseConfigured) {
+                        showNotification('✅ Приют зарегистрирован и сохранен в облаке', 'success');
                     } else {
                         showNotification('✅ Приют зарегистрирован локально', 'success');
                     }
@@ -1907,7 +2137,7 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
             // Форма заявки
             const leadForm = document.getElementById('leadForm');
             if (leadForm) {
-                leadForm.addEventListener('submit', function(e) {
+                leadForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -1941,16 +2171,31 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
                     console.log('📝 Создание новой заявки:', newLead);
                     
                     // Сохраняем локально
-                    saveLeadToLocalStorage(newLead);
+                    leads.unshift(newLead);
+                    localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
+                    
+                    // Сохраняем в Supabase
+                    let supabaseSuccess = false;
+                    if (isSupabaseConfigured) {
+                        supabaseSuccess = await saveLeadToSupabase(newLead);
+                    }
                     
                     leadForm.reset();
                     closeLeadModal();
                     
-                    showNotification('Заявка успешно отправлена!', 'success');
+                    if (isSupabaseConfigured && !supabaseSuccess) {
+                        showNotification('Заявка сохранена локально. Ошибка синхронизации с Supabase.', 'warning');
+                    } else if (isSupabaseConfigured) {
+                        showNotification('Заявка успешно отправлена и сохранена в облаке!', 'success');
+                    } else {
+                        showNotification('Заявка успешно отправлена!', 'success');
+                    }
                     
                     if (currentMode === 'partner') {
                         loadPartnerLeads();
                     }
+                    
+                    updateStats();
                 });
             }
             
@@ -2249,6 +2494,20 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
             if (leadIndex !== -1) {
                 leads[leadIndex].status = status;
                 localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
+                
+                // Обновляем в Supabase
+                if (isSupabaseConfigured && supabaseClient) {
+                    supabaseClient
+                        .from('leads')
+                        .update({ status: status })
+                        .eq('id', leadId)
+                        .then(({ error }) => {
+                            if (error) {
+                                console.error('❌ Ошибка обновления статуса в Supabase:', error);
+                            }
+                        });
+                }
+                
                 loadPartnerLeads();
                 updateStats();
                 showNotification('Статус заявки обновлен', 'success');
