@@ -11,9 +11,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
         /* ===== ОСНОВНЫЕ СТИЛИ ===== */
         :root {
@@ -864,17 +861,9 @@
                     </h2>
                     <p class="text-muted mb-20">Найдите подходящий приют для вашего будущего питомца</p>
                     
-                    <!-- Кнопка синхронизации -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: var(--light); border-radius: 12px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">Обновить данные</div>
-                                <div style="font-size: 12px; color: var(--gray);">Загрузить приюты из облака</div>
-                            </div>
-                            <button class="btn btn-outline btn-small" onclick="syncData()">
-                                <i class="fas fa-sync-alt"></i> Синхронизировать
-                            </button>
-                        </div>
+                    <div id="setupAlert" class="message message-warning" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Для работы приложения нужно настроить Supabase</span>
                     </div>
                     
                     <!-- Секция случайных приютов -->
@@ -911,6 +900,10 @@
                     <button class="btn btn-accent mt-20" onclick="showPage('user-reminders')">
                         <i class="fas fa-bell"></i> Мои напоминания
                     </button>
+                    
+                    <button class="btn btn-outline mt-20" onclick="showPage('partner-register')">
+                        <i class="fas fa-plus"></i> Зарегистрировать приют
+                    </button>
                 </div>
                 
                 <div class="card">
@@ -931,9 +924,6 @@
                             <i class="fas fa-hands-helping"></i> Все приюты
                         </div>
                         <div>
-                            <button class="btn btn-outline btn-small" onclick="syncData()">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
                             <button class="btn btn-outline btn-small" onclick="showPage('user-home')">
                                 <i class="fas fa-arrow-left"></i> Назад
                             </button>
@@ -1014,9 +1004,6 @@
                             <i class="fas fa-user-plus"></i> Регистрация приюта
                         </div>
                         <div>
-                            <button class="btn btn-outline btn-small" onclick="syncData()">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
                             <button class="btn btn-outline btn-small" onclick="showPage('partner-home')">
                                 <i class="fas fa-arrow-left"></i> Назад
                             </button>
@@ -1209,9 +1196,13 @@
                         <p style="font-size: 14px; color: var(--gray);">
                             "Твой Будущий Питомец" - сервис для помощи животным.<br>
                             Версия 4.0.0 (работа с приютами)<br>
-                            Все приюты хранятся в облачной базе данных.
+                            Для работы приложения нужно настроить Supabase.
                         </p>
                     </div>
+                    
+                    <button class="btn btn-outline mt-20" onclick="showPage('setup-instructions')">
+                        <i class="fas fa-cog"></i> Инструкция по настройке
+                    </button>
                     
                     <button class="btn btn-outline mt-20" onclick="clearLocalData()">
                         <i class="fas fa-trash"></i> Очистить локальные данные
@@ -1219,46 +1210,96 @@
                 </div>
             </div>
             
-            <!-- Настройки партнёра -->
-            <div id="partner-settings" class="page">
+            <!-- Инструкция по настройке -->
+            <div id="setup-instructions" class="page">
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">
-                            <i class="fas fa-cog"></i> Настройки профиля
+                            <i class="fas fa-cog"></i> Настройка Supabase
                         </div>
-                        <button class="btn btn-outline btn-small" onclick="showPage('partner-home')">
+                        <button class="btn btn-outline btn-small" onclick="showPage('user-settings')">
                             <i class="fas fa-arrow-left"></i> Назад
                         </button>
                     </div>
                     
-                    <div id="partnerProfileInfo" style="margin-bottom: 30px; padding: 20px; background: var(--light); border-radius: 12px;">
-                        <!-- Информация о профиле партнёра -->
+                    <div class="message message-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Для работы приложения нужно настроить облачную базу данных</span>
                     </div>
                     
-                    <button class="btn btn-primary mb-20" onclick="showPage('partner-register')">
-                        <i class="fas fa-edit"></i> Редактировать профиль
-                    </button>
+                    <h3 style="color: var(--dark); margin: 20px 0 10px;">Шаг 1: Создайте проект Supabase</h3>
+                    <ol style="margin-left: 20px; margin-bottom: 20px;">
+                        <li>Зайдите на <a href="https://supabase.com" target="_blank">supabase.com</a></li>
+                        <li>Создайте аккаунт (можно через GitHub)</li>
+                        <li>Нажмите "New project"</li>
+                        <li>Название: pet-shelters</li>
+                        <li>Выберите регион ближе к вам</li>
+                        <li>Нажмите "Create new project"</li>
+                    </ol>
                     
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: var(--dark); margin-bottom: 10px;">Статистика приюта</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-                                <div style="font-size: 12px; color: var(--gray);">Всего заявок</div>
-                                <div style="font-size: 24px; font-weight: bold; color: var(--primary);" id="shelterLeadCount">
-                                    0
-                                </div>
-                            </div>
-                            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-                                <div style="font-size: 12px; color: var(--gray);">Новые заявки</div>
-                                <div style="font-size: 24px; font-weight: bold; color: var(--primary);" id="shelterNewLeadsCount">
-                                    0
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 style="color: var(--dark); margin: 20px 0 10px;">Шаг 2: Создайте таблицы</h3>
+                    <p style="margin-bottom: 10px;">В левом меню выберите <strong>SQL Editor → New query</strong> и выполните этот код:</p>
                     
-                    <button class="btn btn-outline" onclick="clearLocalData()">
-                        <i class="fas fa-trash"></i> Очистить локальные данные
+                    <pre style="background: var(--light); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; margin-bottom: 20px;">
+CREATE TABLE shelters (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  short_description TEXT NOT NULL,
+  detailed_description TEXT NOT NULL,
+  city TEXT NOT NULL,
+  address TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT,
+  website TEXT,
+  schedule TEXT,
+  status TEXT DEFAULT 'approved',
+  views INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE leads (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  user_name TEXT NOT NULL,
+  user_phone TEXT NOT NULL,
+  partner_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  date DATE,
+  comment TEXT,
+  status TEXT DEFAULT 'new',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Включите RLS
+ALTER TABLE shelters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+
+-- Настройте политики доступа
+CREATE POLICY "Anyone can view shelters" ON shelters FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert shelters" ON shelters FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can view leads" ON leads FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert leads" ON leads FOR INSERT WITH CHECK (true);</pre>
+                    
+                    <h3 style="color: var(--dark); margin: 20px 0 10px;">Шаг 3: Получите ключи</h3>
+                    <ol style="margin-left: 20px; margin-bottom: 20px;">
+                        <li>В левом меню выберите <strong>Settings → API</strong></li>
+                        <li>Скопируйте <strong>Project URL</strong></li>
+                        <li>Скопируйте <strong>anon public</strong> ключ</li>
+                    </ol>
+                    
+                    <h3 style="color: var(--dark); margin: 20px 0 10px;">Шаг 4: Обновите код</h3>
+                    <p style="margin-bottom: 10px;">В файле index.html найдите строки и замените значения:</p>
+                    
+                    <pre style="background: var(--light); padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px; margin-bottom: 20px;">
+// Настройки Supabase
+const SUPABASE_URL = 'https://ВАШ_ID.supabase.co';  // Замените на ваш Project URL
+const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на ваш anon public ключ</pre>
+                    
+                    <button class="btn btn-primary mt-20" onclick="showPage('user-home')">
+                        <i class="fas fa-check"></i> Готово
                     </button>
                 </div>
             </div>
@@ -1273,40 +1314,22 @@
 
     <script>
         // ===== НАСТРОЙКИ SUPABASE =====
-        // ⚠️ ВАЖНО: ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ ИЗ SUPABASE!
+        // ⚠️ ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ!
         const SUPABASE_URL = 'https://azodayrofbzbdzedaurf.supabase.co';  // Project URL из настроек Supabase
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6b2RheXJvZmJ6YmR6ZWRhdXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzUzODMsImV4cCI6MjA4NDIxMTM4M30.EBIjD3G9023-BPVtqPKBMzkchlmoL8LH7aCxh5q3mhA';         // anon public ключ (НЕ secret!)
-        
-        // Проверка ключей
-        if (SUPABASE_URL.includes('ВАШ_ID') || SUPABASE_KEY.includes('ВАШ_ANON_PUBLIC_KEY')) {
-            console.error('❌ ЗАМЕНИТЕ SUPABASE_URL и SUPABASE_KEY на свои значения!');
-            alert('⚠️ Настройте Supabase: замените SUPABASE_URL и SUPABASE_KEY в коде');
-        }
         
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let tg = window.Telegram.WebApp;
         let currentMode = localStorage.getItem('futurepet_mode') || 'user';
         let currentUser = {};
-        let shelters = []; // Приюты из Supabase
-        let leads = []; // Заявки из Supabase
+        let shelters = []; // Приюты
+        let leads = []; // Заявки
         let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
         let reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
         let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
-        let supabase; // Supabase клиент
         
-        // ===== ИНИЦИАЛИЗАЦИЯ SUPABASE =====
-        function initSupabase() {
-            try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log('✅ Supabase подключен');
-                console.log('URL:', SUPABASE_URL);
-                return true;
-            } catch (error) {
-                console.error('❌ Ошибка подключения к Supabase:', error);
-                showNotification('Ошибка подключения к базе данных', 'error');
-                return false;
-            }
-        }
+        // Проверка настроек Supabase
+        const isSupabaseConfigured = !SUPABASE_URL.includes('ВАШ_ID') && !SUPABASE_KEY.includes('ВАШ_ANON');
         
         // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
         function getUserId() {
@@ -1396,262 +1419,35 @@
             }
         }
         
-        // ===== ФУНКЦИИ РАБОТЫ С SUPABASE =====
-        
-        // Загрузить все приюты из Supabase
-        async function loadSheltersFromSupabase() {
-            if (!supabase) {
-                showNotification('Нет подключения к базе данных', 'error');
-                return [];
-            }
-            
-            try {
-                console.log('🔄 Загрузка приютов из Supabase...');
-                
-                const { data, error } = await supabase
-                    .from('shelters')
-                    .select('*')
-                    .eq('status', 'approved')
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error('Ошибка загрузки приютов:', error);
-                    throw error;
-                }
-                
-                // Преобразуем данные в наш формат
-                shelters = data.map(item => ({
-                    id: item.id,
-                    userId: item.user_id,
-                    type: item.type,
-                    name: item.name,
-                    shortDescription: item.short_description,
-                    detailedDescription: item.detailed_description,
-                    city: item.city,
-                    address: item.address,
-                    phone: item.phone,
-                    email: item.email,
-                    website: item.website,
-                    schedule: item.schedule,
-                    status: item.status,
-                    views: item.views || 0,
-                    registeredAt: item.created_at,
-                    updatedAt: item.updated_at,
-                    isFromCloud: true // Помечаем что из облака
-                }));
-                
-                console.log(`✅ Загружено ${shelters.length} приютов из Supabase`);
-                
-                // Кэшируем в localStorage для офлайн-работы
-                localStorage.setItem('futurepet_shelters_cache', JSON.stringify(shelters));
-                localStorage.setItem('futurepet_last_sync', new Date().toISOString());
-                
-                return shelters;
-                
-            } catch (error) {
-                console.error('Ошибка загрузки из Supabase:', error);
-                
-                // Пробуем загрузить из кэша
-                const cached = localStorage.getItem('futurepet_shelters_cache');
-                if (cached) {
-                    shelters = JSON.parse(cached);
-                    console.log(`📂 Используем кэш: ${shelters.length} приютов`);
-                    showNotification('Используем кэшированные данные', 'warning');
-                }
-                
-                return shelters;
-            }
+        // ===== РАБОТА С ЛОКАЛЬНЫМИ ДАННЫМИ =====
+        function loadSheltersFromLocalStorage() {
+            const cached = localStorage.getItem('futurepet_shelters_cache');
+            shelters = cached ? JSON.parse(cached) : [];
+            return shelters;
         }
         
-        // Сохранить приют в Supabase
-        async function saveShelterToSupabase(shelterData) {
-            if (!supabase) {
-                showNotification('Нет подключения к интернету', 'error');
-                return false;
+        function saveShelterToLocalStorage(shelterData) {
+            const existingIndex = shelters.findIndex(s => s.id === shelterData.id);
+            if (existingIndex !== -1) {
+                shelters[existingIndex] = shelterData;
+            } else {
+                shelters.push(shelterData);
             }
             
-            try {
-                console.log('💾 Сохранение приюта в Supabase:', shelterData.name);
-                
-                const dbData = {
-                    id: shelterData.id,
-                    user_id: shelterData.userId,
-                    type: shelterData.type,
-                    name: shelterData.name,
-                    short_description: shelterData.shortDescription,
-                    detailed_description: shelterData.detailedDescription,
-                    city: shelterData.city,
-                    address: shelterData.address,
-                    phone: shelterData.phone,
-                    email: shelterData.email || null,
-                    website: shelterData.website || null,
-                    schedule: shelterData.schedule || null,
-                    status: 'approved',
-                    views: shelterData.views || 0,
-                    created_at: shelterData.registeredAt || new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                };
-                
-                const { data, error } = await supabase
-                    .from('shelters')
-                    .upsert([dbData]);
-                
-                if (error) {
-                    console.error('Ошибка сохранения приюта:', error);
-                    throw error;
-                }
-                
-                console.log('✅ Приют сохранен в Supabase');
-                
-                // Обновляем локальный список
-                await loadSheltersFromSupabase();
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Ошибка сохранения в Supabase:', error);
-                showNotification('Ошибка сохранения приюта', 'error');
-                return false;
-            }
+            localStorage.setItem('futurepet_shelters_cache', JSON.stringify(shelters));
+            return shelterData;
         }
         
-        // Загрузить заявки из Supabase
-        async function loadLeadsFromSupabase() {
-            if (!supabase) return [];
-            
-            try {
-                const userId = getUserId();
-                
-                const { data, error } = await supabase
-                    .from('leads')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                leads = data.map(item => ({
-                    id: item.id,
-                    userId: item.user_id,
-                    userName: item.user_name,
-                    userPhone: item.user_phone,
-                    partnerId: item.partner_id,
-                    type: item.type,
-                    date: item.date,
-                    comment: item.comment,
-                    status: item.status,
-                    createdAt: item.created_at
-                }));
-                
-                console.log(`✅ Загружено ${leads.length} заявок`);
-                
-                // Кэшируем
-                localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
-                
-                return leads;
-                
-            } catch (error) {
-                console.error('Ошибка загрузки заявок:', error);
-                
-                const cached = localStorage.getItem('futurepet_leads_cache');
-                if (cached) {
-                    leads = JSON.parse(cached);
-                }
-                
-                return leads;
-            }
+        function loadLeadsFromLocalStorage() {
+            const cached = localStorage.getItem('futurepet_leads_cache');
+            leads = cached ? JSON.parse(cached) : [];
+            return leads;
         }
         
-        // Сохранить заявку в Supabase
-        async function saveLeadToSupabase(leadData) {
-            if (!supabase) {
-                showNotification('Нет подключения к интернету', 'error');
-                return false;
-            }
-            
-            try {
-                const dbData = {
-                    id: leadData.id,
-                    user_id: leadData.userId,
-                    user_name: leadData.userName,
-                    user_phone: leadData.userPhone,
-                    partner_id: leadData.partnerId,
-                    type: leadData.type,
-                    date: leadData.date,
-                    comment: leadData.comment,
-                    status: leadData.status,
-                    created_at: leadData.createdAt
-                };
-                
-                const { data, error } = await supabase
-                    .from('leads')
-                    .insert([dbData]);
-                
-                if (error) throw error;
-                
-                console.log('✅ Заявка сохранена в Supabase');
-                
-                // Обновляем локальный список
-                await loadLeadsFromSupabase();
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Ошибка сохранения заявки:', error);
-                return false;
-            }
-        }
-        
-        // Обновить статус заявки в Supabase
-        async function updateLeadStatusInSupabase(leadId, status) {
-            if (!supabase) return false;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('leads')
-                    .update({ status: status })
-                    .eq('id', leadId);
-                
-                if (error) throw error;
-                
-                console.log('✅ Статус заявки обновлен в Supabase');
-                
-                // Обновляем локальный список
-                await loadLeadsFromSupabase();
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Ошибка обновления статуса:', error);
-                return false;
-            }
-        }
-        
-        // Синхронизация данных
-        async function syncData() {
-            showLoading('Синхронизация с облаком...');
-            
-            try {
-                await loadSheltersFromSupabase();
-                await loadLeadsFromSupabase();
-                
-                // Обновляем интерфейс
-                updateRandomShelters();
-                if (document.querySelector('#all-shelters.active')) {
-                    loadAllSheltersPage();
-                }
-                if (document.querySelector('#user-favorites.active')) {
-                    loadFavorites();
-                }
-                updateStats();
-                
-                showNotification('Данные синхронизированы с облаком', 'success');
-                
-            } catch (error) {
-                console.error('Ошибка синхронизации:', error);
-                showNotification('Ошибка синхронизации', 'error');
-            } finally {
-                hideLoading();
-            }
+        function saveLeadToLocalStorage(leadData) {
+            leads.unshift(leadData);
+            localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
+            return leadData;
         }
         
         // ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
@@ -1659,49 +1455,39 @@
             console.log('🚀 Инициализация приложения');
             
             try {
-                // Инициализируем Supabase
-                if (!initSupabase()) {
-                    showNotification('Ошибка подключения к базе данных', 'error');
-                    hideLoading();
-                    return;
-                }
-                
                 // Telegram Web App
                 if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
                     tg.ready();
                     tg.expand();
                 }
                 
-                // Инициализация пользователя
+                // Пользователь
                 initializeUser();
                 
-                // Настройка интерфейса
+                // Интерфейс
                 updateNavigation();
                 initForms();
                 
-                // Загружаем данные из Supabase
-                showLoading('Загрузка данных из облака...');
-                await loadSheltersFromSupabase();
-                await loadLeadsFromSupabase();
-                
-                // Локальные данные
+                // Загружаем локальные данные
                 loadLocalData();
+                
+                // Проверяем настройку Supabase
+                if (!isSupabaseConfigured) {
+                    document.getElementById('setupAlert').style.display = 'block';
+                    showNotification('Supabase не настроен. Приюты будут локальными.', 'warning');
+                }
                 
                 // Показываем главную страницу
                 showPage('user-home');
                 
-                // Настраиваем автосинхронизацию (каждые 60 секунд)
-                setInterval(async () => {
-                    await loadSheltersFromSupabase();
-                    updateRandomShelters();
-                }, 60000);
-                
                 console.log('✅ Приложение инициализировано');
-                hideLoading();
+                
+                // Скрываем загрузку через 1 секунду
+                setTimeout(hideLoading, 1000);
                 
             } catch (error) {
                 console.error('❌ Ошибка инициализации:', error);
-                showNotification('Ошибка инициализации приложения', 'error');
+                showNotification('Ошибка запуска приложения', 'error');
                 hideLoading();
             }
         }
@@ -1729,6 +1515,9 @@
         }
         
         function loadLocalData() {
+            // Загружаем данные из localStorage
+            loadSheltersFromLocalStorage();
+            loadLeadsFromLocalStorage();
             favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
             reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
             
@@ -1769,191 +1558,11 @@
                         <i class="fas fa-bell" style="color: var(--accent);"></i>
                         <span>Активных напоминаний: <strong>${reminderCount}</strong></span>
                     </div>
-                `;
-            }
-            
-            // Статистика для партнёра
-            const shelterLeadCount = document.getElementById('shelterLeadCount');
-            const shelterNewLeadsCount = document.getElementById('shelterNewLeadsCount');
-            
-            if (shelterLeadCount || shelterNewLeadsCount) {
-                const userId = getUserId();
-                const partnerShelter = shelters.find(s => s.userId === userId);
-                if (partnerShelter) {
-                    const shelterLeads = leads.filter(l => l.partnerId === partnerShelter.id);
-                    const newLeads = shelterLeads.filter(l => l.status === 'new').length;
-                    
-                    if (shelterLeadCount) shelterLeadCount.textContent = shelterLeads.length;
-                    if (shelterNewLeadsCount) shelterNewLeadsCount.textContent = newLeads;
-                }
-            }
-        }
-        
-        // ===== ФУНКЦИИ ДЛЯ НАПОМИНАНИЙ =====
-        function showReminderModal() {
-            const modal = document.getElementById('reminderModal');
-            if (!modal) return;
-            
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString()
-                .slice(0, 16);
-            
-            document.getElementById('reminderDateTime').value = localDateTime;
-            document.getElementById('reminderDateTime').min = localDateTime;
-            
-            modal.classList.remove('hidden');
-        }
-        
-        function closeReminderModal() {
-            const modal = document.getElementById('reminderModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                document.getElementById('reminderForm').reset();
-            }
-        }
-        
-        function loadReminders() {
-            const container = document.getElementById('remindersList');
-            if (!container) return;
-            
-            const userId = getUserId();
-            const userReminders = reminders.filter(r => r.userId === userId);
-            
-            userReminders.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
-            
-            if (userReminders.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-bell empty-state-icon"></i>
-                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
-                        <p class="text-muted">Добавьте ваше первое напоминание</p>
-                        <button class="btn btn-primary mt-20" onclick="showReminderModal()">
-                            <i class="fas fa-plus"></i> Добавить напоминание
-                        </button>
+                    <div class="list-item">
+                        <i class="fas fa-database" style="color: ${isSupabaseConfigured ? 'var(--success)' : 'var(--danger)'};"></i>
+                        <span>База данных: <strong>${isSupabaseConfigured ? 'Supabase' : 'Локальная'}</strong></span>
                     </div>
                 `;
-                return;
-            }
-            
-            const now = new Date();
-            let html = '';
-            
-            userReminders.forEach(reminder => {
-                const reminderDate = new Date(reminder.dateTime);
-                const timeDiff = reminderDate - now;
-                const hoursDiff = timeDiff / (1000 * 60 * 60);
-                
-                let statusClass = '';
-                let statusText = '';
-                
-                if (reminder.completed) {
-                    statusClass = 'completed';
-                    statusText = 'Выполнено';
-                } else if (hoursDiff < 0) {
-                    statusClass = 'overdue';
-                    statusText = 'Просрочено';
-                } else if (hoursDiff < 24) {
-                    statusClass = 'due';
-                    statusText = 'Скоро';
-                }
-                
-                const priorityColors = {
-                    'low': '#4CAF50',
-                    'medium': '#FF9800',
-                    'high': '#F44336'
-                };
-                
-                html += `
-                    <div class="reminder-item ${statusClass}">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: var(--dark);">${reminder.text}</div>
-                                <div class="reminder-time">
-                                    <i class="fas fa-clock"></i>
-                                    ${reminderDate.toLocaleDateString()} ${reminderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </div>
-                                <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                    <span style="font-size: 12px; padding: 2px 8px; background: ${priorityColors[reminder.priority]}; color: white; border-radius: 10px;">
-                                        ${reminder.priority === 'high' ? 'Высокий' : reminder.priority === 'medium' ? 'Средний' : 'Низкий'}
-                                    </span>
-                                    <span style="font-size: 12px; padding: 2px 8px; background: var(--light); color: var(--gray); border-radius: 10px;">
-                                        ${reminder.type === 'visit' ? 'Посещение приюта' : 
-                                          reminder.type === 'volunteer' ? 'Волонтёрство' : 'Общее'}
-                                    </span>
-                                    ${statusText ? `
-                                    <span style="font-size: 12px; padding: 2px 8px; background: ${statusClass === 'overdue' ? '#F44336' : statusClass === 'due' ? '#FF9800' : '#4CAF50'}; color: white; border-radius: 10px;">
-                                        ${statusText}
-                                    </span>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="reminder-actions">
-                            <button class="btn btn-outline btn-small" onclick="toggleReminderCompletion('${reminder.id}')" style="flex: 1;">
-                                <i class="fas ${reminder.completed ? 'fa-undo' : 'fa-check'}"></i>
-                                ${reminder.completed ? 'Возобновить' : 'Выполнено'}
-                            </button>
-                            <button class="btn btn-danger btn-small" onclick="deleteReminder('${reminder.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        function toggleReminderCompletion(reminderId) {
-            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
-            if (reminderIndex !== -1) {
-                reminders[reminderIndex].completed = !reminders[reminderIndex].completed;
-                saveDataToLocalStorage();
-                loadReminders();
-                updateStats();
-                
-                showNotification(
-                    reminders[reminderIndex].completed 
-                        ? 'Напоминание отмечено как выполненное' 
-                        : 'Напоминание возобновлено',
-                    'success'
-                );
-            }
-        }
-        
-        function deleteReminder(reminderId) {
-            if (confirm('Удалить это напоминание?')) {
-                reminders = reminders.filter(r => r.id !== reminderId);
-                saveDataToLocalStorage();
-                loadReminders();
-                updateStats();
-                showNotification('Напоминание удалено', 'success');
-            }
-        }
-        
-        function checkReminders() {
-            const userId = getUserId();
-            const now = new Date();
-            const userReminders = reminders.filter(r => 
-                r.userId === userId && 
-                !r.completed && 
-                new Date(r.dateTime) <= now &&
-                (!r.lastNotified || new Date(r.lastNotified) < new Date(now.getTime() - 60 * 60 * 1000))
-            );
-            
-            if (userReminders.length > 0) {
-                const nearestReminder = userReminders.sort((a, b) => 
-                    new Date(a.dateTime) - new Date(b.dateTime)
-                )[0];
-                
-                showNotification(`Напоминание: ${nearestReminder.text}`, 'warning');
-                
-                const reminderIndex = reminders.findIndex(r => r.id === nearestReminder.id);
-                if (reminderIndex !== -1) {
-                    reminders[reminderIndex].lastNotified = new Date().toISOString();
-                    saveDataToLocalStorage();
-                }
             }
         }
         
@@ -2006,7 +1615,7 @@
                     <div class="shelter-info">
                         <div class="shelter-name">${shelter.name}</div>
                         <div class="shelter-type">${getShelterTypeName(shelter.type)}</div>
-                        <div class="shelter-short-info">${shelter.shortDescription.substring(0, 100)}${shelter.shortDescription.length > 100 ? '...' : ''}</div>
+                        <div class="shelter-short-info">${shelter.shortDescription?.substring(0, 100) || ''}${shelter.shortDescription?.length > 100 ? '...' : ''}</div>
                         <div class="shelter-location">
                             <i class="fas fa-map-marker-alt"></i>
                             <span>${shelter.city}</span>
@@ -2203,7 +1812,7 @@
             // Форма регистрации приюта
             const partnerRegisterForm = document.getElementById('partnerRegisterForm');
             if (partnerRegisterForm) {
-                partnerRegisterForm.addEventListener('submit', async function(e) {
+                partnerRegisterForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -2227,7 +1836,7 @@
                     
                     const submitBtn = document.getElementById('partnerSubmitBtn');
                     const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение в облако...';
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
                     submitBtn.disabled = true;
                     
                     const userId = getUserId();
@@ -2254,37 +1863,33 @@
                     
                     console.log('📝 Сохранение приюта:', shelterData);
                     
-                    try {
-                        // Сохраняем в Supabase
-                        const saved = await saveShelterToSupabase(shelterData);
-                        
-                        if (saved) {
-                            showNotification('✅ Приют зарегистрирован! Он виден всем пользователям.', 'success');
-                            
-                            partnerRegisterForm.reset();
-                            
-                            updatePartnerStatus();
-                            updateStats();
-                            
-                            showPage('partner-home');
-                        } else {
-                            showNotification('Ошибка сохранения приюта', 'error');
-                        }
-                        
-                    } catch (error) {
-                        console.error('Ошибка:', error);
-                        showNotification('Ошибка сохранения приюта', 'error');
-                    } finally {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
+                    // Сохраняем локально
+                    saveShelterToLocalStorage(shelterData);
+                    
+                    // Показываем сообщение в зависимости от настроек
+                    if (isSupabaseConfigured) {
+                        showNotification('✅ Приют зарегистрирован локально. Настройте Supabase для синхронизации.', 'warning');
+                    } else {
+                        showNotification('✅ Приют зарегистрирован локально', 'success');
                     }
+                    
+                    partnerRegisterForm.reset();
+                    
+                    updatePartnerStatus();
+                    updateStats();
+                    updateRandomShelters();
+                    
+                    showPage('partner-home');
+                    
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                 });
             }
             
             // Форма заявки
             const leadForm = document.getElementById('leadForm');
             if (leadForm) {
-                leadForm.addEventListener('submit', async function(e) {
+                leadForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -2317,25 +1922,16 @@
                     
                     console.log('📝 Создание новой заявки:', newLead);
                     
-                    try {
-                        const saved = await saveLeadToSupabase(newLead);
-                        
-                        if (saved) {
-                            showNotification('✅ Заявка успешно отправлена!', 'success');
-                        } else {
-                            showNotification('⚠️ Заявка сохранена локально. Подключитесь к интернету.', 'warning');
-                        }
-                        
-                        leadForm.reset();
-                        closeLeadModal();
-                        
-                        if (currentMode === 'partner') {
-                            loadPartnerLeads();
-                        }
-                        
-                    } catch (error) {
-                        console.error('Ошибка:', error);
-                        showNotification('Ошибка отправки заявки', 'error');
+                    // Сохраняем локально
+                    saveLeadToLocalStorage(newLead);
+                    
+                    leadForm.reset();
+                    closeLeadModal();
+                    
+                    showNotification('Заявка успешно отправлена!', 'success');
+                    
+                    if (currentMode === 'partner') {
+                        loadPartnerLeads();
                     }
                 });
             }
@@ -2431,9 +2027,9 @@
                     <div class="empty-state">
                         <i class="fas fa-home empty-state-icon"></i>
                         <h3 style="color: var(--dark); margin-bottom: 10px;">Нет приютов</h3>
-                        <p class="text-muted">Приюты загружаются из облачной базы данных</p>
-                        <button class="btn btn-primary mt-10" onclick="syncData()">
-                            <i class="fas fa-sync-alt"></i> Обновить данные
+                        <p class="text-muted">Пока не зарегистрировано ни одного приюта</p>
+                        <button class="btn btn-primary mt-10" onclick="showPage('partner-register')">
+                            <i class="fas fa-plus"></i> Добавить первый приют
                         </button>
                     </div>
                 `;
@@ -2461,7 +2057,7 @@
             const filteredShelters = shelters.filter(shelter => 
                 shelter.name.toLowerCase().includes(searchTerm) ||
                 shelter.city.toLowerCase().includes(searchTerm) ||
-                shelter.shortDescription.toLowerCase().includes(searchTerm) ||
+                (shelter.shortDescription && shelter.shortDescription.toLowerCase().includes(searchTerm)) ||
                 getShelterTypeName(shelter.type).toLowerCase().includes(searchTerm)
             );
             
@@ -2630,17 +2226,14 @@
             });
         }
         
-        async function updateLeadStatus(leadId, status) {
-            try {
-                await updateLeadStatusInSupabase(leadId, status);
-                
+        function updateLeadStatus(leadId, status) {
+            const leadIndex = leads.findIndex(l => l.id === leadId);
+            if (leadIndex !== -1) {
+                leads[leadIndex].status = status;
+                localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
                 loadPartnerLeads();
                 updateStats();
                 showNotification('Статус заявки обновлен', 'success');
-                
-            } catch (error) {
-                console.error('Ошибка обновления статуса:', error);
-                showNotification('Ошибка обновления', 'error');
             }
         }
         
@@ -2663,6 +2256,29 @@
             if (modal) {
                 modal.classList.add('hidden');
                 document.getElementById('leadForm').reset();
+            }
+        }
+        
+        function showReminderModal() {
+            const modal = document.getElementById('reminderModal');
+            if (!modal) return;
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 16);
+            
+            document.getElementById('reminderDateTime').value = localDateTime;
+            document.getElementById('reminderDateTime').min = localDateTime;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeReminderModal() {
+            const modal = document.getElementById('reminderModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.getElementById('reminderForm').reset();
             }
         }
         
@@ -2696,16 +2312,18 @@
                     <div class="shelter-detail-section">
                         <h3><i class="fas fa-info-circle"></i> Краткая информация</h3>
                         <div class="shelter-detail-content">
-                            ${shelter.shortDescription}
+                            ${shelter.shortDescription || 'Нет описания'}
                         </div>
                     </div>
                     
+                    ${shelter.detailedDescription ? `
                     <div class="shelter-detail-section">
                         <h3><i class="fas fa-file-alt"></i> Подробная информация</h3>
                         <div class="shelter-detail-content" style="white-space: pre-line;">
                             ${shelter.detailedDescription}
                         </div>
                     </div>
+                    ` : ''}
                     
                     <div class="shelter-detail-section">
                         <h3><i class="fas fa-map-marker-alt"></i> Контакты и расположение</h3>
@@ -2779,10 +2397,130 @@
             }
         }
         
+        // ===== ФУНКЦИИ ДЛЯ НАПОМИНАНИЙ =====
+        function loadReminders() {
+            const container = document.getElementById('remindersList');
+            if (!container) return;
+            
+            const userId = getUserId();
+            const userReminders = reminders.filter(r => r.userId === userId);
+            
+            userReminders.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+            
+            if (userReminders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-bell empty-state-icon"></i>
+                        <h3 style="color: var(--dark); margin-bottom: 10px;">Нет напоминаний</h3>
+                        <p class="text-muted">Добавьте ваше первое напоминание</p>
+                        <button class="btn btn-primary mt-20" onclick="showReminderModal()">
+                            <i class="fas fa-plus"></i> Добавить напоминание
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const now = new Date();
+            let html = '';
+            
+            userReminders.forEach(reminder => {
+                const reminderDate = new Date(reminder.dateTime);
+                const timeDiff = reminderDate - now;
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                if (reminder.completed) {
+                    statusClass = 'completed';
+                    statusText = 'Выполнено';
+                } else if (hoursDiff < 0) {
+                    statusClass = 'overdue';
+                    statusText = 'Просрочено';
+                } else if (hoursDiff < 24) {
+                    statusClass = 'due';
+                    statusText = 'Скоро';
+                }
+                
+                const priorityColors = {
+                    'low': '#4CAF50',
+                    'medium': '#FF9800',
+                    'high': '#F44336'
+                };
+                
+                html += `
+                    <div class="reminder-item ${statusClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark);">${reminder.text}</div>
+                                <div class="reminder-time">
+                                    <i class="fas fa-clock"></i>
+                                    ${reminderDate.toLocaleDateString()} ${reminderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                    <span style="font-size: 12px; padding: 2px 8px; background: ${priorityColors[reminder.priority]}; color: white; border-radius: 10px;">
+                                        ${reminder.priority === 'high' ? 'Высокий' : reminder.priority === 'medium' ? 'Средний' : 'Низкий'}
+                                    </span>
+                                    <span style="font-size: 12px; padding: 2px 8px; background: var(--light); color: var(--gray); border-radius: 10px;">
+                                        ${reminder.type === 'visit' ? 'Посещение приюта' : 
+                                          reminder.type === 'volunteer' ? 'Волонтёрство' : 'Общее'}
+                                    </span>
+                                    ${statusText ? `
+                                    <span style="font-size: 12px; padding: 2px 8px; background: ${statusClass === 'overdue' ? '#F44336' : statusClass === 'due' ? '#FF9800' : '#4CAF50'}; color: white; border-radius: 10px;">
+                                        ${statusText}
+                                    </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn btn-outline btn-small" onclick="toggleReminderCompletion('${reminder.id}')" style="flex: 1;">
+                                <i class="fas ${reminder.completed ? 'fa-undo' : 'fa-check'}"></i>
+                                ${reminder.completed ? 'Возобновить' : 'Выполнено'}
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteReminder('${reminder.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function toggleReminderCompletion(reminderId) {
+            const reminderIndex = reminders.findIndex(r => r.id === reminderId);
+            if (reminderIndex !== -1) {
+                reminders[reminderIndex].completed = !reminders[reminderIndex].completed;
+                saveDataToLocalStorage();
+                loadReminders();
+                updateStats();
+                
+                showNotification(
+                    reminders[reminderIndex].completed 
+                        ? 'Напоминание отмечено как выполненное' 
+                        : 'Напоминание возобновлено',
+                    'success'
+                );
+            }
+        }
+        
+        function deleteReminder(reminderId) {
+            if (confirm('Удалить это напоминание?')) {
+                reminders = reminders.filter(r => r.id !== reminderId);
+                saveDataToLocalStorage();
+                loadReminders();
+                updateStats();
+                showNotification('Напоминание удалено', 'success');
+            }
+        }
+        
         // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
         document.addEventListener('DOMContentLoaded', initializeApp);
         
-        console.log('🐾 Приложение "Твой Будущий Питомец" с Supabase загружено!');
+        console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
     </script>
 </body>
 </html>
