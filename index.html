@@ -11,6 +11,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         /* ===== ОСНОВНЫЕ СТИЛИ ===== */
         :root {
@@ -723,7 +726,7 @@
 </head>
 <body>
     <!-- Индикатор загрузки -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
+    <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
         <div class="loading-text">Загрузка приложения...</div>
     </div>
@@ -866,7 +869,7 @@
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <div style="font-weight: 600; color: var(--dark);">Обновить данные</div>
-                                <div style="font-size: 12px; color: var(--gray);">Загрузить приюты с сервера</div>
+                                <div style="font-size: 12px; color: var(--gray);">Загрузить приюты из облака</div>
                             </div>
                             <button class="btn btn-outline btn-small" onclick="syncData()">
                                 <i class="fas fa-sync-alt"></i> Синхронизировать
@@ -878,7 +881,7 @@
                     <div class="random-shelters-section">
                         <div class="random-shelters-title">
                             <h3 style="color: var(--dark);">
-                                <i class="fas fa-random"></i> Случайные приюты
+                                <i class="fas fa-random"></i> Последние приюты
                             </h3>
                             <button class="btn btn-outline btn-small" onclick="refreshRandomShelters()" id="refreshRandomBtn">
                                 <i class="fas fa-sync-alt"></i>
@@ -888,7 +891,7 @@
                         <div class="random-shelters-grid" id="randomSheltersContainer">
                             <div class="empty-state">
                                 <div class="loader" style="margin: 0 auto 15px;"></div>
-                                <p class="text-muted">Загрузка случайных приютов...</p>
+                                <p class="text-muted">Загрузка приютов...</p>
                             </div>
                         </div>
                         
@@ -1206,7 +1209,7 @@
                         <p style="font-size: 14px; color: var(--gray);">
                             "Твой Будущий Питомец" - сервис для помощи животным.<br>
                             Версия 4.0.0 (работа с приютами)<br>
-                            Все данные хранятся локально в вашем браузере.
+                            Все приюты хранятся в облачной базе данных.
                         </p>
                     </div>
                     
@@ -1269,21 +1272,42 @@
     </div>
 
     <script>
+        // ===== НАСТРОЙКИ SUPABASE =====
+        // ⚠️ ВАЖНО: ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ ИЗ SUPABASE!
+        const SUPABASE_URL = 'https://azodayrofbzbdzedaurf.supabase.co';  // Project URL из настроек Supabase
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6b2RheXJvZmJ6YmR6ZWRhdXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzUzODMsImV4cCI6MjA4NDIxMTM4M30.EBIjD3G9023-BPVtqPKBMzkchlmoL8LH7aCxh5q3mhA';         // anon public ключ (НЕ secret!)
+        
+        // Проверка ключей
+        if (SUPABASE_URL.includes('ВАШ_ID') || SUPABASE_KEY.includes('ВАШ_ANON_PUBLIC_KEY')) {
+            console.error('❌ ЗАМЕНИТЕ SUPABASE_URL и SUPABASE_KEY на свои значения!');
+            alert('⚠️ Настройте Supabase: замените SUPABASE_URL и SUPABASE_KEY в коде');
+        }
+        
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let tg = window.Telegram.WebApp;
         let currentMode = localStorage.getItem('futurepet_mode') || 'user';
         let currentUser = {};
-        let shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
-        let leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+        let shelters = []; // Приюты из Supabase
+        let leads = []; // Заявки из Supabase
         let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
         let reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
         let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
+        let supabase; // Supabase клиент
         
-        // ===== НАСТРОЙКИ СИНХРОНИЗАЦИИ =====
-        const SYNC_ENABLED = true;
-        const SHARED_DATA_URL = 'https://raw.githubusercontent.com/rangervadya/fututepetbot/main/shelters-data.json';
-        const SYNC_INTERVAL = 30000;
-
+        // ===== ИНИЦИАЛИЗАЦИЯ SUPABASE =====
+        function initSupabase() {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase подключен');
+                console.log('URL:', SUPABASE_URL);
+                return true;
+            } catch (error) {
+                console.error('❌ Ошибка подключения к Supabase:', error);
+                showNotification('Ошибка подключения к базе данных', 'error');
+                return false;
+            }
+        }
+        
         // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
         function getUserId() {
             if (tg && tg.initDataUnsafe?.user?.id) {
@@ -1350,55 +1374,277 @@
         }
         
         function saveDataToLocalStorage() {
-            localStorage.setItem('futurepet_shelters', JSON.stringify(shelters));
-            localStorage.setItem('futurepet_leads', JSON.stringify(leads));
             localStorage.setItem('futurepet_favorite_shelters', JSON.stringify(favoriteShelters));
             localStorage.setItem('futurepet_reminders', JSON.stringify(reminders));
         }
         
         function clearLocalData() {
-            if (confirm('Вы уверены, что хотите очистить все локальные данные?')) {
-                localStorage.removeItem('futurepet_shelters');
-                localStorage.removeItem('futurepet_leads');
+            if (confirm('Вы уверены, что хотите очистить все локальные данные? (избранное, напоминания)')) {
                 localStorage.removeItem('futurepet_favorite_shelters');
                 localStorage.removeItem('futurepet_reminders');
                 localStorage.removeItem('futurepet_user');
                 localStorage.removeItem('futurepet_user_id');
                 localStorage.removeItem('futurepet_mode');
-                localStorage.removeItem('futurepet_gist_id');
                 
-                shelters = [];
-                leads = [];
                 favoriteShelters = [];
                 reminders = [];
                 
-                showNotification('Данные очищены', 'success');
+                showNotification('Локальные данные очищены', 'success');
                 setTimeout(() => {
                     location.reload();
                 }, 1000);
             }
         }
         
-        // ===== ФУНКЦИИ СИНХРОНИЗАЦИИ =====
-        async function syncData() {
-            if (!SYNC_ENABLED) {
-                showNotification('Синхронизация отключена. Настройте GitHub Gist для включения.', 'warning');
-                return;
+        // ===== ФУНКЦИИ РАБОТЫ С SUPABASE =====
+        
+        // Загрузить все приюты из Supabase
+        async function loadSheltersFromSupabase() {
+            if (!supabase) {
+                showNotification('Нет подключения к базе данных', 'error');
+                return [];
             }
             
-            showLoading('Синхронизация с сервером...');
+            try {
+                console.log('🔄 Загрузка приютов из Supabase...');
+                
+                const { data, error } = await supabase
+                    .from('shelters')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Ошибка загрузки приютов:', error);
+                    throw error;
+                }
+                
+                // Преобразуем данные в наш формат
+                shelters = data.map(item => ({
+                    id: item.id,
+                    userId: item.user_id,
+                    type: item.type,
+                    name: item.name,
+                    shortDescription: item.short_description,
+                    detailedDescription: item.detailed_description,
+                    city: item.city,
+                    address: item.address,
+                    phone: item.phone,
+                    email: item.email,
+                    website: item.website,
+                    schedule: item.schedule,
+                    status: item.status,
+                    views: item.views || 0,
+                    registeredAt: item.created_at,
+                    updatedAt: item.updated_at,
+                    isFromCloud: true // Помечаем что из облака
+                }));
+                
+                console.log(`✅ Загружено ${shelters.length} приютов из Supabase`);
+                
+                // Кэшируем в localStorage для офлайн-работы
+                localStorage.setItem('futurepet_shelters_cache', JSON.stringify(shelters));
+                localStorage.setItem('futurepet_last_sync', new Date().toISOString());
+                
+                return shelters;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки из Supabase:', error);
+                
+                // Пробуем загрузить из кэша
+                const cached = localStorage.getItem('futurepet_shelters_cache');
+                if (cached) {
+                    shelters = JSON.parse(cached);
+                    console.log(`📂 Используем кэш: ${shelters.length} приютов`);
+                    showNotification('Используем кэшированные данные', 'warning');
+                }
+                
+                return shelters;
+            }
+        }
+        
+        // Сохранить приют в Supabase
+        async function saveShelterToSupabase(shelterData) {
+            if (!supabase) {
+                showNotification('Нет подключения к интернету', 'error');
+                return false;
+            }
             
             try {
-                await loadDataFromServer();
-                await saveDataToServer();
+                console.log('💾 Сохранение приюта в Supabase:', shelterData.name);
                 
-                showNotification('Данные синхронизированы', 'success');
+                const dbData = {
+                    id: shelterData.id,
+                    user_id: shelterData.userId,
+                    type: shelterData.type,
+                    name: shelterData.name,
+                    short_description: shelterData.shortDescription,
+                    detailed_description: shelterData.detailedDescription,
+                    city: shelterData.city,
+                    address: shelterData.address,
+                    phone: shelterData.phone,
+                    email: shelterData.email || null,
+                    website: shelterData.website || null,
+                    schedule: shelterData.schedule || null,
+                    status: 'approved',
+                    views: shelterData.views || 0,
+                    created_at: shelterData.registeredAt || new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                
+                const { data, error } = await supabase
+                    .from('shelters')
+                    .upsert([dbData]);
+                
+                if (error) {
+                    console.error('Ошибка сохранения приюта:', error);
+                    throw error;
+                }
+                
+                console.log('✅ Приют сохранен в Supabase');
+                
+                // Обновляем локальный список
+                await loadSheltersFromSupabase();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Ошибка сохранения в Supabase:', error);
+                showNotification('Ошибка сохранения приюта', 'error');
+                return false;
+            }
+        }
+        
+        // Загрузить заявки из Supabase
+        async function loadLeadsFromSupabase() {
+            if (!supabase) return [];
+            
+            try {
+                const userId = getUserId();
+                
+                const { data, error } = await supabase
+                    .from('leads')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                leads = data.map(item => ({
+                    id: item.id,
+                    userId: item.user_id,
+                    userName: item.user_name,
+                    userPhone: item.user_phone,
+                    partnerId: item.partner_id,
+                    type: item.type,
+                    date: item.date,
+                    comment: item.comment,
+                    status: item.status,
+                    createdAt: item.created_at
+                }));
+                
+                console.log(`✅ Загружено ${leads.length} заявок`);
+                
+                // Кэшируем
+                localStorage.setItem('futurepet_leads_cache', JSON.stringify(leads));
+                
+                return leads;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки заявок:', error);
+                
+                const cached = localStorage.getItem('futurepet_leads_cache');
+                if (cached) {
+                    leads = JSON.parse(cached);
+                }
+                
+                return leads;
+            }
+        }
+        
+        // Сохранить заявку в Supabase
+        async function saveLeadToSupabase(leadData) {
+            if (!supabase) {
+                showNotification('Нет подключения к интернету', 'error');
+                return false;
+            }
+            
+            try {
+                const dbData = {
+                    id: leadData.id,
+                    user_id: leadData.userId,
+                    user_name: leadData.userName,
+                    user_phone: leadData.userPhone,
+                    partner_id: leadData.partnerId,
+                    type: leadData.type,
+                    date: leadData.date,
+                    comment: leadData.comment,
+                    status: leadData.status,
+                    created_at: leadData.createdAt
+                };
+                
+                const { data, error } = await supabase
+                    .from('leads')
+                    .insert([dbData]);
+                
+                if (error) throw error;
+                
+                console.log('✅ Заявка сохранена в Supabase');
+                
+                // Обновляем локальный список
+                await loadLeadsFromSupabase();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Ошибка сохранения заявки:', error);
+                return false;
+            }
+        }
+        
+        // Обновить статус заявки в Supabase
+        async function updateLeadStatusInSupabase(leadId, status) {
+            if (!supabase) return false;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('leads')
+                    .update({ status: status })
+                    .eq('id', leadId);
+                
+                if (error) throw error;
+                
+                console.log('✅ Статус заявки обновлен в Supabase');
+                
+                // Обновляем локальный список
+                await loadLeadsFromSupabase();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Ошибка обновления статуса:', error);
+                return false;
+            }
+        }
+        
+        // Синхронизация данных
+        async function syncData() {
+            showLoading('Синхронизация с облаком...');
+            
+            try {
+                await loadSheltersFromSupabase();
+                await loadLeadsFromSupabase();
                 
                 // Обновляем интерфейс
                 updateRandomShelters();
-                loadAllSheltersPage();
-                loadFavorites();
+                if (document.querySelector('#all-shelters.active')) {
+                    loadAllSheltersPage();
+                }
+                if (document.querySelector('#user-favorites.active')) {
+                    loadFavorites();
+                }
                 updateStats();
+                
+                showNotification('Данные синхронизированы с облаком', 'success');
                 
             } catch (error) {
                 console.error('Ошибка синхронизации:', error);
@@ -1408,152 +1654,47 @@
             }
         }
         
-        async function loadDataFromServer() {
-            if (!GIST_ID) {
-                console.log('GIST ID не найден, создаем новый...');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-                if (!response.ok) throw new Error('Ошибка загрузки данных');
-                
-                const data = await response.json();
-                const serverData = JSON.parse(data.files['shelters.json'].content);
-                
-                // Объединяем данные с сервера с локальными
-                mergeServerData(serverData);
-                
-                console.log('Данные загружены с сервера:', serverData);
-                showNotification('Данные загружены', 'success');
-                
-            } catch (error) {
-                console.error('Ошибка загрузки с сервера:', error);
-                throw error;
-            }
-        }
-        
-        async function saveDataToServer() {
-            const serverData = {
-                shelters: shelters,
-                leads: leads,
-                lastSync: new Date().toISOString()
-            };
-            
-            // Если у нас нет GIST ID, создаем новый gist
-            if (!GIST_ID) {
-                await createNewGist(serverData);
-                return;
-            }
-            
-            try {
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        files: {
-                            'shelters.json': {
-                                content: JSON.stringify(serverData, null, 2)
-                            }
-                        }
-                    })
-                });
-                
-                if (!response.ok) throw new Error('Ошибка сохранения данных');
-                
-                console.log('Данные сохранены на сервер');
-                
-            } catch (error) {
-                console.error('Ошибка сохранения на сервер:', error);
-                throw error;
-            }
-        }
-        
-        async function createNewGist(serverData) {
-            try {
-                const response = await fetch('https://api.github.com/gists', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        description: 'Приюты для животных - общие данные',
-                        public: true,
-                        files: {
-                            'shelters.json': {
-                                content: JSON.stringify(serverData, null, 2)
-                            }
-                        }
-                    })
-                });
-                
-                if (!response.ok) throw new Error('Ошибка создания gist');
-                
-                const data = await response.json();
-                localStorage.setItem('futurepet_gist_id', data.id);
-                
-                console.log('Создан новый Gist:', data.id);
-                showNotification('Создана общая база данных', 'success');
-                
-            } catch (error) {
-                console.error('Ошибка создания gist:', error);
-                throw error;
-            }
-        }
-        
-        function mergeServerData(serverData) {
-            // Объединяем приюты
-            serverData.shelters.forEach(serverShelter => {
-                const localIndex = shelters.findIndex(s => s.id === serverShelter.id);
-                if (localIndex === -1) {
-                    // Новый приют с сервера
-                    shelters.push(serverShelter);
-                } else {
-                    // Обновляем существующий (берем более новую версию)
-                    if (new Date(serverShelter.updatedAt || 0) > new Date(shelters[localIndex].updatedAt || 0)) {
-                        shelters[localIndex] = serverShelter;
-                    }
-                }
-            });
-            
-            // Объединяем заявки
-            serverData.leads.forEach(serverLead => {
-                const localIndex = leads.findIndex(l => l.id === serverLead.id);
-                if (localIndex === -1) {
-                    leads.push(serverLead);
-                }
-            });
-            
-            saveDataToLocalStorage();
-        }
-        
-        // ===== ИНИЦИАЛИЗАЦИЯ =====
-        function initializeApp() {
+        // ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
+        async function initializeApp() {
             console.log('🚀 Инициализация приложения');
             
             try {
+                // Инициализируем Supabase
+                if (!initSupabase()) {
+                    showNotification('Ошибка подключения к базе данных', 'error');
+                    hideLoading();
+                    return;
+                }
+                
+                // Telegram Web App
                 if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
                     tg.ready();
                     tg.expand();
                 }
                 
+                // Инициализация пользователя
                 initializeUser();
+                
+                // Настройка интерфейса
                 updateNavigation();
                 initForms();
-                loadInitialData();
-                checkReminders();
+                
+                // Загружаем данные из Supabase
+                showLoading('Загрузка данных из облака...');
+                await loadSheltersFromSupabase();
+                await loadLeadsFromSupabase();
+                
+                // Локальные данные
+                loadLocalData();
+                
+                // Показываем главную страницу
                 showPage('user-home');
                 
-                // Автоматическая синхронизация при загрузке
-                setTimeout(() => {
-                    if (SYNC_ENABLED && GIST_ID) {
-                        loadDataFromServer().catch(console.error);
-                    }
-                }, 1000);
+                // Настраиваем автосинхронизацию (каждые 60 секунд)
+                setInterval(async () => {
+                    await loadSheltersFromSupabase();
+                    updateRandomShelters();
+                }, 60000);
                 
                 console.log('✅ Приложение инициализировано');
                 hideLoading();
@@ -1579,6 +1720,7 @@
             
             currentUser = currentUserData;
             
+            // Обновляем информацию в настройках
             const userName = document.getElementById('userName');
             const userIdEl = document.getElementById('userId');
             
@@ -1586,9 +1728,7 @@
             if (userIdEl) userIdEl.textContent = `ID: ${currentUser.id.substring(0, 15)}...`;
         }
         
-        function loadInitialData() {
-            shelters = JSON.parse(localStorage.getItem('futurepet_shelters')) || [];
-            leads = JSON.parse(localStorage.getItem('futurepet_leads')) || [];
+        function loadLocalData() {
             favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
             reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
             
@@ -1600,17 +1740,22 @@
         function updateStats() {
             const userId = getUserId();
             
+            // Статистика пользователя
             const userStats = document.getElementById('userStats');
             if (userStats) {
-                const approvedShelters = shelters.filter(s => s.status === 'approved');
                 const userLeads = leads.filter(l => l.userId === userId).length;
                 const favoriteCount = favoriteShelters.length;
                 const reminderCount = reminders.filter(r => r.userId === userId && !r.completed).length;
+                const myShelters = shelters.filter(s => s.userId === userId).length;
                 
                 userStats.innerHTML = `
                     <div class="list-item">
                         <i class="fas fa-hands-helping" style="color: var(--primary);"></i>
-                        <span>Приютов на платформе: <strong>${approvedShelters.length}</strong></span>
+                        <span>Приютов на платформе: <strong>${shelters.length}</strong></span>
+                    </div>
+                    <div class="list-item">
+                        <i class="fas fa-home" style="color: var(--warning);"></i>
+                        <span>Мои приюты: <strong>${myShelters}</strong></span>
                     </div>
                     <div class="list-item">
                         <i class="fas fa-heart" style="color: var(--danger);"></i>
@@ -1624,13 +1769,10 @@
                         <i class="fas fa-bell" style="color: var(--accent);"></i>
                         <span>Активных напоминаний: <strong>${reminderCount}</strong></span>
                     </div>
-                    <div class="list-item">
-                        <i class="fas fa-database" style="color: var(--warning);"></i>
-                        <span>Синхронизация: <strong>${SYNC_ENABLED ? 'Включена' : 'Выключена'}</strong></span>
-                    </div>
                 `;
             }
             
+            // Статистика для партнёра
             const shelterLeadCount = document.getElementById('shelterLeadCount');
             const shelterNewLeadsCount = document.getElementById('shelterNewLeadsCount');
             
@@ -1815,20 +1957,18 @@
             }
         }
         
-        // ===== ФУНКЦИИ ДЛЯ СЛУЧАЙНЫХ ПРИЮТОВ =====
+        // ===== ФУНКЦИИ ДЛЯ ПРИЮТОВ =====
         function updateRandomShelters() {
             const container = document.getElementById('randomSheltersContainer');
             if (!container) return;
             
-            const approvedShelters = shelters.filter(s => s.status === 'approved');
-            
-            if (approvedShelters.length === 0) {
+            if (shelters.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-home empty-state-icon"></i>
                         <p class="text-muted">Пока нет зарегистрированных приютов</p>
-                        <button class="btn btn-primary mt-10" onclick="syncData()">
-                            <i class="fas fa-sync-alt"></i> Загрузить приюты
+                        <button class="btn btn-primary mt-10" onclick="showPage('partner-register')">
+                            <i class="fas fa-plus"></i> Добавить первый приют
                         </button>
                     </div>
                 `;
@@ -1836,10 +1976,10 @@
             }
             
             let randomShelters = [];
-            if (approvedShelters.length <= 2) {
-                randomShelters = [...approvedShelters];
+            if (shelters.length <= 2) {
+                randomShelters = [...shelters];
             } else {
-                const shuffled = [...approvedShelters].sort(() => 0.5 - Math.random());
+                const shuffled = [...shelters].sort(() => 0.5 - Math.random());
                 randomShelters = shuffled.slice(0, 2);
             }
             
@@ -1873,7 +2013,7 @@
                         </div>
                     </div>
                     <button class="favorite-btn" onclick="toggleFavoriteShelter('${shelter.id}', event)">
-                        <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}"></i>
+                        <i class="fas ${isFavorite ? 'fa-heart' : 'fa-heart'}" style="color: ${isFavorite ? 'var(--danger)' : 'var(--gray)'}"></i>
                     </button>
                 </div>
             `;
@@ -1893,7 +2033,7 @@
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
-                    showNotification('Случайные приюты обновлены', 'success');
+                    showNotification('Список приютов обновлен', 'success');
                 }, 500);
             }
         }
@@ -2049,6 +2189,7 @@
         
         // ===== ФУНКЦИИ ДЛЯ ФОРМ =====
         function initForms() {
+            // Счетчик символов для краткого описания
             const shortDescTextarea = document.getElementById('partnerShortDescription');
             if (shortDescTextarea) {
                 shortDescTextarea.addEventListener('input', function() {
@@ -2059,9 +2200,10 @@
                 });
             }
             
+            // Форма регистрации приюта
             const partnerRegisterForm = document.getElementById('partnerRegisterForm');
             if (partnerRegisterForm) {
-                partnerRegisterForm.addEventListener('submit', function(e) {
+                partnerRegisterForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -2085,7 +2227,7 @@
                     
                     const submitBtn = document.getElementById('partnerSubmitBtn');
                     const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение...';
+                    submitBtn.innerHTML = '<div class="loader"></div> Сохранение в облако...';
                     submitBtn.disabled = true;
                     
                     const userId = getUserId();
@@ -2107,42 +2249,42 @@
                         schedule: document.getElementById('partnerSchedule').value.trim() || null,
                         status: 'approved',
                         registeredAt: existingShelter ? existingShelter.registeredAt : new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
                         views: existingShelter ? existingShelter.views : 0
                     };
                     
                     console.log('📝 Сохранение приюта:', shelterData);
                     
-                    if (existingShelter) {
-                        const index = shelters.findIndex(s => s.id === existingShelter.id);
-                        shelters[index] = shelterData;
-                    } else {
-                        shelters.push(shelterData);
+                    try {
+                        // Сохраняем в Supabase
+                        const saved = await saveShelterToSupabase(shelterData);
+                        
+                        if (saved) {
+                            showNotification('✅ Приют зарегистрирован! Он виден всем пользователям.', 'success');
+                            
+                            partnerRegisterForm.reset();
+                            
+                            updatePartnerStatus();
+                            updateStats();
+                            
+                            showPage('partner-home');
+                        } else {
+                            showNotification('Ошибка сохранения приюта', 'error');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        showNotification('Ошибка сохранения приюта', 'error');
+                    } finally {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
                     }
-                    
-                    saveDataToLocalStorage();
-                    
-                    // Автоматическая синхронизация при создании/обновлении приюта
-                    if (SYNC_ENABLED) {
-                        saveDataToServer().catch(console.error);
-                    }
-                    
-                    partnerRegisterForm.reset();
-                    
-                    updatePartnerStatus();
-                    updateStats();
-                    
-                    showPage('partner-home');
-                    showNotification('Информация о приюте сохранена!', 'success');
-                    
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
                 });
             }
             
+            // Форма заявки
             const leadForm = document.getElementById('leadForm');
             if (leadForm) {
-                leadForm.addEventListener('submit', function(e) {
+                leadForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const requiredFields = [
@@ -2175,25 +2317,30 @@
                     
                     console.log('📝 Создание новой заявки:', newLead);
                     
-                    leads.unshift(newLead);
-                    saveDataToLocalStorage();
-                    
-                    // Синхронизируем заявку
-                    if (SYNC_ENABLED) {
-                        saveDataToServer().catch(console.error);
-                    }
-                    
-                    leadForm.reset();
-                    closeLeadModal();
-                    
-                    showNotification('Заявка успешно отправлена!', 'success');
-                    
-                    if (currentMode === 'partner') {
-                        loadPartnerLeads();
+                    try {
+                        const saved = await saveLeadToSupabase(newLead);
+                        
+                        if (saved) {
+                            showNotification('✅ Заявка успешно отправлена!', 'success');
+                        } else {
+                            showNotification('⚠️ Заявка сохранена локально. Подключитесь к интернету.', 'warning');
+                        }
+                        
+                        leadForm.reset();
+                        closeLeadModal();
+                        
+                        if (currentMode === 'partner') {
+                            loadPartnerLeads();
+                        }
+                        
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        showNotification('Ошибка отправки заявки', 'error');
                     }
                 });
             }
             
+            // Форма добавления напоминания
             const reminderForm = document.getElementById('reminderForm');
             if (reminderForm) {
                 reminderForm.addEventListener('submit', function(e) {
@@ -2277,23 +2424,21 @@
             const container = document.getElementById('allSheltersList');
             if (!container) return;
             
-            const approvedShelters = shelters.filter(s => s.status === 'approved');
-            
             container.innerHTML = '';
             
-            if (approvedShelters.length === 0) {
+            if (shelters.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-home empty-state-icon"></i>
                         <h3 style="color: var(--dark); margin-bottom: 10px;">Нет приютов</h3>
-                        <p class="text-muted">Приюты проходят модерацию перед публикацией</p>
+                        <p class="text-muted">Приюты загружаются из облачной базы данных</p>
                         <button class="btn btn-primary mt-10" onclick="syncData()">
-                            <i class="fas fa-sync-alt"></i> Загрузить приюты
+                            <i class="fas fa-sync-alt"></i> Обновить данные
                         </button>
                     </div>
                 `;
             } else {
-                approvedShelters.forEach(shelter => {
+                shelters.forEach(shelter => {
                     const shelterCard = createShelterCard(shelter);
                     container.appendChild(shelterCard);
                 });
@@ -2307,14 +2452,13 @@
             if (!searchInput || !container) return;
             
             const searchTerm = searchInput.value.toLowerCase();
-            const approvedShelters = shelters.filter(s => s.status === 'approved');
             
             if (!searchTerm) {
                 loadAllSheltersPage();
                 return;
             }
             
-            const filteredShelters = approvedShelters.filter(shelter => 
+            const filteredShelters = shelters.filter(shelter => 
                 shelter.name.toLowerCase().includes(searchTerm) ||
                 shelter.city.toLowerCase().includes(searchTerm) ||
                 shelter.shortDescription.toLowerCase().includes(searchTerm) ||
@@ -2486,20 +2630,17 @@
             });
         }
         
-        function updateLeadStatus(leadId, status) {
-            const leadIndex = leads.findIndex(l => l.id === leadId);
-            if (leadIndex !== -1) {
-                leads[leadIndex].status = status;
-                saveDataToLocalStorage();
-                
-                // Синхронизируем изменение статуса
-                if (SYNC_ENABLED) {
-                    saveDataToServer().catch(console.error);
-                }
+        async function updateLeadStatus(leadId, status) {
+            try {
+                await updateLeadStatusInSupabase(leadId, status);
                 
                 loadPartnerLeads();
                 updateStats();
                 showNotification('Статус заявки обновлен', 'success');
+                
+            } catch (error) {
+                console.error('Ошибка обновления статуса:', error);
+                showNotification('Ошибка обновления', 'error');
             }
         }
         
@@ -2534,9 +2675,6 @@
             if (!container) return;
             
             const isFavorite = favoriteShelters.includes(shelter.id);
-            
-            shelter.views = (shelter.views || 0) + 1;
-            saveDataToLocalStorage();
             
             container.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -2644,7 +2782,7 @@
         // ===== ЗАГРУЗКА ПРИЛОЖЕНИЯ =====
         document.addEventListener('DOMContentLoaded', initializeApp);
         
-        console.log('🐾 Приложение "Твой Будущий Питомец" загружено!');
+        console.log('🐾 Приложение "Твой Будущий Питомец" с Supabase загружено!');
     </script>
 </body>
 </html>
