@@ -1327,9 +1327,27 @@ const SUPABASE_KEY = 'ВАШ_ANON_PUBLIC_KEY';         // Замените на 
         let favoriteShelters = JSON.parse(localStorage.getItem('futurepet_favorite_shelters')) || [];
         let reminders = JSON.parse(localStorage.getItem('futurepet_reminders')) || [];
         let currentUserData = JSON.parse(localStorage.getItem('futurepet_user')) || null;
+        let supabaseClient = null; // Клиент Supabase
         
-        // Проверка настроек Supabase
-        const isSupabaseConfigured = !SUPABASE_URL.includes('ВАШ_ID') && !SUPABASE_KEY.includes('ВАШ_ANON');
+        // ===== ИНИЦИАЛИЗАЦИЯ SUPABASE =====
+        function initSupabase() {
+            try {
+                // Проверяем, что URL и ключ не дефолтные
+                if (SUPABASE_URL.includes('ВАШ_ID') || SUPABASE_KEY.includes('ВАШ_ANON')) {
+                    console.log('⚠️ Supabase не настроен. Используйте локальное хранилище.');
+                    return false;
+                }
+                
+                // Создаем клиент Supabase
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase подключен:', SUPABASE_URL);
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Ошибка подключения к Supabase:', error);
+                return false;
+            }
+        }
         
         // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
         function getUserId() {
